@@ -8,20 +8,68 @@
 // QUERY: ref_currency_mapping
 // ------------------------------------------------------------------------------
 let
-    Source = Table.FromRows({
-        {"EGP", "EGP", "Egyptian Pound", "جنيه مصري", 1.0},
-        {"EGP ", "EGP", "Egyptian Pound", "جنيه مصري", 1.0},
-        {"جنيه", "EGP", "Egyptian Pound", "جنيه مصري", 1.0},
-        {"جنيه مصري", "EGP", "Egyptian Pound", "جنيه مصري", 1.0},
-        {"USD", "USD", "US Dollar", "دولار أمريكي", 30.90},
-        {"EUR", "EUR", "Euro", "يورو", 33.50}
-    }, {"RawCurrency", "NormalizedCurrency", "CurrencyName_EN", "CurrencyName_AR", "BaseExchangeRateToEGP"}),
+    // 1. Fetch live exchange rates from Open Exchange Rate API (Zero-Auth Public Endpoint)
+    // Uses static root domain + RelativePath for seamless scheduled refresh in Power BI Service
+    ApiUrl = "https://open.er-api.com",
+    ApiPath = "v6/latest/USD",
+    ApiResponse = try Json.Document(
+        Web.Contents(
+            ApiUrl, 
+            [
+                RelativePath = ApiPath,
+                Headers = [#"Accept" = "application/json", #"User-Agent" = "PowerQuery-CleopatraBI"]
+            ]
+        )
+    ) otherwise null,
+
+    // 2. Extract dynamic live currency multipliers with defensive fallback
+    IsSuccess = ApiResponse <> null and (try ApiResponse[result] = "success" otherwise false),
+    RatesRecord = if IsSuccess then ApiResponse[rates] else null,
+
+    // Calculate rates to EGP (Base currency = EGP)
+    LiveRateUSD = if IsSuccess and Record.HasFields(RatesRecord, "EGP") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP"), 4) 
+                  else 50.00,
+
+    LiveRateEUR = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "EUR") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "EUR"), 4) 
+                  else 55.00,
+
+    LiveRateGBP = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "GBP") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "GBP"), 4) 
+                  else 65.00,
+
+    RateTimestamp = if IsSuccess and Record.HasFields(ApiResponse, "time_last_update_utc") 
+                    then Text.From(ApiResponse[time_last_update_utc]) 
+                    else DateTimeZone.ToText(DateTimeZone.UtcNow()),
+
+    DataSourceTag = if IsSuccess then "Live Web API (open.er-api.com)" else "Defensive Fallback Anchor",
+
+    // 3. Construct reference mapping matrix with live dynamic rates
+    CurrencyRows = {
+        {"EGP", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"EGP ", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"جنيه", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"جنيه مصري", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"ج.م", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"USD", "USD", "US Dollar", "دولار أمريكي", LiveRateUSD, DataSourceTag, RateTimestamp},
+        {"EUR", "EUR", "Euro", "يورو", LiveRateEUR, DataSourceTag, RateTimestamp},
+        {"GBP", "GBP", "British Pound", "جنيه إسترليني", LiveRateGBP, DataSourceTag, RateTimestamp}
+    },
+    
+    Source = Table.FromRows(
+        CurrencyRows, 
+        {"RawCurrency", "NormalizedCurrency", "CurrencyName_EN", "CurrencyName_AR", "BaseExchangeRateToEGP", "RateSource", "LastUpdatedUtc"}
+    ),
+    
     Typed = Table.TransformColumnTypes(Source, {
         {"RawCurrency", type text},
         {"NormalizedCurrency", type text},
         {"CurrencyName_EN", type text},
         {"CurrencyName_AR", type text},
-        {"BaseExchangeRateToEGP", type number}
+        {"BaseExchangeRateToEGP", type number},
+        {"RateSource", type text},
+        {"LastUpdatedUtc", type text}
     })
 in
     Typed

@@ -28,28 +28,94 @@ All queries in `03_Reference` have **`Enable Load = False`**.
 
 All queries below are created in Power Query Editor via **Home** $\rightarrow$ **New Source** $\rightarrow$ **Blank Query** $\rightarrow$ **Advanced Editor**, and stored in group **`03_Reference`**.
 
-### 3.1: `ref_currency_mapping`
-Standardizes all Egyptian currency variants to standard ISO code `"EGP"`, and documents exchange rate anchors.
+### 3.1: `ref_currency_mapping` (Live Web API Integration)
+Standardizes all regional currency notations and colloquial Egyptian strings (`"EGP"`, `"جنيه"`, `"ج.م"`) to standard ISO code `"EGP"`, while dynamically fetching **live daily forex conversion rates** from the public Open Exchange Rates Web API (`open.er-api.com`).
+
+#### 🌐 Web API Architecture & Design Principles:
+1. **Zero-Auth Public Endpoint**: Uses `https://open.er-api.com/v6/latest/USD`, which requires zero API keys or authentication headers.
+2. **Power BI Service Scheduled Refresh Compliant**: Implements static base domain (`"https://open.er-api.com"`) combined with `[RelativePath = "v6/latest/USD"]` option to comply with Power BI Service cloud scheduled refresh rules (preventing dynamic URL firewall blocks).
+3. **Defensive Air-Gapped Fallback**: Encapsulated within `try ... otherwise null` so that offline local development, airplane mode, or temporary network interruptions gracefully fall back to default anchors without failing the tabular model refresh.
+4. **Normalized Currency Rates to EGP**:
+   $$\text{Rate}_{\text{USD}\rightarrow\text{EGP}} = \text{Rates}[\text{EGP}]$$
+   $$\text{Rate}_{\text{EUR}\rightarrow\text{EGP}} = \frac{\text{Rates}[\text{EGP}]}{\text{Rates}[\text{EUR}]}$$
+   $$\text{Rate}_{\text{GBP}\rightarrow\text{EGP}} = \frac{\text{Rates}[\text{EGP}]}{\text{Rates}[\text{GBP}]}$$
 
 ```powerquery
 let
-    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WctQ11DU01DWwMjC0MjVUitWJVnLTNTIGcozgHCc9Y2MwxxjIdgSyLYGsWAA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [RawCurrency = _t, NormalizedCurrency = _t, CurrencyName_EN = _t, CurrencyName_AR = _t]),
+    // 1. Fetch live exchange rates from Open Exchange Rate API (Zero-Auth Public Endpoint)
+    // Uses static root domain + RelativePath for seamless scheduled refresh in Power BI Service
+    ApiUrl = "https://open.er-api.com",
+    ApiPath = "v6/latest/USD",
+    ApiResponse = try Json.Document(
+        Web.Contents(
+            ApiUrl, 
+            [
+                RelativePath = ApiPath,
+                Headers = [#"Accept" = "application/json", #"User-Agent" = "PowerQuery-CleopatraBI"]
+            ]
+        )
+    ) otherwise null,
+
+    // 2. Extract dynamic live currency multipliers with defensive fallback
+    IsSuccess = ApiResponse <> null and (try ApiResponse[result] = "success" otherwise false),
+    RatesRecord = if IsSuccess then ApiResponse[rates] else null,
+
+    // Calculate rates to EGP (Base currency = EGP)
+    LiveRateUSD = if IsSuccess and Record.HasFields(RatesRecord, "EGP") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP"), 4) 
+                  else 50.00,
+
+    LiveRateEUR = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "EUR") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "EUR"), 4) 
+                  else 55.00,
+
+    LiveRateGBP = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "GBP") 
+                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "GBP"), 4) 
+                  else 65.00,
+
+    RateTimestamp = if IsSuccess and Record.HasFields(ApiResponse, "time_last_update_utc") 
+                    then Text.From(ApiResponse[time_last_update_utc]) 
+                    else DateTimeZone.ToText(DateTimeZone.UtcNow()),
+
+    DataSourceTag = if IsSuccess then "Live Web API (open.er-api.com)" else "Defensive Fallback Anchor",
+
+    // 3. Construct reference mapping matrix with live dynamic rates
+    CurrencyRows = {
+        {"EGP", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"EGP ", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"جنيه", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"جنيه مصري", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"ج.م", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+        {"USD", "USD", "US Dollar", "دولار أمريكي", LiveRateUSD, DataSourceTag, RateTimestamp},
+        {"EUR", "EUR", "Euro", "يورو", LiveRateEUR, DataSourceTag, RateTimestamp},
+        {"GBP", "GBP", "British Pound", "جنيه إسترليني", LiveRateGBP, DataSourceTag, RateTimestamp}
+    },
+    
+    Source = Table.FromRows(
+        CurrencyRows, 
+        {"RawCurrency", "NormalizedCurrency", "CurrencyName_EN", "CurrencyName_AR", "BaseExchangeRateToEGP", "RateSource", "LastUpdatedUtc"}
+    ),
+    
     Typed = Table.TransformColumnTypes(Source, {
         {"RawCurrency", type text},
         {"NormalizedCurrency", type text},
         {"CurrencyName_EN", type text},
-        {"CurrencyName_AR", type text}
+        {"CurrencyName_AR", type text},
+        {"BaseExchangeRateToEGP", type number},
+        {"RateSource", type text},
+        {"LastUpdatedUtc", type text}
     })
 in
     Typed
 ```
-*Equivalent Table Contents:*
-- `"EGP"` $\rightarrow$ `"EGP"` (`Egyptian Pound`, `جنيه مصري`)
-- `"EGP "` $\rightarrow$ `"EGP"` (`Egyptian Pound`, `جنيه مصري`)
-- `"جنيه"` $\rightarrow$ `"EGP"` (`Egyptian Pound`, `جنيه مصري`)
-- `"جنيه مصري"` $\rightarrow$ `"EGP"` (`Egyptian Pound`, `جنيه مصري`)
-- `"USD"` $\rightarrow$ `"USD"` (`US Dollar`, `دولار أمريكي`)
-- `"EUR"` $\rightarrow$ `"EUR"` (`Euro`, `يورو`)
+
+*Dynamic Table Schema:*
+* `RawCurrency`: The raw string variant appearing in source files (`"EGP"`, `"جنيه"`, `"USD"`, etc.).
+* `NormalizedCurrency`: The canonical ISO 4217 currency code (`"EGP"`, `"USD"`, `"EUR"`, `"GBP"`).
+* `CurrencyName_EN` & `CurrencyName_AR`: Bilingual currency labels for localized visual cards and tooltips.
+* `BaseExchangeRateToEGP`: Live rate multiplier dynamically fetched from the Web API (e.g. $\approx 52.04$ for USD, $\approx 59.73$ for EUR).
+* `RateSource`: Lineage tracking indicating whether data was fetched live or sourced from fallback.
+* `LastUpdatedUtc`: UTC timestamp when the quote was generated by the API.
 
 ---
 
