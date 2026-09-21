@@ -168,13 +168,31 @@ The Staging layer creates decoupled copies of your raw tables, sets proper colum
 
 ### 3.8: Building `stg_fx_rates` (730 Rows)
 
+#### 📋 Central Bank FX API Data Dictionary (`exchange_rates.json`):
+The raw API payload schema maps 730 records (USD and EUR closing exchange rates against EGP spanning 2023–2024):
+
+| JSON Field Key | Sample Value | Data Type in JSON | Target Power Query Type | Semantic Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `rate_date` | `1735689600000` | Integer (Epoch ms) | **Whole Number** (`123`) | Unix epoch timestamp in milliseconds representing quote date. |
+| `base_currency` | `"USD"` / `"EUR"` | String (ISO 4217) | **Text** (`ABC`) | Base foreign currency being exchanged. |
+| `rate` | `31.0082` | Float / Decimal | **Decimal Number** (`1.2`) | Daily exchange rate multiplier (EGP per 1 unit of `base_currency`). |
+| `quote_currency` | `"EGP"` | String (ISO 4217) | **Text** (`ABC`) | Domestic quote currency (`EGP`). |
+| `api_timestamp` | `"2025-01-01T09:00:00Z"` | String (ISO 8601 UTC) | **Date** (`📅`) or **Date/Time/Zone** (`🌐`) | Timestamp when the exchange rate quote was fetched from the API. |
+
 #### 🖱️ Step-by-Step GUI Actions:
-1. Right-click `src_exchange_rates` in `01_Source` $\rightarrow$ select **Reference**.
-2. Rename query to `stg_fx_rates` $\rightarrow$ move to group **`02_Staging`**.
-3. Set column types via header icons:
-   * `date` $\rightarrow$ **Date** (`📅`)
-   * `currency` $\rightarrow$ **Text** (`ABC`)
-   * `rate_to_egp` $\rightarrow$ **Decimal Number** (`1.2`)
+1. **Reference Source**:
+   - Right-click `src_exchange_rates` in group `01_Source` $\rightarrow$ select **Reference**.
+   - Rename the query to `stg_fx_rates` $\rightarrow$ drag/move into group **`02_Staging`**.
+2. **Set Column Types via Header Icons**:
+   - Click the type icon next to `base_currency` $\rightarrow$ select **Text** (`ABC`).
+   - Click the type icon next to `quote_currency` $\rightarrow$ select **Text** (`ABC`).
+   - Click the type icon next to `rate` (or `exchange_rate`) $\rightarrow$ select **Decimal Number** (`1.2`).
+   - Click the type icon next to `rate_date` (or `rate_date_raw`) $\rightarrow$ select **Whole Number** (`123`).
+   - Click the type icon next to `api_timestamp` $\rightarrow$ select **Date/Time/Timezone** (`🌐`) or **Date** (`📅`).
+3. **Derive Calendar Date via GUI (Optional/Recommended)**:
+   - Select the `api_timestamp` column.
+   - Go to the **Add Column** ribbon tab $\rightarrow$ click the **Date** dropdown $\rightarrow$ select **Date Only**.
+   - Rename this new column to `rate_date_canonical` (or keep `api_timestamp` typed as `Date` for direct date dimension joins).
 
 ---
 
@@ -322,7 +340,8 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
 #### 🖱️ Step-by-Step GUI Actions:
 1. Right-click `stg_fx_rates` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_fx_rates` $\rightarrow$ Move to **`04_Cleansed`**.
-2. Click header `currency` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim** $\rightarrow$ **Format** $\rightarrow$ **UPPERCASE**.
+2. Hold `Ctrl` and select `base_currency` and `quote_currency` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim** $\rightarrow$ **Format** $\rightarrow$ **UPPERCASE**.
+3. Select `rate` $\rightarrow$ verify all daily conversion multipliers are positive decimal numbers ($> 0$).
 
 ---
 
@@ -339,7 +358,7 @@ After completing these GUI steps, verify your queries:
 | `stg_inventory` | `02_Staging` | $8,400$ | Stock counters typed as Whole Numbers (`123`). |
 | `stg_targets` | `02_Staging` | $417$ | Quota values typed as Decimal (`1.2`). |
 | `stg_campaigns` | `02_Staging` | $7$ | Budget typed as Decimal (`1.2`); dates typed. |
-| `stg_fx_rates` | `02_Staging` | $730$ | Rate typed as Decimal (`1.2`); currency typed as Text. |
+| `stg_fx_rates` | `02_Staging` | $730$ | `rate` typed as Decimal (`1.2`); `base_currency` & `quote_currency` typed as Text. |
 | `cln_customers` | `04_Cleansed` | $25,200$ | Phone normalized (`010...`), lowercase emails, clean governorates. |
 | `cln_products` | `04_Cleansed` | $20$ | Currency canonicalized to `EGP`; clean whitespace. |
 | `cln_orders` | `04_Cleansed` | $502,000$ | Status normalized to `Completed`, `Returned`, `Cancelled`. |
@@ -347,7 +366,7 @@ After completing these GUI steps, verify your queries:
 | `cln_inventory` | `04_Cleansed` | $8,400$ | Trimmed SKU and store identifiers. |
 | `cln_targets` | `04_Cleansed` | $417$ | Trimmed store key and typed monthly quota. |
 | `cln_campaigns` | `04_Cleansed` | $7$ | Cleaned bilingual event names and trimmed IDs. |
-| `cln_fx_rates` | `04_Cleansed` | $730$ | Uppercase currency codes and validated daily multipliers. |
+| `cln_fx_rates` | `04_Cleansed` | $730$ | Uppercase currency codes (`USD`, `EUR`, `EGP`) and validated daily multipliers. |
 
 ---
 

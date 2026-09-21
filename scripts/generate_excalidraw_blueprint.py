@@ -113,7 +113,7 @@ def generate_excalidraw():
     add_rect("hdr-box", 60, 40, 2280, 110, "#f59e0b", "#0f172a")
     add_text("hdr-title", 90, 60, "CLEOPATRA MODERN COSMETICS | كليوباترا كوزماتكس الحديثة", 24, "#f8fafc")
     add_text("hdr-sub", 90, 95, "Enterprise Analytics Engineering Blueprint • Kimball Galaxy Fact Constellation, Isolated Quarantine & Power BI Tabular Lifecycle", 13, "#94a3b8")
-    add_text("hdr-kpis", 1550, 75, "536,809 Rows Extracted  |  4,628 Quarantined (0.86%)  |  532,181 Clean DW (99.1%)  |  22 Govs  |  7 Marts  |  55+ DAX", 12, "#38bdf8")
+    add_text("hdr-kpis", 1550, 75, "536,809 Rows Extracted  |  4,628 Quarantined (0.86%)  |  532,181 Clean DW (99.1%)  |  22 Governorates  |  7 Marts  |  55+ DAX", 12, "#38bdf8")
 
     # Column 1: Sources
     add_rect("c1-box", 60, 180, 320, 780, "#0284c7", "#141e33")
@@ -122,11 +122,11 @@ def generate_excalidraw():
 
     add_rect("c1-s1", 75, 250, 290, 180, "#1e3a8a", "#0f172a")
     add_text("c1-s1-t", 85, 260, "🐘 PostgreSQL Operational DB", 12, "#93c5fd")
-    add_text("c1-s1-b", 85, 285, "• orders.csv (502,000 rows | 19 cols)\n  PK: order_id | FK: customer, product, store\n• customers.csv (25,200 rows | 11 cols)\n  PK: customer_id | phone (+20), gov\n• products.csv (20 SKUs | 11 cols)\n  PK: product_id | name_ar/en, price\n• stores.csv (35 stores across 22 Govs)\n  PK: store_id | store_type, area", 10.5, "#e2e8f0")
+    add_text("c1-s1-b", 85, 285, "• orders.csv (502,000 rows | 19 cols)\n  PK: order_id | FK: customer, product, store\n• customers.csv (25,200 rows | 11 cols)\n  PK: customer_id | phone (+20), gov\n• products.csv (20 SKUs | 11 cols)\n  PK: product_id | name_ar/en, price\n• stores.csv (35 stores across 22 Governorates)\n  PK: store_id | store_type, area", 10.5, "#e2e8f0")
 
     add_rect("c1-s2", 75, 445, 290, 120, "#0e7490", "#0f172a")
     add_text("c1-s2-t", 85, 455, "📦 Supply Chain WMS ERP", 12, "#67e8f9")
-    add_text("c1-s2-b", 85, 480, "• inventory_monthly.csv (8,400 rows)\n  Monthly Store × SKU Balance Snapshot\n  Open + Recv - Sold - Dmg = Close\n  Tracks Stockout Risk Flags & Damage %", 10.5, "#e2e8f0")
+    add_text("c1-s2-b", 85, 480, "• inventory_monthly.csv (8,400 rows)\n  Monthly Store × SKU Balance Snapshot\n  Open + Recv - Sold - Damaged = Close\n  Tracks Stockout Risk Flags & Damage %", 10.5, "#e2e8f0")
 
     add_rect("c1-s3", 75, 580, 290, 120, "#047857", "#0f172a")
     add_text("c1-s3-t", 85, 590, "📊 Commercial Reference (Excel)", 12, "#6ee7b7")
@@ -198,7 +198,7 @@ def generate_excalidraw():
 
     add_rect("c4-fail", 1115, 515, 320, 420, "#be123c", "#1c0a11")
     add_text("c4-fail-t", 1125, 530, "⚠️ QUARANTINE VAULT (0.86% DEFECT)", 12, "#fb7185")
-    add_text("c4-fail-b", 1125, 555, "4,628 Defective Rows Safely Isolated:\n\n• dq.rejected_orders (4,124 rows):\n  - Orphan Customer FK: 2,840 rows\n  - Negative Qty / Price: 812 rows\n  - Invalid Store ID: 310 rows\n  - Future Order Dates: 162 rows\n\n• dq.rejected_customers (400 rows):\n  - Malformed Phone (non-EG length): 260\n  - Unmapped Governorate typo: 95\n  - Missing Customer Name: 45\n\n• dq.rejected_inventory (100 rows):\n  - Negative Closing Stock: 62\n  - Equation Gap Mismatch: 38\n\n• dq.rejected_targets (4 rows):\n  - Negative Sales Quota values\n\nLedger: dq.data_quality_results (100% Traceable)", 10, "#fecdd3")
+    add_text("c4-fail-b", 1125, 555, "4,628 Defective Rows Safely Isolated:\n\n• dq.rejected_orders (4,124 rows):\n  - Orphan Customer FK: 2,840 rows\n  - Negative Qty / Price: 812 rows\n  - Invalid Store ID: 310 rows\n  - Future Order Dates: 162 rows\n\n• dq.rejected_customers (400 rows):\n  - Malformed Phone (non-EG length): 260\n  - Unmapped Governorateernorate typo: 95\n  - Missing Customer Name: 45\n\n• dq.rejected_inventory (100 rows):\n  - Negative Closing Stock: 62\n  - Equation Gap Mismatch: 38\n\n• dq.rejected_targets (4 rows):\n  - Negative Sales Quota values\n\nLedger: dq.data_quality_results (100% Traceable)", 10, "#fecdd3")
 
     # Arrow Col 4 Pass to 5
     add_arrow("arr-4-5", 1450, 450, 1490, 450, "#34d399", 4)
@@ -224,11 +224,11 @@ def generate_excalidraw():
     # Conformed Dims & Snowflake
     add_rect("c5-dims", 1505, 595, 420, 200, "#0284c7", "#071927")
     add_text("c5-dim-t", 1515, 605, "Conformed Core Dimensions (warehouse.*):", 12, "#38bdf8")
-    add_text("c5-dim-b", 1515, 630, "• dim_customer (24,800 active | SCD Type 2)\n  valid_from, valid_to, is_current, carrier_key, age_cohort\n• dim_product (20 SKUs | Egyptian Price Tiers & Domestic)\n• dim_store (35 Retail Boutiques across 22 Govs)\n• dim_date (730 Days | Egyptian Fri/Sat Weekends)\n• dim_currency (Daily FX conversion to USD/EUR)", 10, "#bae6fd")
+    add_text("c5-dim-b", 1515, 630, "• dim_customer (24,800 active | SCD Type 2)\n  valid_from, valid_to, is_current, carrier_key, age_cohort\n• dim_product (20 SKUs | Egyptian Price Tiers & Domestic)\n• dim_store (35 Retail Boutiques across 22 Governorates)\n• dim_date (730 Days | Egyptian Fri/Sat Weekends)\n• dim_currency (Daily FX conversion to USD/EUR)", 10, "#bae6fd")
 
     add_rect("c5-snow", 1505, 810, 420, 130, "#0f766e", "#042f2c")
     add_text("c5-snow-t", 1515, 820, "❄️ Snowflake Hierarchy Outriggers:", 12, "#5eead4")
-    add_text("c5-snow-b", 1515, 845, "1. dim_geography: 22 Govs ➔ 5 Economic Regions ➔ 3 Courier SLAs\n2. dim_category: Product ➔ Subcategory ➔ Strategic Margin Class\n3. dim_telecom_carrier: Vodafone, Orange, Etisalat, WE Egypt\nStrictly 1:Many Single-Direction Relationships (Pure Star Topology)", 10, "#ccfbf1")
+    add_text("c5-snow-b", 1515, 845, "1. dim_geography: 22 Governorates ➔ 5 Economic Regions ➔ 3 Courier SLAs\n2. dim_category: Product ➔ Subcategory ➔ Strategic Margin Class\n3. dim_telecom_carrier: Vodafone, Orange, Etisalat, WE Egypt\nStrictly 1:Many Single-Direction Relationships (Pure Star Topology)", 10, "#ccfbf1")
 
     # Arrow Col 5 to 6
     add_arrow("arr-5-6", 1940, 570, 1980, 570, "#c084fc", 3.5)
@@ -248,7 +248,7 @@ def generate_excalidraw():
 
     add_rect("c6-pages", 1995, 740, 330, 195, "#4c1d95", "#0a0614")
     add_text("c6-pg-t", 2005, 750, "5 Executive Report Pages:", 12, "#faf5ff")
-    add_text("c6-pg-b", 2005, 775, "1. 🏛️ Executive Pulse Scorecard (C-Suite KPIs)\n2. 🗺️ Egypt Regional Penetration (22 Govs, SLAs)\n3. 👥 Customer RFM & LTV (Carrier Affinities)\n4. 📦 Inventory Health & Stockouts (DOI Warnings)\n5. 🎯 Targets & Campaign ROAS (Store Quotas)\n\nZero cross-filter ambiguity | Pure 1:Many Model", 10, "#ddd6fe")
+    add_text("c6-pg-b", 2005, 775, "1. 🏛️ Executive Pulse Scorecard (C-Suite KPIs)\n2. 🗺️ Egypt Regional Penetration (22 Governorates, SLAs)\n3. 👥 Customer RFM & LTV (Carrier Affinities)\n4. 📦 Inventory Health & Stockouts (DOI Warnings)\n5. 🎯 Targets & Campaign ROAS (Store Quotas)\n\nZero cross-filter ambiguity | Pure 1:Many Model", 10, "#ddd6fe")
 
     excalidraw_data = {
         "type": "excalidraw",

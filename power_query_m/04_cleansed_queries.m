@@ -118,3 +118,32 @@ let
     })
 in
     TrimmedKeys
+
+
+// ------------------------------------------------------------------------------
+// QUERY: cln_campaigns (7 rows)
+// ------------------------------------------------------------------------------
+let
+    Source = stg_campaigns,
+    CleanedColumns = Table.TransformColumns(Source, {
+        {"campaign_id", Text.Trim, type text},
+        {"campaign_name_en", fnCleanText, type text},
+        {"campaign_name_ar", fnCleanText, type text},
+        {"platform", fnCleanText, type text}
+    })
+in
+    CleanedColumns
+
+
+// ------------------------------------------------------------------------------
+// QUERY: cln_fx_rates (730 rows)
+// ------------------------------------------------------------------------------
+let
+    Source = stg_fx_rates,
+    CleanedCurrencies = Table.TransformColumns(Source, {
+        {"base_currency", each Text.Upper(Text.Trim(_)), type text},
+        {"quote_currency", each Text.Upper(Text.Trim(_)), type text}
+    })
+in
+    CleanedCurrencies
+

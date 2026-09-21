@@ -152,3 +152,20 @@ let
     }, "en-US")
 in
     TypedColumns
+
+
+// ------------------------------------------------------------------------------
+// QUERY: stg_fx_rates
+// ------------------------------------------------------------------------------
+let
+    Source = src_exchange_rates,
+    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+        {"base_currency", type text},
+        {"quote_currency", type text},
+        {"exchange_rate", type number},
+        {"rate_date_raw", Int64.Type},
+        {"api_timestamp", type datetimezone}
+    }, "en-US")
+in
+    TypedColumns
