@@ -1,0 +1,19 @@
+﻿table,column,description,type
+customers,customer_id,Unique customer identifier,dimension
+customers,governorate,Egyptian governorate,dimension
+customers,customer_segment,Commercial segment,dimension
+products,product_id,Unique product identifier,dimension
+products,category,Product category,dimension
+products,list_price_egp,Retail list price in EGP,measure
+orders,order_id,Order identifier,fact
+orders,order_datetime,Order timestamp,fact
+orders,customer_id,Customer foreign key,fact
+orders,product_id,Product foreign key,fact
+orders,store_id,Store foreign key,fact
+orders,quantity,Units sold,measure
+orders,net_sales_egp,Net order sales after discount,measure
+orders,cost_egp,Estimated product cost,measure
+orders,order_status,Order lifecycle status,dimension
+inventory,closing_stock,Month-end inventory,measure
+targets,sales_target_egp,Monthly store sales target,measure
+exchange_rates,rate,Currency exchange rate to EGP,measure

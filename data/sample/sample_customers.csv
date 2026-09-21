@@ -1,0 +1,101 @@
+customer_id,customer_name_ar,customer_name_en,gender,birth_year,governorate,area,phone,email,signup_date,customer_segment
+C0000001,محمود عبدالعزيز,Ahmed Karim,Female,1982,Giza,Mohandessin,01051541693,ahmed.c0000001@example.com,2024-11-08,Retail
+C0000002,كريم منصور,Hoda Dina,Male,1999,Minya,Minya,01098209604,hoda.c0000002@example.com,2026-01-03,Premium
+C0000003,ياسمين كمال,Mena Yasmine,Female,1980,Sohag,Sohag,01028566033,mena.c0000003@example.com,2023-05-08,Retail
+C0000004,عمر حسين,Jana Hoda,Female,1982,Giza,Sheikh Zayed,01020256002,jana.c0000004@example.com,2025-04-21,Professional
+C0000005,مصطفى حمدي,Yasmine Sara,Male,1992,Gharbia,Tanta,01086946420,yasmine.c0000005@example.com,2023-11-20,Premium
+C0000006,محمد حسين,Basent Hoda,Female,1990,Gharbia,Mahalla,01077984131,basent.c0000006@example.com,2024-07-20,Professional
+C0000007,يوسف منصور,Malak Jana,Male,1988,Luxor,Luxor,01014072849,malak.c0000007@example.com,2024-01-28,Professional
+C0000008,أحمد منصور,Omar Basent,Female,1978,South Sinai,Sharm El Sheikh,01034706449,omar.c0000008@example.com,2024-05-02,Professional
+C0000009,محمد السيد,Sara Mohamed,Female,1998,Fayoum,Fayoum,01049746276,sara.c0000009@example.com,2024-02-09,Student
+C0000010,دينا السيد,Mahmoud Basent,Female,2002,Sharqia,10th of Ramadan,01059416975,mahmoud.c0000010@example.com,2023-05-28,Premium
+C0000011,دينا فؤاد,Dina Yasmine,Female,1972,Qena,Qena,01001042789,dina.c0000011@example.com,2023-05-18,Premium
+C0000012,مصطفى السيد,Mostafa Salma,Female,1970,Suez,Suez,01056659976,mostafa.c0000012@example.com,2024-09-19,Professional
+C0000013,كريم كمال,Mohamed Nour,Female,1996,Beheira,Kafr El Dawwar,01039023751,mohamed.c0000013@example.com,2023-05-19,Professional
+C0000014,بسنت السيد,Mai Basent,Male,1981,North Sinai,Arish,01036812635,mai.c0000014@example.com,2024-02-10,Premium
+C0000015,يوسف عبدالعزيز,Mahmoud Basent,Male,1971,Damietta,Damietta,01002604418,mahmoud.c0000015@example.com,2023-07-02,Professional
+C0000016,كريم السيد,Dina Mena,Female,1996,Gharbia,Tanta,01008644140,dina.c0000016@example.com,2023-09-05,Student
+C0000017,عبدالله مصطفى,Reem Karim,Male,2003,Aswan,Aswan,01032621338,reem.c0000017@example.com,2025-01-27,Professional
+C0000018,نور إبراهيم,Ahmed Reem,Female,1976,Damietta,New Damietta,01001466725,ahmed.c0000018@example.com,2025-11-27,Retail
+C0000019,منة مصطفى,Omar Mena,Female,1980,Damietta,New Damietta,01092730777,omar.c0000019@example.com,2025-08-02,Student
+C0000020,محمود فؤاد,Youssef Basent,Female,2000,Damietta,Damietta,01063309108,youssef.c0000020@example.com,2024-05-27,Retail
+C0000021,دينا فؤاد,Mahmoud Basent,Female,2000,Suez,Ain Sokhna,01017669461,mahmoud.c0000021@example.com,2024-03-20,Premium
+C0000022,محمد كمال,Mostafa Mostafa,Female,2001,Red Sea,El Gouna,+20 1046827154,mostafa.c0000022@example.com,2025-09-23,Professional
+C0000023,دينا مصطفى,Nour Karim,Female,1981,South Sinai,Sharm El Sheikh,01077652018,nour.c0000023@example.com,2024-11-04,Professional
+C0000024,مي حمدي,Reem Mahmoud,Female,1997,Ismailia,Fayed,01003971080,reem.c0000024@example.com,2023-08-28,Student
+C0000025,جنى كمال,Omar Malak,Male,2000,Alexandria,Montaza,01061882921,omar.c0000025@example.com,2025-09-27,Premium
+C0000026,نور عبدالعزيز,Omar Nour,Female,1986,Qena,Qena,01077707670,omar.c0000026@example.com,2026-01-03,Student
+C0000027,يوسف علي,Jana Mahmoud,Female,1994,South Sinai,Dahab,01030127330,jana.c0000027@example.com,2024-08-24,Student
+C0000028,عبدالله عبدالعزيز,Mahmoud Ahmed,Female,1991,Luxor,Luxor,01094521864,mahmoud.c0000028@example.com,2024-11-02,Retail
+C0000029,مصطفى عبدالعزيز,Basent Nour,Female,2002,Fayoum,Fayoum,01080902680,basent.c0000029@example.com,2025-06-22,Professional
+C0000030,مريم إبراهيم,Mena Yasmine,Female,2002,Minya,Minya,01020927697,mena.c0000030@example.com,2025-09-26,Retail
+C0000031,عمر حسين,Mahmoud Sara,Female,1997,Red Sea,Hurghada,01003170248,mahmoud.c0000031@example.com,2024-06-22,Professional
+C0000032,محمد سعيد,Salma Ahmed,Male,1996,Fayoum,Fayoum,01059219085,salma.c0000032@example.com,2025-07-03,Premium
+C0000033,ريم إبراهيم,Mostafa Basent,Female,2002,Sharqia,10th of Ramadan,01007912866,mostafa.c0000033@example.com,2024-09-22,Retail
+C0000034,محمود حسين,Ahmed Dina,Female,1997,Minya,Minya,01053990424,ahmed.c0000034@example.com,2024-08-15,Premium
+C0000035,ملك سعيد,Jana Mena,Female,2000,Gharbia,Tanta,01091441877,jana.c0000035@example.com,2024-07-01,Premium
+C0000036,دينا حمدي,Yasmine Mena,Female,1975,Beheira,Damanhur,01079689109,yasmine.c0000036@example.com,2023-01-09,Professional
+C0000037,دينا كمال,Aya Basent,Female,1978,Port Said,Port Said,01076187086,aya.c0000037@example.com,2025-08-13,Retail
+C0000038,أحمد حمدي,Sara Sara,Male,1971,Red Sea,El Gouna,01044688823,sara.c0000038@example.com,2023-12-03,Student
+C0000039,ياسمين محمود,Salma Mahmoud,Female,1980,Qena,Qena,01020165835,salma.c0000039@example.com,2025-04-25,Professional
+C0000040,سلمى إبراهيم,Karim Reem,Male,1997,Qalyubia,Obour,01097294504,karim.c0000040@example.com,2024-03-19,Retail
+C0000041,محمود كمال,Dina Jana,Female,1979,Qalyubia,Obour,01020622337,dina.c0000041@example.com,2024-10-11,Student
+C0000042,عبدالله السيد,Jana Reem,Female,1989,Gharbia,Kafr El Zayat,01051828623,jana.c0000042@example.com,2025-03-05,Premium
+C0000043,ياسمين عبدالعزيز,Ahmed Salma,Female,1992,Sharqia,10th of Ramadan,01040708277,ahmed.c0000043@example.com,2024-05-24,Premium
+C0000044,يوسف كمال,Karim Salma,Female,1975,Sohag,Sohag,01076978064,karim.c0000044@example.com,2024-04-18,Professional
+C0000045,نور عبدالعزيز,Mohamed Omar,Female,1989,North Sinai,Arish,01092253376,mohamed.c0000045@example.com,2025-08-23,Student
+C0000046,جنى كمال,Ahmed Karim,Male,1991,Red Sea,El Gouna,01068532534,ahmed.c0000046@example.com,2023-05-05,Professional
+C0000047,ياسمين حسين,Youssef Sara,Female,1973,Luxor,Luxor,01099432817,youssef.c0000047@example.com,2024-02-20,Premium
+C0000048,سارة مصطفى,Reem Karim,Female,1976,Gharbia,Tanta,01069493085,reem.c0000048@example.com,2025-07-11,Retail
+C0000049,ياسمين محمود,Reem Karim,Male,1990,Ismailia,Ismailia,01087733920,reem.c0000049@example.com,2025-01-13,Student
+C0000050,أحمد محمود,Karim Reem,Female,1989,Cairo,Downtown,01047402181,karim.c0000050@example.com,2024-07-14,Student
+C0000051,بسنت مصطفى,Karim Mena,Female,1995,Port Said,Port Said,01001942147,karim.c0000051@example.com,2023-06-30,Premium
+C0000052,عبدالله عبدالعزيز,Yasmine Reem,Female,1996,Cairo,Shorouk,01038445358,yasmine.c0000052@example.com,2023-02-18,Retail
+C0000053,محمد علي,Omar Sara,Female,1999,Cairo,Nasr City,01095313192,omar.c0000053@example.com,2023-08-02,Premium
+C0000054,محمد منصور,Hoda Mariam,Female,2003,Giza,Mohandessin,01024961330,hoda.c0000054@example.com,2025-08-22,Retail
+C0000055,مي عبدالرحمن,Mena Sara,Male,2001,Minya,Minya,01019492735,mena.c0000055@example.com,2024-10-12,Student
+C0000056,يوسف سعيد,Hoda Mena,Male,1983,Qalyubia,Shubra El Kheima,01087564748,hoda.c0000056@example.com,2024-06-14,Professional
+C0000057,آية عبدالرحمن,Basent Salma,Female,1981,Cairo,Shorouk,01038525532,basent.c0000057@example.com,2024-02-19,Retail
+C0000058,آية علي,Jana Mai,Male,2000,Gharbia,Kafr El Zayat,01048565032,jana.c0000058@example.com,2023-01-01,Professional
+C0000059,عمر حسين,Mohamed Omar,Female,1990,Aswan,Aswan,01004021856,mohamed.c0000059@example.com,2025-11-02,Professional
+C0000060,جنى سعيد,Dina Mena,Female,1978,Assiut,Assiut,01006899699,dina.c0000060@example.com,2023-03-10,Retail
+C0000061,دينا إبراهيم,Malak Karim,Female,1975,Damietta,Ras El Bar,01031871829,malak.c0000061@example.com,2024-07-30,Student
+C0000062,ياسمين منصور,Reem Karim,Male,1982,South Sinai,Sharm El Sheikh,01043496765,reem.c0000062@example.com,2023-01-07,Premium
+C0000063,هدى حمدي,Sara Sara,Female,1987,Aswan,Aswan,01015050241,sara.c0000063@example.com,2023-07-13,Student
+C0000064,عمر كمال,Mohamed Mariam,Female,1973,Sohag,Sohag,01076527325,mohamed.c0000064@example.com,2024-02-03,Student
+C0000065,مريم إبراهيم,Mai Jana,Female,1972,North Sinai,Arish,01061285343,mai.c0000065@example.com,2023-04-11,Premium
+C0000066,محمد محمود,Hoda Salma,Female,1999,Qena,Qena,01060968397,hoda.c0000066@example.com,2023-06-22,Student
+C0000067,محمد حسين,Hoda Basent,Female,1976,North Sinai,Arish,01033015377,hoda.c0000067@example.com,2025-05-23,Student
+C0000068,هدى السيد,Yasmine Basent,Female,1991,Luxor,Luxor,01029244278,yasmine.c0000068@example.com,2023-07-01,Premium
+C0000069,محمد مصطفى,Reem Yasmine,Male,2001,Dakahlia,Mit Ghamr,01069637970,reem.c0000069@example.com,2025-05-20,Professional
+C0000070,محمد مصطفى,Youssef Mariam,Female,1970,Giza,6th of October,01078879532,youssef.c0000070@example.com,2023-10-10,Premium
+C0000071,منة السيد,Nour Reem,Female,1976,North Sinai,Arish,01095572219,nour.c0000071@example.com,2024-07-20,Student
+C0000072,يوسف منصور,Ahmed Ahmed,Female,1982,Alexandria,Montaza,01056400988,ahmed.c0000072@example.com,2025-09-28,Retail
+C0000073,آية سعيد,Basent Reem,Female,1983,Minya,Minya,01049626592,basent.c0000073@example.com,2024-04-14,Professional
+C0000074,محمود مصطفى,Ahmed Aya,Female,1996,Alexandria,Stanley,01041856010,ahmed.c0000074@example.com,2025-06-17,Premium
+C0000075,سلمى فؤاد,Malak Aya,Female,1984,Qalyubia,Banha,01092607167,malak.c0000075@example.com,2025-10-12,Student
+C0000076,محمود علي,Ahmed Mariam,Female,1999,Luxor,Luxor,01081045729,ahmed.c0000076@example.com,2023-05-21,Student
+C0000077,عبدالله حمدي,Malak Omar,Female,1988,Red Sea,El Gouna,01036933082,malak.c0000077@example.com,2023-12-11,Professional
+C0000078,أحمد إبراهيم,Aya Mahmoud,Male,1982,Gharbia,Tanta,01087599760,aya.c0000078@example.com,2025-01-05,Student
+C0000079,عبدالله محمود,Yasmine Reem,Male,1997,Qena,Qena,01036811678,yasmine.c0000079@example.com,2023-10-31,Professional
+C0000080,جنى عبدالعزيز,Yasmine Youssef,Female,1971,Beheira,Damanhur,01089550304,yasmine.c0000080@example.com,2024-05-13,Professional
+C0000081,نور حسين,Karim Aya,Female,2003,Gharbia,Kafr El Zayat,01017761011,karim.c0000081@example.com,2025-10-02,Student
+C0000082,كريم حسن,Reem Mahmoud,Male,1989,Giza,Dokki,01060156139,reem.c0000082@example.com,2024-11-23,Professional
+C0000083,سلمى علي,Mahmoud Mohamed,Female,1999,Fayoum,Fayoum,01004829271,mahmoud.c0000083@example.com,2025-12-27,Retail
+C0000084,جنى حسن,Mahmoud Karim,Female,1995,Beheira,Kafr El Dawwar,01062580393,mahmoud.c0000084@example.com,2024-12-19,Student
+C0000085,محمود إبراهيم,Mohamed Nour,Female,1994,Giza,Haram,01061860126,mohamed.c0000085@example.com,2025-01-06,Retail
+C0000086,سارة منصور,Karim Hoda,Female,1995,South Sinai,Dahab,01033925044,karim.c0000086@example.com,2023-10-25,Student
+C0000087,هدى كمال,Mohamed Malak,Male,1995,Minya,Minya,01000386597,mohamed.c0000087@example.com,2025-07-08,Premium
+C0000088,ريم السيد,Hoda Mostafa,Female,1990,Damietta,Ras El Bar,01018538663,hoda.c0000088@example.com,2024-05-08,Retail
+C0000089,جنى سعيد,Hoda Basent,Female,1979,Gharbia,Tanta,01009279969,hoda.c0000089@example.com,2025-11-04,Professional
+C0000090,دينا حمدي,Sara Hoda,Male,1973,Dakahlia,Mit Ghamr,01005677442,sara.c0000090@example.com,2025-07-06,Student
+C0000091,هدى كمال,Jana Basent,Female,1997,Luxor,Luxor,01033473701,jana.c0000091@example.com,2025-03-08,Professional
+C0000092,آية مصطفى,Mena Aya,Female,2001,Suez,Suez,01096166230,MENA.C0000092@EXAMPLE.COM,2023-05-15,Premium
+C0000093,سلمى سعيد,Mostafa Aya,Male,1982,Giza,6th of October,01078558995,mostafa.c0000093@example.com,2023-11-27,Retail
+C0000094,عمر كمال,Yasmine Omar,Female,2003,Minya,Minya,01009278619,yasmine.c0000094@example.com,2023-05-17,Professional
+C0000095,عبدالله عبدالرحمن,Mena Reem,Female,1997,Damietta,Damietta,01019953702,mena.c0000095@example.com,2024-10-05,Retail
+C0000096,دينا عبدالرحمن,Nour Dina,Female,1998,Luxor,Luxor,01092932288,nour.c0000096@example.com,2023-02-21,Student
+C0000097,يوسف مصطفى,Mariam Malak,Male,1991,Qena,Qena,01036591601,mariam.c0000097@example.com,2023-10-12,Premium
+C0000098,هدى عبدالرحمن,Mostafa Mohamed,Female,1986,Qena,Qena,01055301145,mostafa.c0000098@example.com,2025-03-06,Premium
+C0000099,يوسف سعيد,Yasmine Omar,Female,1979,Qalyubia,Banha,01008549375,yasmine.c0000099@example.com,2023-01-20,Student
+C0000100,محمد مصطفى,Mahmoud Hoda,Male,1980,Assiut,Assiut,01037553898,mahmoud.c0000100@example.com,2023-01-26,Retail

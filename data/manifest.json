@@ -1,0 +1,17 @@
+{
+  "generated_at_utc": "2026-09-21T13:29:57.061488Z",
+  "seed": 20260921,
+  "customers_rows": 25200,
+  "orders_rows": 502000,
+  "products_rows": 20,
+  "stores_rows": 35,
+  "inventory_rows": 8400,
+  "targets_rows": 417,
+  "date_range": [
+    "2025-01-01",
+    "2025-12-31"
+  ],
+  "currency": "EGP",
+  "market": "Egypt",
+  "sector": "Cosmetics"
+}

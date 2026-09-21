@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Cleopatra_Cosmetics_Report"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "85a0e77c-d51b-4a5b-82e8-4cb0b8a61351"
+  }
+}

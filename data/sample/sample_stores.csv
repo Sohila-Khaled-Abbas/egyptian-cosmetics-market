@@ -1,0 +1,36 @@
+store_id,store_name_en,store_name_ar,governorate,area,store_type,distribution_region
+S001,Nasr City Beauty Store,فرع Nasr City,Cairo,Nasr City,Kiosk,Canal Hub
+S002,Heliopolis Beauty Store,فرع Heliopolis,Cairo,Heliopolis,Mall,Delta Hub
+S003,Dokki Beauty Store,فرع Dokki,Giza,Dokki,Kiosk,Delta Hub
+S004,Mohandessin Beauty Store,فرع Mohandessin,Giza,Mohandessin,Street,Upper Egypt Hub
+S005,Smouha Beauty Store,فرع Smouha,Alexandria,Smouha,Kiosk,Delta Hub
+S006,Sidi Gaber Beauty Store,فرع Sidi Gaber,Alexandria,Sidi Gaber,Kiosk,Delta Hub
+S007,Mansoura Beauty Store,فرع Mansoura,Dakahlia,Mansoura,Kiosk,Canal Hub
+S008,Talkha Beauty Store,فرع Talkha,Dakahlia,Talkha,Kiosk,Canal Hub
+S009,Tanta Beauty Store,فرع Tanta,Gharbia,Tanta,Mall,Cairo Hub
+S010,Mahalla Beauty Store,فرع Mahalla,Gharbia,Mahalla,Pharmacy,Canal Hub
+S011,Zagazig Beauty Store,فرع Zagazig,Sharqia,Zagazig,Mall,Cairo Hub
+S012,10th of Ramadan Beauty Store,فرع 10th of Ramadan,Sharqia,10th of Ramadan,Kiosk,Delta Hub
+S013,Banha Beauty Store,فرع Banha,Qalyubia,Banha,Kiosk,Upper Egypt Hub
+S014,Shubra El Kheima Beauty Store,فرع Shubra El Kheima,Qalyubia,Shubra El Kheima,Pharmacy,Cairo Hub
+S015,Damietta Beauty Store,فرع Damietta,Damietta,Damietta,Pharmacy,Canal Hub
+S016,New Damietta Beauty Store,فرع New Damietta,Damietta,New Damietta,Pharmacy,Cairo Hub
+S017,Damanhur Beauty Store,فرع Damanhur,Beheira,Damanhur,Street,Delta Hub
+S018,Kafr El Dawwar Beauty Store,فرع Kafr El Dawwar,Beheira,Kafr El Dawwar,Street,Upper Egypt Hub
+S019,Ismailia Beauty Store,فرع Ismailia,Ismailia,Ismailia,Mall,Upper Egypt Hub
+S020,Fayed Beauty Store,فرع Fayed,Ismailia,Fayed,Kiosk,Delta Hub
+S021,Suez Beauty Store,فرع Suez,Suez,Suez,Pharmacy,Delta Hub
+S022,Ain Sokhna Beauty Store,فرع Ain Sokhna,Suez,Ain Sokhna,Mall,Canal Hub
+S023,Port Said Beauty Store,فرع Port Said,Port Said,Port Said,Pharmacy,Upper Egypt Hub
+S024,Fayoum Beauty Store,فرع Fayoum,Fayoum,Fayoum,Mall,Canal Hub
+S025,Minya Beauty Store,فرع Minya,Minya,Minya,Pharmacy,Upper Egypt Hub
+S026,Assiut Beauty Store,فرع Assiut,Assiut,Assiut,Pharmacy,Canal Hub
+S027,Sohag Beauty Store,فرع Sohag,Sohag,Sohag,Kiosk,Cairo Hub
+S028,Qena Beauty Store,فرع Qena,Qena,Qena,Pharmacy,Upper Egypt Hub
+S029,Luxor Beauty Store,فرع Luxor,Luxor,Luxor,Pharmacy,Upper Egypt Hub
+S030,Aswan Beauty Store,فرع Aswan,Aswan,Aswan,Pharmacy,Canal Hub
+S031,Hurghada Beauty Store,فرع Hurghada,Red Sea,Hurghada,Pharmacy,Upper Egypt Hub
+S032,El Gouna Beauty Store,فرع El Gouna,Red Sea,El Gouna,Street,Delta Hub
+S033,Arish Beauty Store,فرع Arish,North Sinai,Arish,Pharmacy,Canal Hub
+S034,Sharm El Sheikh Beauty Store,فرع Sharm El Sheikh,South Sinai,Sharm El Sheikh,Kiosk,Delta Hub
+S035,Dahab Beauty Store,فرع Dahab,South Sinai,Dahab,Kiosk,Upper Egypt Hub

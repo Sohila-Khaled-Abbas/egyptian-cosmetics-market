@@ -1,0 +1,316 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%" style="background:#0B0F19; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Background Gradients -->
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0B0F19" stop-opacity="1"/>
+    </radialGradient>
+    
+    <!-- Linear Gradients for Cards -->
+    <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Glowing Accent Gradients -->
+    <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+    <linearGradient id="redGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F43F5E"/>
+      <stop offset="100%" stop-color="#FB7185"/>
+    </linearGradient>
+    <linearGradient id="emeraldGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="neonGlowBlue" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
+    </marker>
+    <marker id="arrowEmerald" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10B981"/>
+    </marker>
+    <marker id="arrowRose" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#F43F5E"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#C084FC"/>
+    </marker>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="100%" height="100%" fill="url(#bgGlow)"/>
+
+  <!-- Subtle Blueprint Grid Pattern -->
+  <g opacity="0.04" stroke="#FFFFFF" stroke-width="1">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="40" y2="0"/>
+      <line x1="0" y1="0" x2="0" y2="40"/>
+    </pattern>
+    <rect width="100%" height="100%" fill="url(#grid)"/>
+  </g>
+
+  <!-- ==================== HEADER ==================== -->
+  <g transform="translate(80, 55)">
+    <!-- Badge -->
+    <rect x="0" y="0" width="165" height="26" rx="13" fill="#1E293B" stroke="#0284C7" stroke-width="1.5"/>
+    <circle cx="12" cy="13" r="4" fill="#38BDF8" filter="url(#neonGlowBlue)"/>
+    <text x="24" y="17" fill="#38BDF8" font-size="11" font-weight="700" letter-spacing="1.5">ENTERPRISE PLATFORM</text>
+
+    <!-- Main Title -->
+    <text x="0" y="58" fill="#F8FAFC" font-size="28" font-weight="800" letter-spacing="0.5">
+      Cleopatra Modern Cosmetics <tspan fill="#94A3B8" font-weight="400">| كليوباترا كوزماتكس</tspan>
+    </text>
+    <text x="0" y="82" fill="#64748B" font-size="14" font-weight="500">
+      End-to-End Analytics Engineering &amp; Power BI Tabular Lifecycle Architecture
+    </text>
+  </g>
+
+  <!-- ==================== FLOW CONNECTORS ==================== -->
+  <!-- Sources to Bronze -->
+  <path d="M 285 280 L 340 280" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrowBlue)"/>
+  <!-- Bronze to Staging -->
+  <path d="M 545 280 L 600 280" fill="none" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <!-- Staging to DQ Sentinel -->
+  <path d="M 805 280 L 860 280" fill="none" stroke="#818CF8" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  
+  <!-- DQ Sentinel branching: Down to Quarantine, Right to Warehouse -->
+  <path d="M 965 375 L 965 470" fill="none" stroke="#F43F5E" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowRose)"/>
+  <path d="M 1070 280 L 1125 280" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowEmerald)"/>
+
+  <!-- Warehouse to Marts -->
+  <path d="M 1235 375 L 1235 560" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrowEmerald)"/>
+  <!-- Marts to Power BI -->
+  <path d="M 1125 655 L 720 655" fill="none" stroke="#C084FC" stroke-width="2.5" marker-end="url(#arrowPurple)"/>
+
+  <!-- ==================== STAGE 1: RAW INGESTION ==================== -->
+  <g transform="translate(80, 185)" filter="url(#dropShadow)">
+    <rect width="205" height="190" rx="16" fill="url(#cardGrad1)" stroke="#1E3A8A" stroke-width="1.5"/>
+    <rect x="0" y="0" width="205" height="4" rx="2" fill="#0284C7"/>
+    
+    <!-- Stage Icon & Number -->
+    <circle cx="36" cy="36" r="16" fill="#0369A1" fill-opacity="0.3"/>
+    <path d="M 28 32 C 28 30 44 30 44 32 C 44 34 28 34 28 32 Z M 28 35 C 28 37 44 37 44 35 Z M 28 38 C 28 40 44 40 44 38 Z" stroke="#38BDF8" stroke-width="2" fill="none"/>
+    <text x="60" y="34" fill="#E2E8F0" font-size="14" font-weight="700">01. SOURCES</text>
+    <text x="60" y="48" fill="#64748B" font-size="11">Heterogeneous</text>
+
+    <!-- Items -->
+    <g transform="translate(18, 70)">
+      <!-- PostgreSQL -->
+      <rect width="169" height="24" rx="6" fill="#0F172A" stroke="#334155" stroke-width="0.8"/>
+      <text x="10" y="16" fill="#93C5FD" font-size="11" font-weight="600">🐘 PostgreSQL</text>
+      <text x="125" y="16" fill="#64748B" font-size="10">527k r</text>
+
+      <!-- ERP CSV -->
+      <rect y="28" width="169" height="24" rx="6" fill="#0F172A" stroke="#334155" stroke-width="0.8"/>
+      <text x="10" y="44" fill="#38BDF8" font-size="11" font-weight="600">📄 WMS Inventory</text>
+      <text x="125" y="44" fill="#64748B" font-size="10">8.4k r</text>
+
+      <!-- Excel -->
+      <rect y="56" width="169" height="24" rx="6" fill="#0F172A" stroke="#334155" stroke-width="0.8"/>
+      <text x="10" y="72" fill="#34D399" font-size="11" font-weight="600">📊 Targets &amp; Ad</text>
+      <text x="125" y="72" fill="#64748B" font-size="10">Excel</text>
+
+      <!-- API -->
+      <rect y="84" width="169" height="24" rx="6" fill="#0F172A" stroke="#334155" stroke-width="0.8"/>
+      <text x="10" y="100" fill="#FBBF24" font-size="11" font-weight="600">🌐 Forex Rates</text>
+      <text x="125" y="100" fill="#64748B" font-size="10">JSON</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 2: BRONZE LAYER ==================== -->
+  <g transform="translate(340, 185)" filter="url(#dropShadow)">
+    <rect width="205" height="190" rx="16" fill="url(#cardGrad1)" stroke="#0369A1" stroke-width="1.5"/>
+    <rect x="0" y="0" width="205" height="4" rx="2" fill="#38BDF8"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#0284C7" fill-opacity="0.3"/>
+    <path d="M 28 32 L 44 32 L 44 42 L 28 42 Z" stroke="#38BDF8" stroke-width="2" fill="none"/>
+    <text x="60" y="34" fill="#E2E8F0" font-size="14" font-weight="700">02. BRONZE</text>
+    <text x="60" y="48" fill="#64748B" font-size="11">SQL Server 2022</text>
+
+    <g transform="translate(18, 75)">
+      <rect width="169" height="92" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+      <text x="12" y="24" fill="#F8FAFC" font-size="12" font-weight="600">Lossless Raw Storage</text>
+      <text x="12" y="42" fill="#94A3B8" font-size="11">• 100% String Fidelity</text>
+      <text x="12" y="58" fill="#94A3B8" font-size="11">• SHA-256 Row Hash</text>
+      <text x="12" y="74" fill="#94A3B8" font-size="11">• Ingestion Metadata</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 3: STAGING ENGINE ==================== -->
+  <g transform="translate(600, 185)" filter="url(#dropShadow)">
+    <rect width="205" height="190" rx="16" fill="url(#cardGrad1)" stroke="#4338CA" stroke-width="1.5"/>
+    <rect x="0" y="0" width="205" height="4" rx="2" fill="#818CF8"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#4F46E5" fill-opacity="0.3"/>
+    <path d="M 36 28 L 36 44 M 28 36 L 44 36" stroke="#818CF8" stroke-width="2"/>
+    <text x="60" y="34" fill="#E2E8F0" font-size="14" font-weight="700">03. STAGING</text>
+    <text x="60" y="48" fill="#64748B" font-size="11">Cleansing Engine</text>
+
+    <g transform="translate(18, 72)">
+      <rect width="169" height="24" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+      <text x="8" y="16" fill="#C7D2FE" font-size="11">📞 Phone ➔ 010...</text>
+
+      <rect y="28" width="169" height="24" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+      <text x="8" y="44" fill="#C7D2FE" font-size="11">🏛️ Governorates AR/EN</text>
+
+      <rect y="56" width="169" height="24" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+      <text x="8" y="72" fill="#C7D2FE" font-size="11">💵 Currency ➔ EGP</text>
+
+      <rect y="84" width="169" height="24" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+      <text x="8" y="100" fill="#C7D2FE" font-size="11">📅 DateKey: YYYYMMDD</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 4: DATA QUALITY SENTINEL ==================== -->
+  <g transform="translate(860, 185)" filter="url(#dropShadow)">
+    <rect width="210" height="190" rx="16" fill="url(#cardGrad1)" stroke="#BE123C" stroke-width="1.5"/>
+    <rect x="0" y="0" width="210" height="4" rx="2" fill="#F43F5E"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#BE123C" fill-opacity="0.3"/>
+    <path d="M 36 28 L 44 32 L 44 38 C 44 43 36 46 36 46 C 36 46 28 43 28 38 L 28 32 Z" stroke="#F43F5E" stroke-width="2" fill="none"/>
+    <text x="60" y="34" fill="#FFE4E6" font-size="14" font-weight="700">04. DQ SENTINEL</text>
+    <text x="60" y="48" fill="#FDA4AF" font-size="11">16+ Rules Gate</text>
+
+    <g transform="translate(18, 72)">
+      <rect width="174" height="26" rx="6" fill="#200B11" stroke="#881337" stroke-width="1"/>
+      <text x="8" y="17" fill="#FECDD3" font-size="11" font-weight="600">🛡️ Automated Checks</text>
+
+      <rect y="32" width="174" height="60" rx="6" fill="#1C1917" stroke="#44403C" stroke-width="0.8"/>
+      <text x="8" y="20" fill="#A8A29E" font-size="10">• Uniqueness &amp; PK/FK</text>
+      <text x="8" y="36" fill="#A8A29E" font-size="10">• Range &amp; Math Equation</text>
+      <text x="8" y="52" fill="#A8A29E" font-size="10">• Anomaly &amp; Orphan Key</text>
+    </g>
+  </g>
+
+  <!-- ==================== QUARANTINE ROUTING ==================== -->
+  <g transform="translate(860, 480)" filter="url(#dropShadow)">
+    <rect width="210" height="135" rx="12" fill="#200B11" stroke="#E11D48" stroke-width="1.5"/>
+    <rect x="0" y="0" width="210" height="3" rx="1.5" fill="#F43F5E"/>
+    
+    <text x="16" y="24" fill="#FDA4AF" font-size="12" font-weight="700">⚠️ ISOLATED QUARANTINE</text>
+    <text x="16" y="40" fill="#9F1239" font-size="10">dq.rejected_* (Never lost)</text>
+
+    <g transform="translate(16, 52)">
+      <text x="0" y="14" fill="#FECDD3" font-size="11">🚫 Orders Rejected:</text>
+      <text x="130" y="14" fill="#FFF" font-weight="700" font-size="11">4,124</text>
+
+      <text x="0" y="32" fill="#FECDD3" font-size="11">🚫 Customers:</text>
+      <text x="130" y="32" fill="#FFF" font-weight="700" font-size="11">400</text>
+
+      <text x="0" y="50" fill="#FECDD3" font-size="11">🚫 Stock &amp; Targets:</text>
+      <text x="130" y="50" fill="#FFF" font-weight="700" font-size="11">104</text>
+
+      <text x="0" y="70" fill="#FDA4AF" font-size="9" font-style="italic">📋 dq.data_quality_results ledger</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 5: KIMBALL GALAXY WAREHOUSE ==================== -->
+  <g transform="translate(1125, 185)" filter="url(#dropShadow)">
+    <rect width="220" height="190" rx="16" fill="url(#cardGrad1)" stroke="#059669" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="4" rx="2" fill="#10B981"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#065F46" fill-opacity="0.3"/>
+    <polygon points="36,26 44,31 44,41 36,46 28,41 28,31" stroke="#10B981" stroke-width="2" fill="none"/>
+    <text x="60" y="34" fill="#D1FAE5" font-size="14" font-weight="700">05. GALAXY DW</text>
+    <text x="60" y="48" fill="#6EE7B7" font-size="11">Kimball + Snowflake</text>
+
+    <g transform="translate(16, 68)">
+      <!-- Conformed Dims -->
+      <rect width="188" height="34" rx="6" fill="#064E3B" stroke="#047857" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#A7F3D0" font-size="10" font-weight="700">CORE CONFORMED DIMS</text>
+      <text x="8" y="27" fill="#ECFDF5" font-size="9">Date • Customer (SCD2) • Product • Store</text>
+
+      <!-- Snowflake -->
+      <rect y="38" width="188" height="26" rx="6" fill="#042F2C" stroke="#0F766E" stroke-width="0.8"/>
+      <text x="8" y="17" fill="#5EEAD4" font-size="9.5">❄️ Geography &amp; Category</text>
+
+      <!-- Multi Facts -->
+      <rect y="68" width="188" height="36" rx="6" fill="#022C22" stroke="#059669" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#6EE7B7" font-size="10" font-weight="700">3 GALAXY FACTS</text>
+      <text x="8" y="28" fill="#ECFDF5" font-size="9">FactSales • FactInventory • FactTargets</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 6: ANALYTICS MARTS ==================== -->
+  <g transform="translate(1125, 560)" filter="url(#dropShadow)">
+    <rect width="220" height="190" rx="16" fill="url(#cardGrad1)" stroke="#047857" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="4" rx="2" fill="#34D399"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#065F46" fill-opacity="0.3"/>
+    <rect x="29" y="35" width="4" height="10" fill="#34D399"/>
+    <rect x="35" y="30" width="4" height="15" fill="#34D399"/>
+    <rect x="41" y="26" width="4" height="19" fill="#34D399"/>
+    <text x="60" y="34" fill="#ECFDF5" font-size="14" font-weight="700">06. MARTS</text>
+    <text x="60" y="48" fill="#A7F3D0" font-size="11">Curated SQL Views</text>
+
+    <g transform="translate(16, 68)">
+      <rect width="188" height="22" rx="4" fill="#022C22" stroke="#065F46" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#D1FAE5" font-size="10">📈 mart_daily_sales (271k)</text>
+
+      <rect y="26" width="188" height="22" rx="4" fill="#022C22" stroke="#065F46" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#D1FAE5" font-size="10">🎯 mart_monthly_sales</text>
+
+      <rect y="52" width="188" height="22" rx="4" fill="#022C22" stroke="#065F46" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#D1FAE5" font-size="10">👥 mart_rfm (Segmentation)</text>
+
+      <rect y="78" width="188" height="22" rx="4" fill="#022C22" stroke="#065F46" stroke-width="0.8"/>
+      <text x="8" y="15" fill="#D1FAE5" font-size="10">📦 mart_inventory_health</text>
+    </g>
+  </g>
+
+  <!-- ==================== STAGE 7: POWER BI LIFECYCLE ==================== -->
+  <g transform="translate(80, 560)" filter="url(#dropShadow)">
+    <rect width="640" height="190" rx="16" fill="url(#cardGrad1)" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="0" y="0" width="640" height="4" rx="2" fill="#C084FC"/>
+    
+    <circle cx="36" cy="36" r="16" fill="#581C87" fill-opacity="0.3"/>
+    <path d="M 28 42 L 34 32 L 40 37 L 46 26" stroke="#C084FC" stroke-width="2.5" fill="none"/>
+    <text x="60" y="34" fill="#FAF5FF" font-size="15" font-weight="700">07. POWER BI ENTERPRISE TABULAR MODEL (.PBIP)</text>
+    <text x="60" y="50" fill="#D8B4FE" font-size="11">In-Engine Data Lifecycle &amp; Executive Reporting Suite</text>
+
+    <!-- Sub-panels inside Power BI card -->
+    <g transform="translate(20, 68)">
+      <!-- Left: Power Query M Lifecycle Pipeline -->
+      <rect width="285" height="100" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1"/>
+      <text x="12" y="20" fill="#C7D2FE" font-size="11" font-weight="700">POWER QUERY M PIPELINE (DAG)</text>
+      <text x="12" y="38" fill="#A5B4FC" font-size="10">00_Params ➔ 01_Source ➔ 02_Staging</text>
+      <text x="12" y="54" fill="#A5B4FC" font-size="10">03_Reference ➔ 04_Cleansed ➔ 05_Validated</text>
+      <text x="12" y="70" fill="#A5B4FC" font-size="10">06_Transformations ➔ 07_Model (Enable Load)</text>
+      <text x="12" y="88" fill="#818CF8" font-size="9" font-style="italic">Strict 1:Many Single-Direction Contracts</text>
+
+      <!-- Right: DAX & Report Pages -->
+      <g transform="translate(305, 0)">
+        <rect width="295" height="100" rx="10" fill="#2E1065" stroke="#6B21A8" stroke-width="1"/>
+        <text x="12" y="20" fill="#E9D5FF" font-size="11" font-weight="700">_MEASURES (33+ DAX KPIs)</text>
+        <text x="12" y="38" fill="#D8B4FE" font-size="10">• Net Sales: 217.5M EGP | Margin: 38.6%</text>
+        <text x="12" y="54" fill="#D8B4FE" font-size="10">• YTD / YoY Time Intelligence | AOV | Target %</text>
+        <text x="12" y="72" fill="#F0ABFC" font-size="10.5" font-weight="600">5 Report Pages:</text>
+        <text x="12" y="88" fill="#F5D0FE" font-size="9.5">Exec Summary • Regional • Inventory • RFM • DQ</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ==================== FOOTER ==================== -->
+  <g transform="translate(80, 845)">
+    <text x="0" y="0" fill="#475569" font-size="12">
+      Engineered by Senior Analytics Engineer for Cleopatra Modern Cosmetics • SQL Server 2022 • Python ELT • Power BI .pbip • Kimball DW
+    </text>
+  </g>
+</svg>

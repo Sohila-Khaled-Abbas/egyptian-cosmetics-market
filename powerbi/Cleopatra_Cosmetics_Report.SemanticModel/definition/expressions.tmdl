@@ -1,0 +1,145 @@
+/// Absolute root directory of data
+expression pRawDataPath = "D:\courses\Data Science\Data Engineering\Projects\egyptian_cosmetics_market\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1bf8c6ba-83a0-4687-9e52-bfe2d4a53924
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Global calendar start boundary
+expression pStartDate = #date(2024, 1, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
+	lineageTag: 20e80de7-d60e-4435-8bdf-9777e74615ed
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Date
+
+/// Global calendar end boundary
+expression pEndDate = #date(2026, 12, 31) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
+	lineageTag: 1061eb28-caa7-4e55-b384-8bdc1cbe357b
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Date
+
+expression fnCleanText = ```
+		let
+		    Source = (inputVal as any) as nullable text =>
+		let
+		    RawText = if inputVal = null then null else Text.From(inputVal),
+		    Cleaned = if RawText = null then null else
+		        let
+		            NoNBSP = Text.Replace(RawText, Character.FromNumber(160), " "),
+		            StrippedControl = Text.Clean(NoNBSP),
+		            TrimmedOuter = Text.Trim(StrippedControl),
+		            NormalizedSpaces = List.Accumulate(
+		                {1..5}, 
+		                TrimmedOuter, 
+		                (state, current) => Text.Replace(state, "  ", " ")
+		            ),
+		            FinalResult = if NormalizedSpaces = "" then null else NormalizedSpaces
+		        in
+		            FinalResult
+		in
+		    Cleaned
+		in
+		    Source
+		```
+	lineageTag: f84ccea0-befd-46c8-ba92-4a5b3451b67f
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnNormalizeCurrency = ```
+		let
+		    Source = (currVal as any) as text =>
+		let
+		    RawText = if currVal = null then "" else Text.Trim(Text.From(currVal)),
+		    Normalized = 
+		        if RawText = "EGP" or RawText = "EGP " or RawText = "جنيه" or RawText = "جنيه مصري" then "EGP"
+		        else if RawText = "USD" or RawText = "دولار" then "USD"
+		        else if RawText = "EUR" or RawText = "يورو" then "EUR"
+		        else if RawText = "" then "EGP"
+		        else RawText
+		in
+		    Normalized
+		in
+		    Source
+		```
+	lineageTag: 884b16f2-1a3a-4ab3-a170-a79ae4f4e6f6
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnNormalizeStatus = ```
+		let
+		    Source = (statusVal as any) as text =>
+		let
+		    RawText = if statusVal = null then "Unknown" else Text.Trim(Text.From(statusVal)),
+		    LowerText = Text.Lower(RawText),
+		    Normalized = 
+		        if LowerText = "completed" or LowerText = "complete" or LowerText = "مكتمل" then "Completed"
+		        else if LowerText = "cancelled" or LowerText = "canceled" or LowerText = "ملغي" then "Cancelled"
+		        else if LowerText = "returned" or LowerText = "مرتجع" then "Returned"
+		        else if LowerText = "pending" or LowerText = "قيد التنفيذ" then "Pending"
+		        else RawText
+		in
+		    Normalized
+		in
+		    Source
+		```
+	lineageTag: 3f8a4120-7cd5-4e78-bc88-9bb3298a01f1
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnStandardizeGovernorate = ```
+		let
+		    Source = (govVal as any) as text =>
+		let
+		    Raw = if govVal = null then "Unknown" else Text.Trim(Text.From(govVal)),
+		    Proper = Text.Proper(Raw),
+		    Standardized = 
+		        if Proper = "Red Sea" or Proper = "Redsea" then "Red Sea"
+		        else if Proper = "North Sinai" or Proper = "Northsinai" then "North Sinai"
+		        else if Proper = "South Sinai" or Proper = "Southsinai" then "South Sinai"
+		        else if Proper = "Port Said" or Proper = "Portsaid" then "Port Said"
+		        else if Proper = "Kafr El Sheikh" or Proper = "Kafrelsheikh" then "Kafr El Sheikh"
+		        else Proper
+		in
+		    Standardized
+		in
+		    Source
+		```
+	lineageTag: 4b9c5231-8de6-4f89-cd99-0cc4309b12e2
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnValidatePositiveNumber =
+		let
+		    Source = (val as any, minVal as number) as logical =>
+		let
+		    IsNumeric = try (val <> null and Number.From(val) >= minVal) otherwise false
+		in
+		    IsNumeric
+		in
+		    Source
+	lineageTag: 5c0d6342-9ef7-5a90-de00-1dd5410c23f3
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+

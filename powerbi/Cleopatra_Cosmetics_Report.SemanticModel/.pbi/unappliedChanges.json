@@ -1,0 +1,268 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/unappliedChanges/1.0.0/schema.json",
+  "conceptualSchemaSettings": {},
+  "queries": [
+    {
+      "name": "pRawDataPath",
+      "lineageTag": "1bf8c6ba-83a0-4687-9e52-bfe2d4a53924",
+      "description": "Absolute root directory of data",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "\"D:\\courses\\Data Science\\Data Engineering\\Projects\\egyptian_cosmetics_market\\data\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Text",
+      "isHidden": false
+    },
+    {
+      "name": "pStartDate",
+      "lineageTag": "20e80de7-d60e-4435-8bdf-9777e74615ed",
+      "description": "Global calendar start boundary",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "#date(2024, 1, 1) meta [IsParameterQuery=true, Type=\"Date\", IsParameterQueryRequired=true]"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Date",
+      "isHidden": false
+    },
+    {
+      "name": "pEndDate",
+      "lineageTag": "1061eb28-caa7-4e55-b384-8bdc1cbe357b",
+      "description": "Global calendar end boundary",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "#date(2026, 12, 31) meta [IsParameterQuery=true, Type=\"Date\", IsParameterQueryRequired=true]"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Date",
+      "isHidden": false
+    },
+    {
+      "name": "fnCleanText",
+      "lineageTag": "f84ccea0-befd-46c8-ba92-4a5b3451b67f",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    Source = (inputVal as any) as nullable text =>",
+        "let",
+        "    RawText = if inputVal = null then null else Text.From(inputVal),",
+        "    Cleaned = if RawText = null then null else",
+        "        let",
+        "            NoNBSP = Text.Replace(RawText, Character.FromNumber(160), \" \"),",
+        "            StrippedControl = Text.Clean(NoNBSP),",
+        "            TrimmedOuter = Text.Trim(StrippedControl),",
+        "            NormalizedSpaces = List.Accumulate(",
+        "                {1..5}, ",
+        "                TrimmedOuter, ",
+        "                (state, current) => Text.Replace(state, \"  \", \" \")",
+        "            ),",
+        "            FinalResult = if NormalizedSpaces = \"\" then null else NormalizedSpaces",
+        "        in",
+        "            FinalResult",
+        "in",
+        "    Cleaned",
+        "in",
+        "    Source"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Function",
+      "isHidden": false
+    },
+    {
+      "name": "fnNormalizeCurrency",
+      "lineageTag": "884b16f2-1a3a-4ab3-a170-a79ae4f4e6f6",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    Source = (currVal as any) as text =>",
+        "let",
+        "    RawText = if currVal = null then \"\" else Text.Trim(Text.From(currVal)),",
+        "    Normalized = ",
+        "        if RawText = \"EGP\" or RawText = \"EGP \" or RawText = \"جنيه\" or RawText = \"جنيه مصري\" then \"EGP\"",
+        "        else if RawText = \"USD\" or RawText = \"دولار\" then \"USD\"",
+        "        else if RawText = \"EUR\" or RawText = \"يورو\" then \"EUR\"",
+        "        else if RawText = \"\" then \"EGP\"",
+        "        else RawText",
+        "in",
+        "    Normalized",
+        "in",
+        "    Source"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Function",
+      "isHidden": false
+    },
+    {
+      "name": "fnNormalizeStatus",
+      "lineageTag": "3f8a4120-7cd5-4e78-bc88-9bb3298a01f1",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    Source = (statusVal as any) as text =>",
+        "let",
+        "    RawText = if statusVal = null then \"Unknown\" else Text.Trim(Text.From(statusVal)),",
+        "    LowerText = Text.Lower(RawText),",
+        "    Normalized = ",
+        "        if LowerText = \"completed\" or LowerText = \"complete\" or LowerText = \"مكتمل\" then \"Completed\"",
+        "        else if LowerText = \"cancelled\" or LowerText = \"canceled\" or LowerText = \"ملغي\" then \"Cancelled\"",
+        "        else if LowerText = \"returned\" or LowerText = \"مرتجع\" then \"Returned\"",
+        "        else if LowerText = \"pending\" or LowerText = \"قيد التنفيذ\" then \"Pending\"",
+        "        else RawText",
+        "in",
+        "    Normalized",
+        "in",
+        "    Source"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Function",
+      "isHidden": false
+    },
+    {
+      "name": "fnStandardizeGovernorate",
+      "lineageTag": "4b9c5231-8de6-4f89-cd99-0cc4309b12e2",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    Source = (govVal as any) as text =>",
+        "let",
+        "    Raw = if govVal = null then \"Unknown\" else Text.Trim(Text.From(govVal)),",
+        "    Proper = Text.Proper(Raw),",
+        "    Standardized = ",
+        "        if Proper = \"Red Sea\" or Proper = \"Redsea\" then \"Red Sea\"",
+        "        else if Proper = \"North Sinai\" or Proper = \"Northsinai\" then \"North Sinai\"",
+        "        else if Proper = \"South Sinai\" or Proper = \"Southsinai\" then \"South Sinai\"",
+        "        else if Proper = \"Port Said\" or Proper = \"Portsaid\" then \"Port Said\"",
+        "        else if Proper = \"Kafr El Sheikh\" or Proper = \"Kafrelsheikh\" then \"Kafr El Sheikh\"",
+        "        else Proper",
+        "in",
+        "    Standardized",
+        "in",
+        "    Source"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Function",
+      "isHidden": false
+    },
+    {
+      "name": "fnValidatePositiveNumber",
+      "lineageTag": "5c0d6342-9ef7-5a90-de00-1dd5410c23f3",
+      "queryGroupId": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    Source = (val as any, minVal as number) as logical =>",
+        "let",
+        "    IsNumeric = try (val <> null and Number.From(val) >= minVal) otherwise false",
+        "in",
+        "    IsNumeric",
+        "in",
+        "    Source"
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Function",
+      "isHidden": false
+    },
+    {
+      "name": "src_customers",
+      "queryGroupId": "15d548fd-5b2c-4c00-bd12-6105c697fbac",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "  Source = Csv.Document(File.Contents(pRawDataPath & \"\\raw\\postgres_like\\customers.csv\"), [Delimiter = \",\", Columns = 11, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),",
+        "  #\"Promoted headers\" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),",
+        "  #\"Changed column type\" = Table.TransformColumnTypes(#\"Promoted headers\", {{\"customer_id\", type text}, {\"customer_name_ar\", type text}, {\"customer_name_en\", type text}, {\"gender\", type text}, {\"birth_year\", Int64.Type}, {\"governorate\", type text}, {\"area\", type text}, {\"phone\", type text}, {\"email\", type text}, {\"signup_date\", type date}, {\"customer_segment\", type text}}, \"en-US\")",
+        "in",
+        "  #\"Changed column type\""
+      ],
+      "loadAsTableDisabled": true,
+      "resultType": "Table"
+    },
+    {
+      "name": "Query",
+      "navigationStepName": "Navigation",
+      "text": [
+        "let",
+        "    RawBase = Text.From(pRawDataPath),",
+        "    WithoutMeta = if Text.Contains(RawBase, \" meta\") then Text.Trim(Text.BeforeDelimiter(RawBase, \" meta\")) else RawBase,",
+        "    CleanBasePath = Text.TrimEnd(Text.Trim(WithoutMeta, \" \"\"'#(tab)#(cr)#(lf)\"), \"\\/\"),",
+        "    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), \"\\raw\") or Text.EndsWith(Text.Lower(CleanBasePath), \"/raw\")",
+        "               then CleanBasePath",
+        "               else CleanBasePath & \"\\raw\",",
+        "    SourcePath = BasePath & \"\\postgres_like\\products.csv\",",
+        "    SourceBytes = File.Contents(SourcePath),",
+        "    RawCsv = Csv.Document(SourceBytes, [Delimiter=\",\", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+        "    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])",
+        "in",
+        "    PromotedHeaders"
+      ],
+      "isDirectQuery": false,
+      "loadAsTableDisabled": false,
+      "resultType": "Exception"
+    }
+  ],
+  "queryGroups": [
+    {
+      "name": "00_Parameters & Functions",
+      "id": "1ad75031-0b48-4dbe-9197-302799bfd6e8",
+      "description": ""
+    },
+    {
+      "name": "01_Source",
+      "id": "15d548fd-5b2c-4c00-bd12-6105c697fbac",
+      "order": 1,
+      "description": ""
+    },
+    {
+      "name": "02_Staging",
+      "id": "abb875b6-8286-4134-8b55-7bf95f73088b",
+      "order": 2,
+      "description": ""
+    },
+    {
+      "name": "03_Reference",
+      "id": "efea4d5b-dd79-4895-819c-59ba0f263cf6",
+      "order": 3,
+      "description": ""
+    },
+    {
+      "name": "04_Cleansed",
+      "id": "459e6894-83ee-4f87-a271-6691bc9392b2",
+      "order": 4,
+      "description": ""
+    },
+    {
+      "name": "05_Validated",
+      "id": "bc75c46d-fbb9-4c2c-ac04-a20bf5d1ca99",
+      "order": 5,
+      "description": ""
+    },
+    {
+      "name": "06_Transformations",
+      "id": "602c773e-cfd6-44e9-90f1-ba99324bbd18",
+      "order": 6,
+      "description": ""
+    },
+    {
+      "name": "07_Model",
+      "id": "3541eaeb-aef9-45f8-aeb6-f69242bb7b02",
+      "order": 7,
+      "description": ""
+    },
+    {
+      "name": "99_Admin",
+      "id": "82e9decb-a5c1-4e15-bcdc-680564e0ef9c",
+      "order": 8,
+      "description": ""
+    }
+  ],
+  "culture": "ar-EG",
+  "firewallEnabled": true
+}

@@ -1,0 +1,31 @@
+# ==============================================================================
+# Git Attributes: Egyptian Cosmetics Analytics
+# Enforces LF line endings and proper encoding for UTF-8 Arabic files
+# ==============================================================================
+# Default text handling
+* text=auto eol=lf
+# Power Query & DAX files
+*.m text eol=lf
+*.dax text eol=lf
+*.sql text eol=lf
+# Documentation & Markdown
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+# Python
+*.py text eol=lf
+# CSV Data Files (UTF-8 Arabic text preservation)
+*.csv text eol=lf
+# Binary Files
+*.pbix binary
+*.pbit binary
+*.xlsx binary
+*.xls binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary

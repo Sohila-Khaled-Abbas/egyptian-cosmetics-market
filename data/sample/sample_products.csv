@@ -1,0 +1,21 @@
+product_id,product_name_en,product_name_ar,brand_en,brand_ar,category,subcategory,list_price_egp,standard_cost_egp,currency,origin
+P001,Glow Up Vitamin C Serum,سيروم جلو أب فيتامين C,Fresh Bloom,فريش بلوم,Skincare,Serum,249,150,EGP ,Local
+P002,Hydra Balance Moisturizer,مرطب هيدرا بالانس,Fresh Bloom,فريش بلوم,Skincare,Moisturizer,189,105,EGP,Local
+P003,Pure Clean Face Wash,غسول بيور كلين للوجه,Silky,سيليكي,Skincare,Cleanser,145,82,جنيه,Local
+P004,Aloe Calm Gel,جل ألو كالم بالألوفيرا,Glow Up,جلو أب,Skincare,Gel,129,70,جنيه,Imported
+P005,Daily Shield SPF 50,واقي شمس ديلي شيلد SPF 50,Velvet,فيلفت,Skincare,Sunscreen,299,175,جنيه,Imported
+P006,Velvet Matte Foundation,فاونديشن فيلفت مات,Silky,سيليكي,Makeup,Foundation,325,190,EGP ,Local
+P007,Stay Fresh Concealer,كونسيلر ستاي فريش,Beauty Essentials,بيوتي إسينشالز,Makeup,Concealer,215,120,EGP,Imported
+P008,Rose Glow Blush,بلاشر روز جلو,Velvet,فيلفت,Makeup,Blush,179,98,EGP ,Local
+P009,Long Wear Lip Tint,ليب تنت لونج وير,Beauty Essentials,بيوتي إسينشالز,Makeup,Lip,165,92,EGP ,Local
+P010,Soft Touch Mascara,ماسكارا سوفت تاتش,Glow Up,جلو أب,Makeup,Mascara,195,108,EGP ,Local
+P011,Keratin Repair Shampoo,شامبو كيراتين ريبير,Velvet,فيلفت,Haircare,Shampoo,219,126,جنيه,Local
+P012,Argan Nourish Hair Mask,ماسك شعر أرجان نورش,Glow Up,جلو أب,Haircare,Hair Mask,239,138,جنيه,Local
+P013,Silky Leave-In Cream,كريم شعر سيليكي ليف إن,Beauty Essentials,بيوتي إسينشالز,Haircare,Hair Cream,199,112,EGP,Local
+P014,Fresh Bloom Body Mist,بودي ميست فريش بلوم,Pure,بيور,Fragrance,Body Mist,229,125,EGP ,Local
+P015,Midnight Oud Eau de Parfum,عطر ميدنايت عود,Pure,بيور,Fragrance,Perfume,549,305,جنيه,Local
+P016,Citrus Musk Eau de Parfum,عطر سيتروس مسك,Fresh Bloom,فريش بلوم,Fragrance,Perfume,479,265,EGP,Local
+P017,Baby Soft Body Lotion,لوشن بيبي سوفت للجسم,Velvet,فيلفت,Body Care,Body Lotion,159,88,جنيه,Local
+P018,Coffee Scrub,سكراب القهوة,Velvet,فيلفت,Body Care,Scrub,149,80,EGP,Imported
+P019,Gentle Hand Cream,كريم يدين جنتل,Silky,سيليكي,Body Care,Hand Cream,99,52,EGP ,Local
+P020,Beauty Essentials Gift Box,بوكس بيوتي إسينشالز,Glow Up,جلو أب,Gift Sets,Gift Set,699,395,جنيه,Local

@@ -1,0 +1,494 @@
+// ==============================================================================
+// FILE: dax/all_measures.dax
+// PROJECT: Egyptian Cosmetics Analytics — Cleopatra Modern Cosmetics
+// CONTAINER TABLE: _Measures
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// FOLDER: 01 Financial KPIs
+// ------------------------------------------------------------------------------
+
+/// Total gross sales before customer discounts
+[Gross Sales] = 
+SUM(fact_sales[gross_sales_egp])
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Total commercial discounts provided
+[Discount] = 
+SUM(fact_sales[discount_egp])
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Recognized net commercial sales for completed orders
+[Net Sales] = 
+CALCULATE(
+    SUM(fact_sales[net_sales_egp]),
+    fact_sales[order_status] = "Completed"
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Total standard cost of goods sold (COGS)
+[Cost] = 
+CALCULATE(
+    SUM(fact_sales[cost_egp]),
+    fact_sales[order_status] = "Completed"
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Gross profit in EGP (Net Sales minus Standard Cost)
+[Gross Profit] = 
+[Net Sales] - [Cost]
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Gross profit margin percentage
+[Gross Margin %] = 
+DIVIDE([Gross Profit], [Net Sales], 0)
+/* Format: Percentage: 0.0% */
+
+/// Commercial discount percentage of gross sales
+[Discount %] = 
+DIVIDE([Discount], [Gross Sales], 0)
+/* Format: Percentage: 0.0% */
+
+/// Average realized selling price per unit delivered
+[Average Selling Price] = 
+DIVIDE([Net Sales], [Units Sold], 0)
+/* Format: Currency: #,##0.00 "EGP" */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 02 Order & Volume KPIs
+// ------------------------------------------------------------------------------
+
+/// Total distinct orders placed
+[Orders] = 
+DISTINCTCOUNT(fact_sales[order_id])
+/* Format: Integer: #,##0 */
+
+/// Total successfully completed orders
+[Completed Orders] = 
+CALCULATE(
+    [Orders],
+    fact_sales[order_status] = "Completed"
+)
+/* Format: Integer: #,##0 */
+
+/// Total physical units delivered to customers
+[Units Sold] = 
+CALCULATE(
+    SUM(fact_sales[quantity]),
+    fact_sales[order_status] = "Completed"
+)
+/* Format: Integer: #,##0 */
+
+/// Average order value (basket size) across completed orders
+[Average Order Value] = 
+DIVIDE([Net Sales], [Completed Orders], 0)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Count of cancelled orders
+[Cancelled Orders] = 
+CALCULATE([Orders], fact_sales[order_status] = "Cancelled")
+/* Format: Integer: #,##0 */
+
+/// Count of returned orders
+[Returned Orders] = 
+CALCULATE([Orders], fact_sales[order_status] = "Returned")
+/* Format: Integer: #,##0 */
+
+/// Return rate percentage
+[Return Rate %] = 
+DIVIDE([Returned Orders], [Orders], 0)
+/* Format: Percentage: 0.0% */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 03 Customer & AOV
+// ------------------------------------------------------------------------------
+
+/// Count of unique transacting customers in the active filter context
+[Customers] = 
+DISTINCTCOUNT(fact_sales[CustomerKey])
+/* Format: Integer: #,##0 */
+
+/// Average revenue generated per active transacting customer
+[Customer Revenue] = 
+DIVIDE([Net Sales], [Customers], 0)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Count of new first-time customers acquired during the selected period
+[New Customers] = 
+VAR MinDates = 
+    ADDCOLUMNS(
+        VALUES(dim_customer[CustomerKey]),
+        "@FirstPurchase", CALCULATE(MIN(fact_sales[order_datetime]), ALL(dim_date))
+    )
+VAR CurrentPeriodStart = MIN(dim_date[Date])
+VAR CurrentPeriodEnd = MAX(dim_date[Date])
+RETURN
+    COUNTROWS(
+        FILTER(
+            MinDates,
+            VAR FP = [@FirstPurchase]
+            RETURN FP >= CurrentPeriodStart && FP <= CurrentPeriodEnd
+        )
+    ) + 0
+/* Format: Integer: #,##0 */
+
+/// Count of repeat customers active in the selected period
+[Returning Customers] = 
+[Customers] - [New Customers]
+/* Format: Integer: #,##0 */
+
+/// Customer last completed transaction timestamp
+[Customer Last Order Date] = 
+CALCULATE(
+    MAX(fact_sales[order_datetime]),
+    fact_sales[order_status] = "Completed"
+)
+
+/// Recency in days from selected date context
+[Customer Recency Days] = 
+VAR LastOrder = [Customer Last Order Date]
+VAR AsOfDate = MAX(dim_date[Date])
+RETURN
+    IF(
+        NOT ISBLANK(LastOrder),
+        DATEDIFF(LastOrder, AsOfDate, DAY),
+        BLANK()
+    )
+
+/// Lifetime order frequency for selected customer
+[Customer Frequency] = 
+CALCULATE(
+    [Completed Orders],
+    ALLEXCEPT(dim_customer, dim_customer[CustomerKey])
+)
+
+/// Lifetime monetary spend for selected customer
+[Customer Monetary] = 
+CALCULATE(
+    [Net Sales],
+    ALLEXCEPT(dim_customer, dim_customer[CustomerKey])
+)
+
+/// Dynamic RFM Segment classification
+[Customer RFM Segment] = 
+VAR R_Days = [Customer Recency Days]
+VAR F_Count = [Customer Frequency]
+VAR M_Spend = [Customer Monetary]
+
+VAR R_Score = 
+    SWITCH(
+        TRUE(),
+        ISBLANK(R_Days), BLANK(),
+        R_Days <= 45, 5,
+        R_Days <= 90, 4,
+        R_Days <= 150, 3,
+        R_Days <= 240, 2,
+        1
+    )
+
+VAR F_Score = 
+    SWITCH(
+        TRUE(),
+        F_Count >= 28, 5,
+        F_Count >= 20, 4,
+        F_Count >= 14, 3,
+        F_Count >= 8, 2,
+        1
+    )
+
+VAR M_Score = 
+    SWITCH(
+        TRUE(),
+        M_Spend >= 24000, 5,
+        M_Spend >= 17000, 4,
+        M_Spend >= 11500, 3,
+        M_Spend >= 6000, 2,
+        1
+    )
+
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(R_Score), "No Orders",
+        R_Score >= 4 && F_Score >= 4 && M_Score >= 4, "Champions",
+        R_Score >= 3 && F_Score >= 3 && M_Score >= 3, "Loyal Customers",
+        R_Score >= 4 && F_Score <= 2, "Potential Loyalists",
+        R_Score <= 3 && F_Score >= 3 && M_Score >= 3, "At Risk",
+        R_Score == 1 && F_Score <= 2, "Lost Customers",
+        "Hibernating"
+    )
+
+/// Aggregate customer count per RFM Segment
+[RFM Customer Count] = 
+COUNTROWS(
+    FILTER(
+        VALUES(dim_customer[CustomerKey]),
+        NOT ISBLANK([Customer RFM Segment])
+    )
+)
+/* Format: Integer: #,##0 */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 04 Commercial Targets
+// ------------------------------------------------------------------------------
+
+/// Re-use Net Sales for actual comparison
+[Actual Sales] = [Net Sales]
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Total budgeted sales target
+[Sales Target] = 
+SUM(fact_targets[sales_target_egp])
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Total budgeted order volume target
+[Order Target] = 
+SUM(fact_targets[order_target])
+/* Format: Integer: #,##0 */
+
+/// Actual sales variance against target (Actual - Target)
+[Target Variance] = 
+VAR Actuals = [Actual Sales]
+VAR Target = [Sales Target]
+RETURN
+    IF(
+        NOT ISBLANK(Actuals) || NOT ISBLANK(Target),
+        Actuals - Target,
+        BLANK()
+    )
+/* Format: Currency: +#,##0.00 "EGP";-#,##0.00 "EGP";0.00 "EGP" */
+
+/// Percentage variance against target
+[Target Variance %] = 
+VAR Actuals = [Actual Sales]
+VAR Target = [Sales Target]
+RETURN
+    IF(
+        NOT ISBLANK(Target) && Target > 0,
+        DIVIDE(Actuals - Target, Target, 0),
+        BLANK()
+    )
+/* Format: Percentage: +0.0%;-0.0%;0.0% */
+
+/// Commercial quota achievement percentage
+[Target Achievement %] = 
+DIVIDE([Actual Sales], [Sales Target], 0)
+/* Format: Percentage: 0.0% */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 05 Time Intelligence
+// ------------------------------------------------------------------------------
+
+/// Year-to-Date Net Sales
+[Sales YTD] = 
+TOTALYTD(
+    [Net Sales],
+    dim_date[Date]
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Quarter-to-Date Net Sales
+[Sales QTD] = 
+TOTALQTD(
+    [Net Sales],
+    dim_date[Date]
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Month-to-Date Net Sales
+[Sales MTD] = 
+TOTALMTD(
+    [Net Sales],
+    dim_date[Date]
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Prior Year Net Sales (Same Period Last Year)
+[Sales PY] = 
+CALCULATE(
+    [Net Sales],
+    SAMEPERIODLASTYEAR(dim_date[Date])
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Year-over-Year Sales Growth Percentage
+[YoY Sales Growth %] = 
+VAR CurrentSales = [Net Sales]
+VAR PriorYearSales = [Sales PY]
+RETURN
+    IF(
+        NOT ISBLANK(CurrentSales) && NOT ISBLANK(PriorYearSales),
+        DIVIDE(CurrentSales - PriorYearSales, PriorYearSales, 0),
+        BLANK()
+    )
+/* Format: Percentage: +0.0%;-0.0%;0.0% */
+
+/// Prior Month Net Sales
+[Sales PM] = 
+CALCULATE(
+    [Net Sales],
+    PREVIOUSMONTH(dim_date[Date])
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Month-over-Month Sales Growth Percentage
+[MoM Sales Growth %] = 
+VAR CurrentSales = [Net Sales]
+VAR PriorMonthSales = [Sales PM]
+RETURN
+    IF(
+        NOT ISBLANK(CurrentSales) && NOT ISBLANK(PriorMonthSales),
+        DIVIDE(CurrentSales - PriorMonthSales, PriorMonthSales, 0),
+        BLANK()
+    )
+/* Format: Percentage: +0.0%;-0.0%;0.0% */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 06 Inventory & Stock
+// ------------------------------------------------------------------------------
+
+/// Warehouse opening physical stock units
+[Opening Stock] = 
+SUM(fact_inventory[opening_stock])
+/* Format: Integer: #,##0 */
+
+/// Replenishment stock received
+[Received Qty] = 
+SUM(fact_inventory[received_qty])
+/* Format: Integer: #,##0 */
+
+/// Units sold according to inventory logs
+[Inventory Sold Qty] = 
+SUM(fact_inventory[sold_qty])
+/* Format: Integer: #,##0 */
+
+/// Damaged or expired cosmetic units
+[Damaged Qty] = 
+SUM(fact_inventory[damaged_qty])
+/* Format: Integer: #,##0 */
+
+/// Month-end physical stock balance
+[Closing Stock] = 
+SUM(fact_inventory[closing_stock])
+/* Format: Integer: #,##0 */
+
+/// Balance sheet inventory valuation at standard cost
+[Closing Stock Value EGP] = 
+SUMX(
+    fact_inventory,
+    fact_inventory[closing_stock] * RELATED(dim_product[Standard Cost EGP])
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Financial loss from damaged cosmetics
+[Damaged Stock Loss EGP] = 
+SUMX(
+    fact_inventory,
+    fact_inventory[damaged_qty] * RELATED(dim_product[Standard Cost EGP])
+)
+/* Format: Currency: #,##0.00 "EGP" */
+
+/// Count of store-product SKUs completely depleted (0 units)
+[Stockout Risk] = 
+CALCULATE(
+    COUNTROWS(fact_inventory),
+    fact_inventory[is_stockout] = 1
+) + 0
+/* Format: Integer: #,##0 */
+
+/// Count of store-product SKUs nearing stockout (<= 15 units)
+[Low Stock Count] = 
+CALCULATE(
+    COUNTROWS(fact_inventory),
+    fact_inventory[is_low_stock] = 1
+) + 0
+/* Format: Integer: #,##0 */
+
+/// Inventory sell-through rate percentage
+[Sell-Through Rate %] = 
+VAR TotalAvailable = [Opening Stock] + [Received Qty]
+RETURN
+    DIVIDE([Inventory Sold Qty], TotalAvailable, 0)
+/* Format: Percentage: 0.0% */
+
+/// Damaged unit ratio
+[Damage Loss Ratio %] = 
+DIVIDE([Damaged Qty], [Opening Stock] + [Received Qty], 0)
+/* Format: Percentage: 0.00% */
+
+
+// ------------------------------------------------------------------------------
+// FOLDER: 07 Data Quality & Pipeline Audit
+// ------------------------------------------------------------------------------
+
+/// Total raw order rows ingested from CSV
+[Total Raw Orders Ingested] = 
+[Valid Orders] + [Quarantined Orders]
+/* Format: Integer: #,##0 */
+
+/// Valid orders loaded into FactSales
+[Valid Orders] = 
+COUNTROWS(fact_sales)
+/* Format: Integer: #,##0 */
+
+/// Orders intercepted and sent to Quarantine
+[Quarantined Orders] = 
+COUNTROWS(rejected_orders)
+/* Format: Integer: #,##0 */
+
+/// Data Quality Pipeline Scorecard Index
+[Data Quality Score %] = 
+DIVIDE([Valid Orders], [Total Raw Orders Ingested], 0)
+/* Format: Percentage: 0.00% */
+
+/// Percentage of raw orders rejected
+[DQ Rejection Rate %] = 
+DIVIDE([Quarantined Orders], [Total Raw Orders Ingested], 0)
+/* Format: Percentage: 0.00% */
+
+/// Dynamic reconciliation check difference
+[Reconciliation Variance Orders] = 
+VAR TotalSource = [Valid Orders] + [Quarantined Orders]
+VAR ExpectedRaw = 502000
+RETURN
+    TotalSource - ExpectedRaw
+/* Format: Integer: #,##0 */
+
+/// Assertion 01: Ensure zero negative sales in production model
+[Assertion 01 - Negative Sales Breach] = 
+CALCULATE(
+    COUNTROWS(fact_sales),
+    fact_sales[net_sales_egp] < 0
+) + 0
+/* Format: Integer: #,##0 */
+
+/// Assertion 02: Ensure zero orphan customer foreign keys
+[Assertion 02 - Orphan Customer Keys] = 
+CALCULATE(
+    COUNTROWS(fact_sales),
+    ISBLANK(RELATED(dim_customer[customer_id]))
+) + 0
+/* Format: Integer: #,##0 */
+
+/// Assertion 03: Ensure zero date dimension calendar gaps
+[Assertion 03 - Date Dimension Gaps] = 
+VAR MinDate = MIN(dim_date[Date])
+VAR MaxDate = MAX(dim_date[Date])
+VAR ExpectedDays = DATEDIFF(MinDate, MaxDate, DAY) + 1
+VAR ActualDays = COUNTROWS(dim_date)
+RETURN
+    ExpectedDays - ActualDays
+/* Format: Integer: #,##0 */
+
+/// Assertion 04: Ensure zero negative inventory damaged quantities
+[Assertion 04 - Negative Damaged Stock] = 
+CALCULATE(
+    COUNTROWS(fact_inventory),
+    fact_inventory[damaged_qty] < 0
+) + 0
+/* Format: Integer: #,##0 */
