@@ -143,3 +143,205 @@ expression fnValidatePositiveNumber =
 
 	annotation PBI_ResultType = Function
 
+expression src_customers =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\postgres_like\customers.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: c2508279-1d99-4bb6-815e-a1e6ac7bb160
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_products =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\postgres_like\products.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: 69fbefe1-15cb-42ee-8cb2-10f709c42ad5
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_stores =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\postgres_like\stores.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: ea673537-a641-48f0-84d0-86f14ce61b21
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_orders =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\postgres_like\orders.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=19, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: f2d359d0-c217-449b-995e-4d796eb5c54d
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_inventory =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\csv\inventory_monthly.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: 0579f466-ba46-490c-9b46-8bfd9c11e3aa
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_excel_workbook =
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\excel\commercial_reference_data.xlsx",
+		    SourceBytes = File.Contents(SourcePath),
+		    WorkbookData = Excel.Workbook(SourceBytes, false, true)
+		in
+		    WorkbookData
+	lineageTag: 381b6317-7d4a-4efd-a565-33df2ee33130
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_targets =
+		let
+		    Source = src_excel_workbook,
+		    TargetRow = Source{[Item="Targets", Kind="Sheet"]}[Data],
+		    PromotedHeaders = Table.PromoteHeaders(TargetRow, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: 997ee4b4-22d6-4e5c-b023-134d92fbab00
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_campaigns =
+		let
+		    Source = src_excel_workbook,
+		    CampaignRow = Source{[Item="Campaigns", Kind="Sheet"]}[Data],
+		    PromotedHeaders = Table.PromoteHeaders(CampaignRow, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+	lineageTag: 28480520-f07a-4674-b215-690377f14a11
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_exchange_rates = ```
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\api\exchange_rates.json",
+		    SourceBytes = File.Contents(SourcePath),
+		    JsonData = Json.Document(SourceBytes),
+		    TableFromList = Table.FromList(JsonData, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    ExpandedRecord = Table.ExpandRecordColumn(
+		        TableFromList, 
+		        "Column1", 
+		        {"rate_date", "base_currency", "rate", "quote_currency", "api_timestamp"}, 
+		        {"rate_date_raw", "base_currency", "exchange_rate", "quote_currency", "api_timestamp"}
+		    )
+		in
+		    ExpandedRecord
+		```
+	lineageTag: 63e4163c-1e17-4588-9961-bbd042ae2229
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

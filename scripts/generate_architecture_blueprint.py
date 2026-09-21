@@ -1,4 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 1600" width="100%" height="100%" style="background:#070B14; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
+"""
+Cleopatra Modern Cosmetics - Architecture Blueprint Generator
+Generates high-definition vector SVG and renders 2600x1600 PNG diagram grounded
+strictly in the project's actual datasets, schemas, row counts, and data flow.
+"""
+
+import os
+import cairosvg
+
+def build_svg_content() -> str:
+    return '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 1600" width="100%" height="100%" style="background:#070B14; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
   <defs>
     <!-- Background Radial Glow -->
     <radialGradient id="bgGlow" cx="50%" cy="20%" r="85%">
@@ -933,4 +943,21 @@
       Cleopatra Modern Cosmetics (كليوباترا كوزماتكس) • Production BI Engineering Blueprint v2.0
     </text>
   </g>
-</svg>
+</svg>'''
+
+def main():
+    svg_content = build_svg_content()
+    svg_path = "docs/diagrams/project_lifecycle.svg"
+    png_path = "docs/diagrams/project_lifecycle.png"
+
+    # Write SVG
+    with open(svg_path, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+    print(f"Generated {svg_path} ({len(svg_content)} bytes)")
+
+    # Render PNG using cairosvg
+    cairosvg.svg2png(bytestring=svg_content.encode("utf-8"), write_to=png_path, output_width=2600, output_height=1600)
+    print(f"Rendered {png_path} ({os.path.getsize(png_path)} bytes)")
+
+if __name__ == "__main__":
+    main()

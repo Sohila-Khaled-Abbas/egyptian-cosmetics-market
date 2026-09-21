@@ -8,7 +8,7 @@
 [![SQL Server 2022](https://img.shields.io/badge/SQL_Server_2022-Kimball_DW-CC292B?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/en-us/sql-server/)
 [![Power BI Desktop](https://img.shields.io/badge/Power_BI_Desktop-PBIP_Format-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
 [![Power Query M](https://img.shields.io/badge/Power_Query_M-ETL_Engine-23714A?style=for-the-badge&logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/powerquery-m/)
-[![DAX Semantic Layer](https://img.shields.io/badge/DAX-33%2B_Measures-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://learn.microsoft.com/en-us/dax/)
+[![DAX Semantic Layer](https://img.shields.io/badge/DAX-55%2B_Measures-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://learn.microsoft.com/en-us/dax/)
 [![Data Quality Score](https://img.shields.io/badge/DQ_Health_Index-99.14%25-success?style=for-the-badge&logo=shield&logoColor=white)](#-data-quality-framework--quarantine-ledger)
 [![CI Tests Passing](https://img.shields.io/badge/CI_Tests-39_Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-automated-testing--ci)
 [![Star Schema](https://img.shields.io/badge/Architecture-Kimball_Star_Schema-blueviolet?style=for-the-badge)](#-kimball-star-schema-data-warehouse)
@@ -92,7 +92,7 @@ flowchart TD
 
     subgraph S7["7. POWER BI ANALYTICS LIFECYCLE"]
         G1["Power BI Project (<code>.pbip</code>) Format<br/>DirectQuery / Import from SQL Server Marts<br/>OR 100% In-Engine M Transformation Lifecycle"]
-        G2["Dedicated <code>_Measures</code> DAX Container (33+ Measures)<br/>5 Executive Dashboard Pages"]
+        G2["Dedicated <code>_Measures</code> DAX Container (55+ Measures in 6 Display Folders)<br/>5 Executive Dashboard Pages"]
     end
 
     S1 --> S2 --> S3 --> S4

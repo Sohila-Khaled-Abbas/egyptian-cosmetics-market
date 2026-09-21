@@ -150,6 +150,34 @@ The Staging layer creates decoupled copies of your raw tables, sets proper colum
 
 ---
 
+### 3.7: Building `stg_campaigns` (7 Rows)
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `src_campaigns` in `01_Source` $\rightarrow$ select **Reference**.
+2. Rename query to `stg_campaigns` $\rightarrow$ move to group **`02_Staging`**.
+3. Set column types via header icons:
+   * `campaign_id` $\rightarrow$ **Text** (`ABC`)
+   * `campaign_name_en` $\rightarrow$ **Text** (`ABC`)
+   * `campaign_name_ar` $\rightarrow$ **Text** (`ABC`)
+   * `start_date` $\rightarrow$ **Date** (`📅`)
+   * `end_date` $\rightarrow$ **Date** (`📅`)
+   * `budget_egp` $\rightarrow$ **Decimal Number** (`1.2`)
+   * `discount_pct` $\rightarrow$ **Decimal Number** (`1.2`)
+
+---
+
+### 3.8: Building `stg_fx_rates` (730 Rows)
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `src_exchange_rates` in `01_Source` $\rightarrow$ select **Reference**.
+2. Rename query to `stg_fx_rates` $\rightarrow$ move to group **`02_Staging`**.
+3. Set column types via header icons:
+   * `date` $\rightarrow$ **Date** (`📅`)
+   * `currency` $\rightarrow$ **Text** (`ABC`)
+   * `rate_to_egp` $\rightarrow$ **Decimal Number** (`1.2`)
+
+---
+
 ## 4. Step-by-Step Cleansed Layer (`04_Cleansed`) via GUI
 
 The Cleansed layer executes deterministic business standardization: removing whitespace, cleaning unprintable control characters, lowercasing emails, normalizing Egyptian phone numbers, and canonicalizing status codes.
@@ -273,6 +301,31 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
 ---
 
+### 4.6: Cleansing `cln_targets`
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `stg_targets` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_targets` $\rightarrow$ Move to **`04_Cleansed`**.
+2. Click header `store_id` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim**.
+
+---
+
+### 4.7: Cleansing `cln_campaigns`
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `stg_campaigns` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_campaigns` $\rightarrow$ Move to **`04_Cleansed`**.
+2. Hold `Ctrl` and select `campaign_id`, `campaign_name_en`, `campaign_name_ar`.
+3. Switch to **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ **Trim**, then **Format** $\rightarrow$ **Clean**.
+
+---
+
+### 4.8: Cleansing `cln_fx_rates`
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `stg_fx_rates` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_fx_rates` $\rightarrow$ Move to **`04_Cleansed`**.
+2. Click header `currency` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim** $\rightarrow$ **Format** $\rightarrow$ **UPPERCASE**.
+
+---
+
 ## 5. Verification Checklist in Power Query GUI
 
 After completing these GUI steps, verify your queries:
@@ -285,11 +338,16 @@ After completing these GUI steps, verify your queries:
 | `stg_orders` | `02_Staging` | $502,000$ | `order_datetime` typed as Date/Time; numeric metrics typed. |
 | `stg_inventory` | `02_Staging` | $8,400$ | Stock counters typed as Whole Numbers (`123`). |
 | `stg_targets` | `02_Staging` | $417$ | Quota values typed as Decimal (`1.2`). |
+| `stg_campaigns` | `02_Staging` | $7$ | Budget typed as Decimal (`1.2`); dates typed. |
+| `stg_fx_rates` | `02_Staging` | $730$ | Rate typed as Decimal (`1.2`); currency typed as Text. |
 | `cln_customers` | `04_Cleansed` | $25,200$ | Phone normalized (`010...`), lowercase emails, clean governorates. |
 | `cln_products` | `04_Cleansed` | $20$ | Currency canonicalized to `EGP`; clean whitespace. |
 | `cln_orders` | `04_Cleansed` | $502,000$ | Status normalized to `Completed`, `Returned`, `Cancelled`. |
 | `cln_stores` | `04_Cleansed` | $35$ | Clean governorate and store names. |
 | `cln_inventory` | `04_Cleansed` | $8,400$ | Trimmed SKU and store identifiers. |
+| `cln_targets` | `04_Cleansed` | $417$ | Trimmed store key and typed monthly quota. |
+| `cln_campaigns` | `04_Cleansed` | $7$ | Cleaned bilingual event names and trimmed IDs. |
+| `cln_fx_rates` | `04_Cleansed` | $730$ | Uppercase currency codes and validated daily multipliers. |
 
 ---
 
@@ -297,3 +355,4 @@ After completing these GUI steps, verify your queries:
 
 For developers who want to inspect the generated code in the **Advanced Editor**, the complete M script for `04_Cleansed` is maintained in:
 📂 `power_query_m/04_cleansed_queries.m`
+
