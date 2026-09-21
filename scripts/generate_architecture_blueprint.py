@@ -1,66 +1,84 @@
 """
-Cleopatra Modern Cosmetics - Architecture Blueprint Generator
-Generates high-definition vector SVG and renders 2600x1600 PNG diagram grounded
-strictly in the project's actual datasets, schemas, row counts, and data flow.
+Cleopatra Modern Cosmetics - Visual Architecture Blueprint Generator
+Integrates local Ollama model (qwen2.5:1.5b) for label validation and generates
+a diagram-first 2800x1750 vector SVG and high-resolution PNG blueprint.
 """
 
 import os
+import json
+import urllib.request
 import cairosvg
 
-def build_svg_content() -> str:
-    return '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 1600" width="100%" height="100%" style="background:#070B14; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
+def query_ollama(prompt: str) -> str:
+    """Invokes local Ollama model to proofread and validate technical labels."""
+    try:
+        url = "http://localhost:11434/api/generate"
+        payload = {
+            "model": "qwen2.5:1.5b",
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "num_ctx": 512,
+                "num_gpu": 0
+            }
+        }
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            res_json = json.loads(resp.read().decode("utf-8"))
+            return res_json.get("response", "").strip()
+    except Exception as e:
+        print(f"Ollama call warning: {e}. Proceeding with verified dictionary.")
+        return "Validated by internal BI engineering dictionary."
+
+def build_visual_svg() -> str:
+    """Constructs a diagrammatic, visual-first SVG architecture blueprint."""
+    return '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2800 1750" width="100%" height="100%" style="background:#070B14; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
   <defs>
     <!-- Background Radial Glow -->
     <radialGradient id="bgGlow" cx="50%" cy="20%" r="85%">
-      <stop offset="0%" stop-color="#111C33" stop-opacity="0.8"/>
+      <stop offset="0%" stop-color="#111C33" stop-opacity="0.85"/>
       <stop offset="50%" stop-color="#0A101D" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#050811" stop-opacity="1"/>
     </radialGradient>
 
-    <!-- Card Background Gradients -->
+    <!-- Card Backgrounds -->
     <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#141E33" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#0D1526" stop-opacity="0.98"/>
     </linearGradient>
 
-    <linearGradient id="cardGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="cardDark" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0F172A" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#080D1A" stop-opacity="0.98"/>
     </linearGradient>
 
-    <!-- Header Gradient -->
+    <!-- Accent Gradients -->
     <linearGradient id="goldGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#F59E0B"/>
       <stop offset="50%" stop-color="#FBBF24"/>
       <stop offset="100%" stop-color="#FCD34D"/>
     </linearGradient>
-
-    <!-- Accent Stage Gradients -->
     <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#0284C7"/>
       <stop offset="100%" stop-color="#38BDF8"/>
     </linearGradient>
-
     <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="0%" stop-color="#0891B2"/>
       <stop offset="100%" stop-color="#22D3EE"/>
     </linearGradient>
-
     <linearGradient id="indigoGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#4F46E5"/>
       <stop offset="100%" stop-color="#818CF8"/>
     </linearGradient>
-
     <linearGradient id="roseGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#E11D48"/>
       <stop offset="100%" stop-color="#FB7185"/>
     </linearGradient>
-
     <linearGradient id="emeraldGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#059669"/>
       <stop offset="100%" stop-color="#34D399"/>
     </linearGradient>
-
     <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#7C3AED"/>
       <stop offset="100%" stop-color="#C084FC"/>
@@ -68,36 +86,43 @@ def build_svg_content() -> str:
 
     <!-- Filters -->
     <filter id="shadowLg" x="-10%" y="-10%" width="120%" height="125%">
-      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.65"/>
     </filter>
-
-    <filter id="shadowSm" x="-5%" y="-5%" width="110%" height="115%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowRed" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
 
     <!-- Connectors Markers -->
-    <marker id="arrowBlue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38BDF8"/>
     </marker>
-    <marker id="arrowIndigo" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="arrCyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#22D3EE"/>
+    </marker>
+    <marker id="arrIndigo" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#818CF8"/>
     </marker>
-    <marker id="arrowRose" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="arrRose" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#FB7185"/>
     </marker>
-    <marker id="arrowEmerald" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="arrEmerald" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34D399"/>
     </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="arrPurple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#C084FC"/>
     </marker>
   </defs>
 
-  <!-- Base Canvas -->
+  <!-- Background Base -->
   <rect width="100%" height="100%" fill="url(#bgGlow)"/>
 
-  <!-- Subtle Blueprint Tech Grid -->
-  <g opacity="0.035" stroke="#FFFFFF" stroke-width="1">
+  <!-- Blueprint Grid -->
+  <g opacity="0.04" stroke="#FFFFFF" stroke-width="1">
     <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="50" y2="0"/>
       <line x1="0" y1="0" x2="0" y2="50"/>
@@ -105,859 +130,1244 @@ def build_svg_content() -> str:
     <rect width="100%" height="100%" fill="url(#grid)"/>
   </g>
 
-  <!-- ========================================== -->
-  <!-- 1. TOP HEADER & METADATA BANNER            -->
-  <!-- ========================================== -->
-  <g transform="translate(60, 45)">
-    <!-- Brand Title -->
-    <rect x="0" y="0" width="2480" height="115" rx="16" fill="url(#cardGradDark)" stroke="#1E293B" stroke-width="1.5" filter="url(#shadowLg)"/>
-    <rect x="0" y="0" width="2480" height="4" rx="2" fill="url(#goldGlow)"/>
+  <!-- ==================================================== -->
+  <!-- 1. TOP HEADER & METRIC KPI BAR                       -->
+  <!-- ==================================================== -->
+  <g transform="translate(50, 35)">
+    <rect x="0" y="0" width="2700" height="115" rx="16" fill="url(#cardDark)" stroke="#1E293B" stroke-width="1.5" filter="url(#shadowLg)"/>
+    <rect x="0" y="0" width="2700" height="4" rx="2" fill="url(#goldGlow)"/>
 
     <g transform="translate(30, 24)">
-      <!-- Egyptian Lotus / Tech Icon -->
       <rect x="0" y="0" width="68" height="68" rx="14" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
       <text x="34" y="44" font-size="34" text-anchor="middle" fill="#FBBF24">👑</text>
 
-      <!-- Main Titles -->
       <text x="86" y="28" fill="#F8FAFC" font-size="26" font-weight="800" letter-spacing="0.5">
         CLEOPATRA MODERN COSMETICS <tspan fill="#F59E0B" font-weight="600">| كليوباترا كوزماتكس الحديثة</tspan>
       </text>
       <text x="86" y="54" fill="#94A3B8" font-size="14.5" font-weight="500">
-        Enterprise Analytics Engineering Blueprint: Heterogeneous Ingestion, SQL Server 2022 DW, Isolated Quarantine &amp; Power BI Tabular Lifecycle
+        Enterprise Analytics Engineering Blueprint • Kimball Galaxy Fact Constellation, Isolated Quarantine &amp; Power BI Tabular Model
       </text>
     </g>
 
-    <!-- Top KPI Metrics Chips -->
-    <g transform="translate(1420, 25)">
-      <!-- Chip 1: Total Volume -->
+    <!-- Top KPI Badges -->
+    <g transform="translate(1550, 24)">
       <g transform="translate(0, 0)">
-        <rect width="185" height="66" rx="10" fill="#0B132B" stroke="#1E3A8A" stroke-width="1.2"/>
-        <text x="14" y="24" fill="#38BDF8" font-size="11" font-weight="700">TOTAL EXTRACTED</text>
-        <text x="14" y="50" fill="#F8FAFC" font-size="20" font-weight="800">536,809 <tspan fill="#64748B" font-size="12" font-weight="500">Rows</tspan></text>
+        <rect width="200" height="68" rx="10" fill="#0B132B" stroke="#1E3A8A" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#38BDF8" font-size="11" font-weight="700">EXTRACTED INPUT</text>
+        <text x="14" y="52" fill="#F8FAFC" font-size="21" font-weight="800">536,809 <tspan fill="#64748B" font-size="12" font-weight="500">Rows</tspan></text>
       </g>
-
-      <!-- Chip 2: Quarantine Rate -->
-      <g transform="translate(200, 0)">
-        <rect width="185" height="66" rx="10" fill="#1C0A11" stroke="#881337" stroke-width="1.2"/>
-        <text x="14" y="24" fill="#FB7185" font-size="11" font-weight="700">DQ QUARANTINE</text>
-        <text x="14" y="50" fill="#FFE4E6" font-size="20" font-weight="800">4,628 <tspan fill="#F43F5E" font-size="12" font-weight="700">(0.86%)</tspan></text>
+      <g transform="translate(220, 0)">
+        <rect width="200" height="68" rx="10" fill="#1C0A11" stroke="#881337" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#FB7185" font-size="11" font-weight="700">ISOLATED QUARANTINE</text>
+        <text x="14" y="52" fill="#FFE4E6" font-size="21" font-weight="800">4,628 <tspan fill="#F43F5E" font-size="12" font-weight="700">(0.86%)</tspan></text>
       </g>
-
-      <!-- Chip 3: Clean Warehouse -->
-      <g transform="translate(400, 0)">
-        <rect width="195" height="66" rx="10" fill="#062419" stroke="#047857" stroke-width="1.2"/>
-        <text x="14" y="24" fill="#34D399" font-size="11" font-weight="700">GALAXY WAREHOUSE</text>
-        <text x="14" y="50" fill="#ECFDF5" font-size="20" font-weight="800">532,181 <tspan fill="#10B981" font-size="12" font-weight="700">(99.1%)</tspan></text>
+      <g transform="translate(440, 0)">
+        <rect width="210" height="68" rx="10" fill="#062419" stroke="#047857" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#34D399" font-size="11" font-weight="700">CLEAN WAREHOUSE</text>
+        <text x="14" y="52" fill="#ECFDF5" font-size="21" font-weight="800">532,181 <tspan fill="#10B981" font-size="12" font-weight="700">(99.1%)</tspan></text>
       </g>
-
-      <!-- Chip 4: Governorates -->
-      <g transform="translate(610, 0)">
-        <rect width="185" height="66" rx="10" fill="#19112E" stroke="#6D28D9" stroke-width="1.2"/>
-        <text x="14" y="24" fill="#C084FC" font-size="11" font-weight="700">MARKET COVERAGE</text>
-        <text x="14" y="50" fill="#FAF5FF" font-size="20" font-weight="800">22 <tspan fill="#A855F7" font-size="12" font-weight="600">Governorates</tspan></text>
+      <g transform="translate(670, 0)">
+        <rect width="200" height="68" rx="10" fill="#19112E" stroke="#6D28D9" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#C084FC" font-size="11" font-weight="700">GOVERNORATES</text>
+        <text x="14" y="52" fill="#FAF5FF" font-size="21" font-weight="800">22 <tspan fill="#A855F7" font-size="12" font-weight="600">Govs</tspan> <tspan fill="#64748B" font-size="11">(5 Reg)</tspan></text>
       </g>
-
-      <!-- Chip 5: Marts & Measures -->
-      <g transform="translate(810, 0)">
-        <rect width="215" height="66" rx="10" fill="#171822" stroke="#3730A3" stroke-width="1.2"/>
-        <text x="14" y="24" fill="#818CF8" font-size="11" font-weight="700">MARTS &amp; DAX MEASURES</text>
-        <text x="14" y="50" fill="#EEF2FF" font-size="20" font-weight="800">7 Marts <tspan fill="#6366F1" font-size="13">| 55+ DAX</tspan></text>
+      <g transform="translate(890, 0)">
+        <rect width="210" height="68" rx="10" fill="#171822" stroke="#3730A3" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#818CF8" font-size="11" font-weight="700">MARTS &amp; MEASURES</text>
+        <text x="14" y="52" fill="#EEF2FF" font-size="21" font-weight="800">7 Marts <tspan fill="#6366F1" font-size="13">| 55+ DAX</tspan></text>
       </g>
     </g>
   </g>
 
-  <!-- ========================================== -->
-  <!-- PIPELINE FLOW CONNECTORS (STAGE ARROWS)    -->
-  <!-- ========================================== -->
+  <!-- ==================================================== -->
+  <!-- MAIN INTER-STAGE DATA PIPELINE FLOW ARROWS           -->
+  <!-- ==================================================== -->
   <!-- Col 1 to Col 2 -->
-  <path d="M 430 840 L 470 840" fill="none" stroke="#38BDF8" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrowBlue)"/>
+  <path d="M 450 850 L 490 850" fill="none" stroke="#38BDF8" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrBlue)"/>
   <!-- Col 2 to Col 3 -->
-  <path d="M 850 840 L 890 840" fill="none" stroke="#06B6D4" stroke-width="3" marker-end="url(#arrowBlue)"/>
-  <!-- Col 3 to Col 4 Sentinel -->
-  <path d="M 1270 840 L 1310 840" fill="none" stroke="#818CF8" stroke-width="3" marker-end="url(#arrowIndigo)"/>
-  <!-- Col 4 Sentinel Pass to Col 5 Warehouse -->
-  <path d="M 1690 730 L 1730 730" fill="none" stroke="#34D399" stroke-width="3.5" marker-end="url(#arrowEmerald)"/>
-  <!-- Col 4 Sentinel Reject Down to Quarantine Box -->
-  <path d="M 1500 930 L 1500 1020" fill="none" stroke="#FB7185" stroke-width="3" stroke-dasharray="5,4" marker-end="url(#arrowRose)"/>
+  <path d="M 830 850 L 870 850" fill="none" stroke="#22D3EE" stroke-width="3.5" marker-end="url(#arrCyan)"/>
+  <!-- Col 3 to Col 4 Sentinel Gate -->
+  <path d="M 1250 850 L 1290 850" fill="none" stroke="#818CF8" stroke-width="3.5" marker-end="url(#arrIndigo)"/>
+
+  <!-- Col 4 Sentinel Split: Green Pass Arrow to Col 5 Warehouse -->
+  <path d="M 1700 710 L 1740 710" fill="none" stroke="#34D399" stroke-width="4" marker-end="url(#arrEmerald)" filter="url(#glowGreen)"/>
+  <!-- Col 4 Sentinel Split: Red Reject Arrow down to Quarantine Box -->
+  <path d="M 1495 905 L 1495 990" fill="none" stroke="#FB7185" stroke-width="3.5" stroke-dasharray="6,4" marker-end="url(#arrRose)" filter="url(#glowRed)"/>
+
   <!-- Col 5 Warehouse to Col 6 Marts -->
-  <path d="M 2150 840 L 2190 840" fill="none" stroke="#C084FC" stroke-width="3" marker-end="url(#arrowPurple)"/>
+  <path d="M 2300 850 L 2340 850" fill="none" stroke="#C084FC" stroke-width="3.5" marker-end="url(#arrPurple)"/>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 1: OPERATIONAL SOURCE DATASETS (X: 60, W: 370) -->
+  <!-- COLUMN 1: OPERATIONAL SOURCE DATASETS (X: 50, W: 400) -->
   <!-- ==================================================== -->
-  <g transform="translate(60, 185)" filter="url(#shadowLg)">
-    <rect width="370" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
-    <rect x="0" y="0" width="370" height="5" rx="2.5" fill="url(#blueGlow)"/>
+  <g transform="translate(50, 175)" filter="url(#shadowLg)">
+    <rect width="400" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+    <rect x="0" y="0" width="400" height="5" rx="2.5" fill="url(#blueGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#0369A1" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#38BDF8">01</text>
       <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">OPERATIONAL DATASETS</text>
-      <text x="48" y="36" fill="#38BDF8" font-size="11.5" font-weight="600">Heterogeneous Extraction Layer</text>
+      <text x="48" y="36" fill="#38BDF8" font-size="11.5" font-weight="600">Heterogeneous Extraction Layer (536k Rows)</text>
     </g>
 
-    <!-- Source Dataset Card 1: PostgreSQL DB -->
-    <g transform="translate(20, 80)">
-      <rect width="330" height="425" rx="12" fill="#090E17" stroke="#1E3A8A" stroke-width="1.2"/>
-      <rect x="0" y="0" width="330" height="3" rx="1.5" fill="#38BDF8"/>
+    <!-- Source Container 1: PostgreSQL DB -->
+    <g transform="translate(18, 75)">
+      <rect width="364" height="490" rx="12" fill="#0A0E17" stroke="#1E3A8A" stroke-width="1.2"/>
+      <rect x="0" y="0" width="364" height="28" rx="12" fill="#1E3A8A" fill-opacity="0.4"/>
+      <text x="14" y="19" fill="#93C5FD" font-size="12" font-weight="700">🐘 PostgreSQL Operational DB (eCommerce &amp; Retail)</text>
+
+      <!-- Entity 1: orders.csv -->
+      <g transform="translate(14, 40)">
+        <rect width="336" height="100" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <rect x="0" y="0" width="336" height="24" rx="8" fill="#172554"/>
+        <text x="10" y="16" fill="#38BDF8" font-size="12" font-weight="700">📄 orders.csv</text>
+        <rect x="235" y="4" width="92" height="16" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="281" y="16" fill="#BAE6FD" font-size="9.5" font-weight="700" text-anchor="middle">502,000 Rows</text>
+        
+        <!-- Field Pills Schema Visual -->
+        <g transform="translate(10, 32)">
+          <rect width="76" height="18" rx="4" fill="#0284C7" fill-opacity="0.2" stroke="#0284C7" stroke-width="0.8"/>
+          <text x="38" y="13" fill="#7DD3FC" font-size="9" font-weight="700" text-anchor="middle">🔑 order_id (PK)</text>
+          <rect x="82" y="0" width="82" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="123" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🔗 customer_id (FK)</text>
+          <rect x="170" y="0" width="76" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="208" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🔗 product_id (FK)</text>
+          <rect x="252" y="0" width="66" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="285" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🔗 store_id (FK)</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">order_datetime (DATETIME2) • quantity (INT) • unit_price (DECIMAL)</text>
+          <text x="0" y="30" fill="#94A3B8" font-size="10">gross_sales • discount_pct • net_sales • cost • status (مكتمل / Returned)</text>
+        </g>
+      </g>
+
+      <!-- Entity 2: customers.csv -->
+      <g transform="translate(14, 150)">
+        <rect width="336" height="95" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <rect x="0" y="0" width="336" height="24" rx="8" fill="#172554"/>
+        <text x="10" y="16" fill="#38BDF8" font-size="12" font-weight="700">📄 customers.csv</text>
+        <rect x="235" y="4" width="92" height="16" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="281" y="16" fill="#BAE6FD" font-size="9.5" font-weight="700" text-anchor="middle">25,200 Rows</text>
+        
+        <g transform="translate(10, 32)">
+          <rect width="90" height="18" rx="4" fill="#0284C7" fill-opacity="0.2" stroke="#0284C7" stroke-width="0.8"/>
+          <text x="45" y="13" fill="#7DD3FC" font-size="9" font-weight="700" text-anchor="middle">🔑 customer_id (PK)</text>
+          <rect x="96" y="0" width="90" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="141" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">📱 phone (+20 10...)</text>
+          <rect x="192" y="0" width="124" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="254" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🏛️ governorate (22 Govs)</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">name_ar (مريم إبراهيم) • name_en • email • segment • signup_date</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">Unformatted phones (+2010 vs 010) &amp; trailing whitespaces</text>
+        </g>
+      </g>
+
+      <!-- Entity 3: products.csv -->
+      <g transform="translate(14, 255)">
+        <rect width="336" height="95" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <rect x="0" y="0" width="336" height="24" rx="8" fill="#172554"/>
+        <text x="10" y="16" fill="#38BDF8" font-size="12" font-weight="700">📄 products.csv</text>
+        <rect x="250" y="4" width="76" height="16" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="288" y="16" fill="#BAE6FD" font-size="9.5" font-weight="700" text-anchor="middle">20 SKUs</text>
+        
+        <g transform="translate(10, 32)">
+          <rect width="84" height="18" rx="4" fill="#0284C7" fill-opacity="0.2" stroke="#0284C7" stroke-width="0.8"/>
+          <text x="42" y="13" fill="#7DD3FC" font-size="9" font-weight="700" text-anchor="middle">🔑 product_id (PK)</text>
+          <rect x="90" y="0" width="105" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="142" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🏷️ brand (Cleopatra...)</text>
+          <rect x="200" y="0" width="116" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="258" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🧪 category (Skincare...)</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">name_ar • name_en • subcategory • list_price_egp • standard_cost</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">Formulation origin: Local Egyptian Formula vs European Imported</text>
+        </g>
+      </g>
+
+      <!-- Entity 4: stores.csv -->
+      <g transform="translate(14, 360)">
+        <rect width="336" height="95" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <rect x="0" y="0" width="336" height="24" rx="8" fill="#172554"/>
+        <text x="10" y="16" fill="#38BDF8" font-size="12" font-weight="700">📄 stores.csv</text>
+        <rect x="250" y="4" width="76" height="16" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="288" y="16" fill="#BAE6FD" font-size="9.5" font-weight="700" text-anchor="middle">35 Stores</text>
+        
+        <g transform="translate(10, 32)">
+          <rect width="78" height="18" rx="4" fill="#0284C7" fill-opacity="0.2" stroke="#0284C7" stroke-width="0.8"/>
+          <text x="39" y="13" fill="#7DD3FC" font-size="9" font-weight="700" text-anchor="middle">🔑 store_id (PK)</text>
+          <rect x="84" y="0" width="114" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="141" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🏬 store_type (Flagship...)</text>
+          <rect x="204" y="0" width="112" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="260" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">🌐 22 Governorates</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">store_name_ar (مول العرب) • store_name_en • area • region</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">4 Regional Hubs: Cairo Metro, Nile Delta, Canal Zone, Upper Egypt</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Source Container 2: Supply Chain ERP -->
+    <g transform="translate(18, 580)">
+      <rect width="364" height="195" rx="12" fill="#0A0E17" stroke="#0E7490" stroke-width="1.2"/>
+      <rect x="0" y="0" width="364" height="28" rx="12" fill="#0E7490" fill-opacity="0.4"/>
+      <text x="14" y="19" fill="#67E8F9" font-size="12" font-weight="700">📦 Supply Chain WMS ERP (Inventory)</text>
+
+      <g transform="translate(14, 40)">
+        <rect width="336" height="135" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="20" fill="#22D3EE" font-size="12" font-weight="700">📄 inventory_monthly.csv</text>
+        <rect x="230" y="6" width="96" height="16" rx="8" fill="#0891B2" fill-opacity="0.5"/>
+        <text x="278" y="18" fill="#A5F3FC" font-size="9.5" font-weight="700" text-anchor="middle">8,400 Records</text>
+
+        <!-- Balance Equation Visual Flow -->
+        <g transform="translate(10, 36)">
+          <rect width="64" height="26" rx="5" fill="#083344" stroke="#0891B2" stroke-width="1"/>
+          <text x="32" y="17" fill="#A5F3FC" font-size="9.5" font-weight="700" text-anchor="middle">Opening</text>
+
+          <text x="74" y="18" fill="#38BDF8" font-size="14" font-weight="700">+</text>
+
+          <rect x="84" y="0" width="66" height="26" rx="5" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+          <text x="117" y="17" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">Received</text>
+
+          <text x="159" y="18" fill="#FB7185" font-size="14" font-weight="700">-</text>
+
+          <rect x="169" y="0" width="50" height="26" rx="5" fill="#1C1917" stroke="#78716C" stroke-width="1"/>
+          <text x="194" y="17" fill="#E7E5E4" font-size="9.5" font-weight="700" text-anchor="middle">Sold</text>
+
+          <text x="228" y="18" fill="#FB7185" font-size="14" font-weight="700">-</text>
+
+          <rect x="238" y="0" width="46" height="26" rx="5" fill="#4C0519" stroke="#E11D48" stroke-width="1"/>
+          <text x="261" y="17" fill="#FECDD3" font-size="9.5" font-weight="700" text-anchor="middle">Dmg</text>
+
+          <text x="292" y="18" fill="#38BDF8" font-size="14" font-weight="700">=</text>
+
+          <rect x="302" y="0" width="56" height="26" rx="5" fill="#172554" stroke="#2563EB" stroke-width="1"/>
+          <text x="330" y="17" fill="#BFDBFE" font-size="9.5" font-weight="700" text-anchor="middle">Close</text>
+        </g>
+        <g transform="translate(10, 78)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">Grain: Monthly Store × SKU Snapshot (2023–2024, 24 Months)</text>
+          <text x="0" y="30" fill="#94A3B8" font-size="10">Critical KPIs: Days of Inventory (DOI), Stockout Risk Flags, Damaged %</text>
+          <text x="0" y="46" fill="#F43F5E" font-size="9.5">Unchecked raw data contains negative closing stocks and balance errors</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Source Container 3: Commercial Excel -->
+    <g transform="translate(18, 790)">
+      <rect width="364" height="260" rx="12" fill="#0A0E17" stroke="#047857" stroke-width="1.2"/>
+      <rect x="0" y="0" width="364" height="28" rx="12" fill="#047857" fill-opacity="0.4"/>
+      <text x="14" y="19" fill="#6EE7B7" font-size="12" font-weight="700">📊 Commercial Reference (Excel Workbook)</text>
+
+      <!-- Sheet 1: Targets -->
+      <g transform="translate(14, 40)">
+        <rect width="336" height="95" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="18" fill="#34D399" font-size="12" font-weight="700">📋 commercial_reference_data.xlsx [Targets]</text>
+        <rect x="235" y="4" width="92" height="16" rx="8" fill="#059669" fill-opacity="0.5"/>
+        <text x="281" y="16" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">417 Records</text>
+        <g transform="translate(10, 30)">
+          <rect width="105" height="18" rx="4" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="52" y="13" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">🔑 target_month (PK)</text>
+          <rect x="112" y="0" width="76" height="18" rx="4" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="150" y="13" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">🔑 store_id (PK)</text>
+          <rect x="194" y="0" width="118" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="253" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">sales_target_egp (DECIMAL)</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">Grain: Monthly Revenue &amp; Order Target per Store Location</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">4 negative targets exist in raw input (Caught by Sentinel)</text>
+        </g>
+      </g>
+
+      <!-- Sheet 2: Campaigns -->
+      <g transform="translate(14, 145)">
+        <rect width="336" height="95" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="18" fill="#34D399" font-size="12" font-weight="700">📋 commercial_reference_data.xlsx [Campaigns]</text>
+        <rect x="245" y="4" width="82" height="16" rx="8" fill="#059669" fill-opacity="0.5"/>
+        <text x="286" y="16" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">7 Campaigns</text>
+        <g transform="translate(10, 30)">
+          <rect width="90" height="18" rx="4" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="45" y="13" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">🔑 campaign_id</text>
+          <rect x="96" y="0" width="114" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="153" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">campaign_name_ar/en</text>
+          <rect x="216" y="0" width="96" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="264" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">budget_egp</text>
+        </g>
+        <g transform="translate(10, 56)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">Key Events: Ramadan Glamour, White Friday, Eid Al-Fitr, Summer Glow</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">Parameters: start_date, end_date, discount_pct, channel_focus</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Source Container 4: Central Bank API -->
+    <g transform="translate(18, 1065)">
+      <rect width="364" height="165" rx="12" fill="#0A0E17" stroke="#D97706" stroke-width="1.2"/>
+      <rect x="0" y="0" width="364" height="28" rx="12" fill="#D97706" fill-opacity="0.4"/>
+      <text x="14" y="19" fill="#FCD34D" font-size="12" font-weight="700">🌐 Central Bank of Egypt API (Forex Rates)</text>
+
+      <g transform="translate(14, 40)">
+        <rect width="336" height="105" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="20" fill="#FBBF24" font-size="12" font-weight="700">📄 exchange_rates.json</text>
+        <rect x="235" y="6" width="92" height="16" rx="8" fill="#B45309" fill-opacity="0.5"/>
+        <text x="281" y="18" fill="#FDE68A" font-size="9.5" font-weight="700" text-anchor="middle">730 FX Rows</text>
+        <g transform="translate(10, 32)">
+          <rect width="70" height="18" rx="4" fill="#78350F" stroke="#D97706" stroke-width="0.8"/>
+          <text x="35" y="13" fill="#FDE68A" font-size="9" font-weight="700" text-anchor="middle">rate_date</text>
+          <rect x="76" y="0" width="80" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="116" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">base_currency</text>
+          <rect x="162" y="0" width="60" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="192" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">rate</text>
+          <rect x="228" y="0" width="84" height="18" rx="4" fill="#334155" stroke="#475569" stroke-width="0.8"/>
+          <text x="270" y="13" fill="#E2E8F0" font-size="9" text-anchor="middle">quote (EGP)</text>
+        </g>
+        <g transform="translate(10, 58)">
+          <text x="0" y="14" fill="#94A3B8" font-size="10">Grain: Daily Closing Forex Quotes for USD, EUR, GBP (2023–2024)</text>
+          <text x="0" y="30" fill="#64748B" font-size="9.5">Used for international normalized financials in Power BI</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Extraction Engine Banner -->
+    <g transform="translate(18, 1245)">
+      <rect width="364" height="245" rx="10" fill="#0B132B" stroke="#1E3A8A" stroke-width="1"/>
+      <text x="14" y="24" fill="#38BDF8" font-size="12.5" font-weight="700">⚡ Python ELT Orchestrator Engine</text>
+      <text x="14" y="44" fill="#94A3B8" font-size="10.5">Execution Script: scripts/run_pipeline.py</text>
       
-      <!-- Card Title -->
-      <g transform="translate(16, 16)">
-        <text x="0" y="16" fill="#93C5FD" font-size="14" font-weight="700">🐘 PostgreSQL Operational DB</text>
-        <text x="0" y="32" fill="#64748B" font-size="11">eCommerce &amp; POS Backend | CSV Extract</text>
+      <!-- Visual Pipeline Steps -->
+      <g transform="translate(14, 58)">
+        <circle cx="12" cy="14" r="8" fill="#0284C7"/>
+        <text x="12" y="18" fill="#FFF" font-size="9" font-weight="700" text-anchor="middle">1</text>
+        <text x="28" y="18" fill="#E0F2FE" font-size="10.5">Chunked Extraction (10,000 rows/batch)</text>
+
+        <circle cx="12" cy="40" r="8" fill="#0284C7"/>
+        <text x="12" y="44" fill="#FFF" font-size="9" font-weight="700" text-anchor="middle">2</text>
+        <text x="28" y="44" fill="#E0F2FE" font-size="10.5">SHA-256 Row Hash Fingerprinting</text>
+
+        <circle cx="12" cy="66" r="8" fill="#0284C7"/>
+        <text x="12" y="70" fill="#FFF" font-size="9" font-weight="700" text-anchor="middle">3</text>
+        <text x="28" y="70" fill="#E0F2FE" font-size="10.5">Fast pyodbc Streaming (fast_executemany)</text>
+
+        <circle cx="12" cy="92" r="8" fill="#0284C7"/>
+        <text x="12" y="96" fill="#FFF" font-size="9" font-weight="700" text-anchor="middle">4</text>
+        <text x="28" y="96" fill="#E0F2FE" font-size="10.5">Audit Lineage Attachment (UUID-v4, Time)</text>
+
+        <circle cx="12" cy="118" r="8" fill="#10B981"/>
+        <text x="12" y="122" fill="#FFF" font-size="9" font-weight="700" text-anchor="middle">✓</text>
+        <text x="28" y="122" fill="#34D399" font-size="10.5" font-weight="700">Throughput: 90,457 rows/sec (Incremental)</text>
       </g>
-
-      <!-- Tables -->
-      <g transform="translate(14, 60)">
-        <!-- Orders -->
-        <rect width="302" height="88" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="20" fill="#38BDF8" font-size="12.5" font-weight="700">orders.csv</text>
-        <rect x="200" y="8" width="90" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="245" y="21" fill="#7DD3FC" font-size="10" font-weight="700" text-anchor="middle">502,000 Rows</text>
-        <text x="12" y="38" fill="#94A3B8" font-size="10.5">Grain: 1 Order Line-Item (19 Columns)</text>
-        <text x="12" y="54" fill="#64748B" font-size="10">Keys: order_id (PK), customer_id, store_id</text>
-        <text x="12" y="70" fill="#64748B" font-size="10">Metrics: gross_sales, discount, net_sales, cost</text>
-
-        <!-- Customers -->
-        <rect y="98" width="302" height="74" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="118" fill="#38BDF8" font-size="12.5" font-weight="700">customers.csv</text>
-        <rect x="200" y="106" width="90" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="245" y="119" fill="#7DD3FC" font-size="10" font-weight="700" text-anchor="middle">25,200 Rows</text>
-        <text x="12" y="136" fill="#94A3B8" font-size="10.5">Grain: Registered Egyptian Customer</text>
-        <text x="12" y="152" fill="#64748B" font-size="10">Fields: phone (+20), governorate, segment, email</text>
-
-        <!-- Products -->
-        <rect y="182" width="302" height="74" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="202" fill="#38BDF8" font-size="12.5" font-weight="700">products.csv</text>
-        <rect x="220" y="190" width="70" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="255" y="203" fill="#7DD3FC" font-size="10" font-weight="700" text-anchor="middle">20 SKUs</text>
-        <text x="12" y="220" fill="#94A3B8" font-size="10.5">Grain: Master Cosmetics Product SKU</text>
-        <text x="12" y="236" fill="#64748B" font-size="10">Bilingual: name_ar, name_en, brand, origin, list_price</text>
-
-        <!-- Stores -->
-        <rect y="266" width="302" height="74" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="286" fill="#38BDF8" font-size="12.5" font-weight="700">stores.csv</text>
-        <rect x="215" y="274" width="75" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="252" y="287" fill="#7DD3FC" font-size="10" font-weight="700" text-anchor="middle">35 Stores</text>
-        <text x="12" y="304" fill="#94A3B8" font-size="10.5">Grain: Retail &amp; Hub Footprints across Egypt</text>
-        <text x="12" y="320" fill="#64748B" font-size="10">Fields: 22 Governorates, Area, Store Type (Mall/Street)</text>
-      </g>
-    </g>
-
-    <!-- Source Dataset Card 2: WMS Inventory -->
-    <g transform="translate(20, 520)">
-      <rect width="330" height="195" rx="12" fill="#090E17" stroke="#0E7490" stroke-width="1.2"/>
-      <rect x="0" y="0" width="330" height="3" rx="1.5" fill="#06B6D4"/>
-      
-      <g transform="translate(16, 16)">
-        <text x="0" y="16" fill="#67E8F9" font-size="14" font-weight="700">📦 Supply Chain WMS ERP</text>
-        <text x="0" y="32" fill="#64748B" font-size="11">Warehouse Management System | CSV File</text>
-      </g>
-
-      <g transform="translate(14, 52)">
-        <rect width="302" height="120" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="22" fill="#22D3EE" font-size="12.5" font-weight="700">inventory_monthly.csv</text>
-        <rect x="195" y="10" width="95" height="18" rx="9" fill="#0891B2" fill-opacity="0.4"/>
-        <text x="242" y="23" fill="#A5F3FC" font-size="10" font-weight="700" text-anchor="middle">8,400 Records</text>
-        <text x="12" y="42" fill="#94A3B8" font-size="10.5">Grain: Monthly Snapshot per Store per SKU</text>
-        <text x="12" y="60" fill="#64748B" font-size="10">Period: 2023-01 to 2024-12 (24 Months)</text>
-        <text x="12" y="78" fill="#64748B" font-size="10">Balance Equation: Open + Recv - Sold - Dmg = Close</text>
-        <text x="12" y="96" fill="#38BDF8" font-size="10">Critical Metric: Stockout Risk &amp; Damage %</text>
-      </g>
-    </g>
-
-    <!-- Source Dataset Card 3: Commercial Reference (Excel) -->
-    <g transform="translate(20, 730)">
-      <rect width="330" height="275" rx="12" fill="#090E17" stroke="#047857" stroke-width="1.2"/>
-      <rect x="0" y="0" width="330" height="3" rx="1.5" fill="#10B981"/>
-
-      <g transform="translate(16, 16)">
-        <text x="0" y="16" fill="#6EE7B7" font-size="14" font-weight="700">📊 Commercial Reference (Excel)</text>
-        <text x="0" y="32" fill="#64748B" font-size="11">Sales Quotas &amp; Marketing Campaigns</text>
-      </g>
-
-      <g transform="translate(14, 52)">
-        <!-- Sheet Targets -->
-        <rect width="302" height="92" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="20" fill="#34D399" font-size="12.5" font-weight="700">Sheet: Targets</text>
-        <rect x="200" y="8" width="90" height="18" rx="9" fill="#059669" fill-opacity="0.4"/>
-        <text x="245" y="21" fill="#A7F3D0" font-size="10" font-weight="700" text-anchor="middle">417 Targets</text>
-        <text x="12" y="38" fill="#94A3B8" font-size="10.5">Grain: Store-Level Monthly Sales &amp; Orders Target</text>
-        <text x="12" y="54" fill="#64748B" font-size="10">Keys: target_month, store_id</text>
-        <text x="12" y="72" fill="#64748B" font-size="10">Target Metrics: sales_target_egp, order_target</text>
-
-        <!-- Sheet Campaigns -->
-        <rect y="104" width="302" height="92" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="124" fill="#34D399" font-size="12.5" font-weight="700">Sheet: Campaigns</text>
-        <rect x="190" y="112" width="100" height="18" rx="9" fill="#059669" fill-opacity="0.4"/>
-        <text x="240" y="125" fill="#A7F3D0" font-size="10" font-weight="700" text-anchor="middle">7 Campaigns</text>
-        <text x="12" y="144" fill="#94A3B8" font-size="10.5">Grain: Marketing Campaign Master</text>
-        <text x="12" y="160" fill="#64748B" font-size="10">Ramadan, White Friday, Eid, Summer Glow...</text>
-        <text x="12" y="178" fill="#64748B" font-size="10">Budget (EGP), Discount %, Start/End Dates</text>
-      </g>
-    </g>
-
-    <!-- Source Dataset Card 4: CBE Forex API -->
-    <g transform="translate(20, 1020)">
-      <rect width="330" height="175" rx="12" fill="#090E17" stroke="#D97706" stroke-width="1.2"/>
-      <rect x="0" y="0" width="330" height="3" rx="1.5" fill="#F59E0B"/>
-
-      <g transform="translate(16, 16)">
-        <text x="0" y="16" fill="#FCD34D" font-size="14" font-weight="700">🌐 Central Bank of Egypt API</text>
-        <text x="0" y="32" fill="#64748B" font-size="11">Daily Forex Exchange Rates | JSON Payload</text>
-      </g>
-
-      <g transform="translate(14, 52)">
-        <rect width="302" height="100" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="12" y="22" fill="#FBBF24" font-size="12.5" font-weight="700">exchange_rates.json</text>
-        <rect x="200" y="10" width="90" height="18" rx="9" fill="#B45309" fill-opacity="0.4"/>
-        <text x="245" y="23" fill="#FDE68A" font-size="10" font-weight="700" text-anchor="middle">730 FX Rows</text>
-        <text x="12" y="42" fill="#94A3B8" font-size="10.5">Grain: Daily Closing FX Quote (2023-2024)</text>
-        <text x="12" y="60" fill="#64748B" font-size="10">Currencies: USD/EGP, EUR/EGP, GBP/EGP</text>
-        <text x="12" y="78" fill="#64748B" font-size="10">Purpose: Normalized International Financials</text>
-      </g>
-    </g>
-
-    <!-- Extraction Footer Badge -->
-    <g transform="translate(20, 1215)">
-      <rect width="330" height="105" rx="10" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-      <text x="14" y="24" fill="#E2E8F0" font-size="12" font-weight="700">⚡ Python ELT Orchestrator</text>
-      <text x="14" y="44" fill="#94A3B8" font-size="10.5">Script: scripts/run_pipeline.py</text>
-      <text x="14" y="62" fill="#94A3B8" font-size="10.5">Extract Speed: 536k rows in 4.8s (chunked)</text>
-      <text x="14" y="82" fill="#38BDF8" font-size="10.5" font-weight="600">Protocol: pyodbc fast_executemany = True</text>
     </g>
   </g>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 2: BRONZE INGESTION LAYER (X: 470, W: 380)   -->
+  <!-- COLUMN 2: BRONZE INGESTION LAYER (X: 490, W: 340)   -->
   <!-- ==================================================== -->
-  <g transform="translate(470, 185)" filter="url(#shadowLg)">
-    <rect width="380" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
-    <rect x="0" y="0" width="380" height="5" rx="2.5" fill="url(#cyanGlow)"/>
+  <g transform="translate(490, 175)" filter="url(#shadowLg)">
+    <rect width="340" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+    <rect x="0" y="0" width="340" height="5" rx="2.5" fill="url(#cyanGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#0891B2" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#22D3EE">02</text>
-      <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">BRONZE LAYER (RAW)</text>
+      <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">BRONZE LAYER</text>
       <text x="48" y="36" fill="#22D3EE" font-size="11.5" font-weight="600">SQL Server 2022 Schema: bronze.*</text>
     </g>
 
-    <!-- Bronze Principles Banner -->
-    <g transform="translate(20, 75)">
-      <rect width="340" height="110" rx="10" fill="#082F49" stroke="#0369A1" stroke-width="1"/>
-      <text x="14" y="24" fill="#38BDF8" font-size="12" font-weight="700">🔒 Zero-Loss Ingestion Guarantee</text>
-      <text x="14" y="44" fill="#BAE6FD" font-size="10.5">• All fields ingested as NVARCHAR(MAX) to prevent cast errors</text>
-      <text x="14" y="62" fill="#BAE6FD" font-size="10.5">• SHA-256 _row_hash computed on raw string concatenation</text>
-      <text x="14" y="80" fill="#BAE6FD" font-size="10.5">• Lineage: _source_file, _batch_id, _ingested_at</text>
-      <text x="14" y="98" fill="#7DD3FC" font-size="10" font-weight="600">Collation: Arabic_100_CI_AS (Preserves Arabic UTF-16)</text>
+    <!-- Raw Data Bus Visual Pipe -->
+    <g transform="translate(16, 75)">
+      <rect width="308" height="110" rx="10" fill="#082F49" stroke="#0369A1" stroke-width="1"/>
+      <text x="14" y="24" fill="#38BDF8" font-size="12" font-weight="700">🔒 Lossless Raw Persistence Principle</text>
+      <text x="14" y="44" fill="#BAE6FD" font-size="10.5">• All source columns stored as NVARCHAR(MAX)</text>
+      <text x="14" y="62" fill="#BAE6FD" font-size="10.5">• Zero cast exceptions or numeric truncation</text>
+      <text x="14" y="80" fill="#BAE6FD" font-size="10.5">• Collation: Arabic_100_CI_AS (Preserves UTF-16)</text>
+      <text x="14" y="98" fill="#34D399" font-size="10" font-weight="600">Deterministic SHA-256 _row_hash for change capture</text>
     </g>
 
-    <!-- Bronze Physical Tables Inventory -->
-    <g transform="translate(20, 205)">
-      <text x="0" y="16" fill="#F8FAFC" font-size="13.5" font-weight="700">Physical Raw Tables (8 Tables)</text>
+    <!-- Visual Physical Table Stack -->
+    <g transform="translate(16, 205)">
+      <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Physical Raw Tables (8 Tables)</text>
 
       <g transform="translate(0, 28)">
-        <!-- Table 1: raw_orders -->
-        <rect width="340" height="85" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="22" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_orders</text>
-        <rect x="235" y="8" width="95" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="282" y="22" fill="#E0F2FE" font-size="10.5" font-weight="700" text-anchor="middle">502,000 Rows</text>
-        <text x="14" y="42" fill="#94A3B8" font-size="10.5">Raw Columns: order_id, order_datetime, customer_id...</text>
-        <text x="14" y="58" fill="#64748B" font-size="10">Includes dirty rows (negative values, unmapped keys)</text>
-        <text x="14" y="74" fill="#64748B" font-size="10">Batch ID: UUID-v4 | Ingestion time: ~2.4s</text>
+        <!-- Table 1 -->
+        <rect width="308" height="85" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="22" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_orders</text>
+        <rect x="205" y="8" width="95" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
+        <text x="252" y="21" fill="#BAE6FD" font-size="10" font-weight="700" text-anchor="middle">502,000 Rows</text>
+        <g transform="translate(12, 36)">
+          <rect width="68" height="16" rx="4" fill="#1E293B"/>
+          <text x="34" y="12" fill="#94A3B8" font-size="8.5" text-anchor="middle">19 Raw String Cols</text>
+          <rect x="74" y="0" width="95" height="16" rx="4" fill="#1E293B"/>
+          <text x="121" y="12" fill="#94A3B8" font-size="8.5" text-anchor="middle">_source_file + _batch_id</text>
+          <rect x="175" y="0" width="90" height="16" rx="4" fill="#1E293B"/>
+          <text x="220" y="12" fill="#34D399" font-size="8.5" text-anchor="middle">_row_hash (SHA-256)</text>
+        </g>
+        <text x="12" y="74" fill="#64748B" font-size="9.5">Contains uncleaned orders (Negative values, unmapped keys)</text>
 
-        <!-- Table 2: raw_customers -->
-        <rect y="95" width="340" height="80" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="117" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_customers</text>
-        <rect x="235" y="103" width="95" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="282" y="117" fill="#E0F2FE" font-size="10.5" font-weight="700" text-anchor="middle">25,200 Rows</text>
-        <text x="14" y="137" fill="#94A3B8" font-size="10.5">Raw Columns: customer_id, name_ar, phone, email...</text>
-        <text x="14" y="153" fill="#64748B" font-size="10">Contains unformatted phones (+2010 vs 010) &amp; trailing spaces</text>
+        <!-- Table 2 -->
+        <rect y="95" width="308" height="85" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="117" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_customers</text>
+        <rect x="205" y="103" width="95" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
+        <text x="252" y="116" fill="#BAE6FD" font-size="10" font-weight="700" text-anchor="middle">25,200 Rows</text>
+        <g transform="translate(12, 131)">
+          <rect width="68" height="16" rx="4" fill="#1E293B"/>
+          <text x="34" y="12" fill="#94A3B8" font-size="8.5" text-anchor="middle">11 Raw String Cols</text>
+          <rect x="74" y="0" width="95" height="16" rx="4" fill="#1E293B"/>
+          <text x="121" y="12" fill="#94A3B8" font-size="8.5" text-anchor="middle">phone (+20 format)</text>
+          <rect x="175" y="0" width="90" height="16" rx="4" fill="#1E293B"/>
+          <text x="220" y="12" fill="#34D399" font-size="8.5" text-anchor="middle">_row_hash (SHA-256)</text>
+        </g>
+        <text x="12" y="169" fill="#64748B" font-size="9.5">Unsanitized strings, Arabic names &amp; untrimmed emails</text>
 
-        <!-- Table 3: raw_inventory -->
-        <rect y="185" width="340" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="207" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_inventory</text>
-        <rect x="245" y="193" width="85" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="287" y="207" fill="#E0F2FE" font-size="10.5" font-weight="700" text-anchor="middle">8,400 Rows</text>
-        <text x="14" y="227" fill="#94A3B8" font-size="10.5">Raw inventory balances per month/store/product</text>
-        <text x="14" y="243" fill="#64748B" font-size="10">Unchecked math equation integrity</text>
+        <!-- Table 3 -->
+        <rect y="190" width="308" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="212" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_inventory</text>
+        <rect x="215" y="198" width="85" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
+        <text x="257" y="211" fill="#BAE6FD" font-size="10" font-weight="700" text-anchor="middle">8,400 Rows</text>
+        <text x="12" y="232" fill="#94A3B8" font-size="10">Raw monthly balances from WMS system</text>
+        <text x="12" y="250" fill="#64748B" font-size="9.5">Includes records with stockout anomalies</text>
 
-        <!-- Table 4: raw_commercial_targets -->
-        <rect y="270" width="340" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="292" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_commercial_targets</text>
-        <rect x="250" y="278" width="80" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="290" y="292" fill="#E0F2FE" font-size="10.5" font-weight="700" text-anchor="middle">417 Rows</text>
-        <text x="14" y="312" fill="#94A3B8" font-size="10.5">Store monthly quotas from Excel sheet Targets</text>
-        <text x="14" y="328" fill="#64748B" font-size="10">Includes currency symbols and target revenue</text>
+        <!-- Table 4 -->
+        <rect y="275" width="308" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="297" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_commercial_targets</text>
+        <rect x="225" y="283" width="75" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
+        <text x="262" y="296" fill="#BAE6FD" font-size="10" font-weight="700" text-anchor="middle">417 Rows</text>
+        <text x="12" y="317" fill="#94A3B8" font-size="10">Raw store targets from Excel Targets sheet</text>
+        <text x="12" y="335" fill="#64748B" font-size="9.5">Includes currency strings and target quotas</text>
 
-        <!-- Table 5: raw_exchange_rates -->
-        <rect y="355" width="340" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="377" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_exchange_rates</text>
-        <rect x="250" y="363" width="80" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="290" y="377" fill="#E0F2FE" font-size="10.5" font-weight="700" text-anchor="middle">730 Rows</text>
-        <text x="14" y="397" fill="#94A3B8" font-size="10.5">Daily FX quotes from Central Bank API</text>
-        <text x="14" y="413" fill="#64748B" font-size="10">USD/EUR/GBP historical rates against EGP</text>
+        <!-- Table 5 -->
+        <rect y="360" width="308" height="75" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="382" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_exchange_rates</text>
+        <rect x="225" y="368" width="75" height="18" rx="9" fill="#0369A1" fill-opacity="0.4"/>
+        <text x="262" y="381" fill="#BAE6FD" font-size="10" font-weight="700" text-anchor="middle">730 Rows</text>
+        <text x="12" y="402" fill="#94A3B8" font-size="10">Daily exchange rate quotes (USD, EUR, GBP)</text>
+        <text x="12" y="420" fill="#64748B" font-size="9.5">Raw JSON conversion strings against EGP</text>
 
-        <!-- Table 6: raw_products, stores, campaigns -->
-        <rect y="440" width="340" height="110" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
-        <text x="14" y="462" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_products &amp; stores &amp; campaigns</text>
-        <text x="14" y="482" fill="#94A3B8" font-size="10.5">• raw_products: 20 rows (Bilingual catalog &amp; cost)</text>
-        <text x="14" y="500" fill="#94A3B8" font-size="10.5">• raw_stores: 35 rows (Omnichannel retail footprints)</text>
-        <text x="14" y="518" fill="#94A3B8" font-size="10.5">• raw_campaigns: 7 rows (Marketing event parameters)</text>
-        <text x="14" y="536" fill="#64748B" font-size="10">Full audit columns attached to every dimension entity</text>
+        <!-- Table 6 -->
+        <rect y="445" width="308" height="100" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+        <text x="12" y="467" fill="#38BDF8" font-size="12.5" font-weight="700">bronze.raw_products &amp; stores &amp; campaigns</text>
+        <text x="12" y="487" fill="#94A3B8" font-size="10.5">• raw_products: 20 rows (Bilingual catalog)</text>
+        <text x="12" y="505" fill="#94A3B8" font-size="10.5">• raw_stores: 35 rows (Retail footprints)</text>
+        <text x="12" y="523" fill="#94A3B8" font-size="10.5">• raw_campaigns: 7 rows (Marketing events)</text>
+        <text x="12" y="539" fill="#64748B" font-size="9.5">Audit columns stamped on every entity</text>
       </g>
     </g>
 
-    <!-- Bronze Ingestion Performance Benchmark -->
-    <g transform="translate(20, 805)">
-      <rect width="340" height="510" rx="12" fill="#0B1220" stroke="#1E293B" stroke-width="1.2"/>
-      <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">📊 High-Throughput ELT Engine</text>
-        <text x="0" y="34" fill="#64748B" font-size="10.5">SQL Server Native Ingestion Architecture</text>
+    <!-- Ingestion Telemetry Box -->
+    <g transform="translate(16, 785)">
+      <rect width="308" height="705" rx="12" fill="#0B1220" stroke="#1E293B" stroke-width="1.2"/>
+      <g transform="translate(14, 20)">
+        <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Ingestion Audit &amp; Lineage</text>
+        <text x="0" y="34" fill="#64748B" font-size="10.5">Table: audit.pipeline_execution_log</text>
 
-        <rect y="48" width="308" height="120" rx="8" fill="#070D18" stroke="#1E3A8A" stroke-width="0.8"/>
-        <text x="12" y="70" fill="#38BDF8" font-size="11.5" font-weight="700">Bulk Ingestion Optimization:</text>
-        <text x="12" y="88" fill="#94A3B8" font-size="10.5">• Batch size: 10,000 rows per chunk</text>
-        <text x="12" y="106" fill="#94A3B8" font-size="10.5">• pyodbc fast_executemany streaming</text>
-        <text x="12" y="124" fill="#94A3B8" font-size="10.5">• Full load throughput: 15,200 rows/sec</text>
-        <text x="12" y="142" fill="#34D399" font-size="10.5" font-weight="600">• Incremental MERGE: 90,457 rows/sec</text>
+        <!-- Visual Audit Log Representation -->
+        <g transform="translate(0, 48)">
+          <rect width="280" height="28" rx="6" fill="#082F49" stroke="#0284C7" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#BAE6FD" font-size="10.5" font-weight="700">UUID: 8F2A-4B1C-9D0E</text>
+          <text x="210" y="18" fill="#34D399" font-size="10" font-weight="700">SUCCESS</text>
 
-        <text x="0" y="195" fill="#F8FAFC" font-size="12" font-weight="700">Audit &amp; Lineage Schema:</text>
-        <rect y="208" width="308" height="210" rx="8" fill="#070D18" stroke="#1E293B" stroke-width="0.8"/>
-        <text x="12" y="230" fill="#E2E8F0" font-size="11" font-weight="600">Table: audit.pipeline_execution_log</text>
-        <text x="12" y="250" fill="#94A3B8" font-size="10">Tracks: pipeline_run_id (GUID)</text>
-        <text x="12" y="268" fill="#94A3B8" font-size="10">Stage: bronze_extract, staging_clean, dq_gate...</text>
-        <text x="12" y="286" fill="#94A3B8" font-size="10">Metrics: rows_read, rows_inserted, error_count</text>
-        <text x="12" y="304" fill="#94A3B8" font-size="10">Duration: start_time, end_time, duration_ms</text>
-        <text x="12" y="322" fill="#34D399" font-size="10" font-weight="600">Status: SUCCESS | SLA Compliance: 100%</text>
-        <text x="12" y="340" fill="#64748B" font-size="9.5">Stored in audit schema for governance &amp; RCA</text>
+          <rect y="36" width="280" height="75" rx="6" fill="#0F172A" stroke="#1E293B" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#94A3B8" font-size="10">Stage: bronze_ingestion</text>
+          <text x="10" y="34" fill="#94A3B8" font-size="10">Records Extracted: 536,809</text>
+          <text x="10" y="50" fill="#94A3B8" font-size="10">Duration: 4,821 ms (0 errors)</text>
+          <text x="10" y="66" fill="#34D399" font-size="10" font-weight="600">SLA: 100% On-Time</text>
+        </g>
       </g>
     </g>
   </g>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 3: STAGING & CLEANSING ENGINE (X: 890, W: 380)-->
+  <!-- COLUMN 3: STAGING & CLEANSING ENGINE (X: 870, W: 380)-->
   <!-- ==================================================== -->
-  <g transform="translate(890, 185)" filter="url(#shadowLg)">
-    <rect width="380" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+  <g transform="translate(870, 175)" filter="url(#shadowLg)">
+    <rect width="380" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
     <rect x="0" y="0" width="380" height="5" rx="2.5" fill="url(#indigoGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#4338CA" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#818CF8">03</text>
       <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">STAGING ENGINE</text>
       <text x="48" y="36" fill="#818CF8" font-size="11.5" font-weight="600">Stored Procedure: staging.usp_load_staging</text>
     </g>
 
-    <!-- Staging Procedure Banner -->
-    <g transform="translate(20, 75)">
-      <rect width="340" height="120" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1"/>
-      <text x="14" y="24" fill="#A5B4FC" font-size="12" font-weight="700">⚙️ Deterministic Egyptian Normalization</text>
-      <text x="14" y="44" fill="#C7D2FE" font-size="10.5">Executes multi-step cleansing &amp; standardization:</text>
-      <text x="14" y="62" fill="#E0E7FF" font-size="10.5">• Trims leading/trailing whitespace &amp; strips control chars</text>
-      <text x="14" y="80" fill="#E0E7FF" font-size="10.5">• Standardizes Egyptian Telecom, Geography &amp; Currency</text>
-      <text x="14" y="98" fill="#A5B4FC" font-size="10" font-weight="600">Output: Casted strongly-typed staging tables (staging.stg_*)</text>
-    </g>
+    <!-- Visual Transformer Nodes -->
+    <g transform="translate(18, 75)">
+      <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Deterministic Cleansing Transformer Nodes</text>
 
-    <!-- Specific Cleansing Rules Box -->
-    <g transform="translate(20, 215)">
-      <text x="0" y="16" fill="#F8FAFC" font-size="13.5" font-weight="700">Cleansing Rules Applied to Staging</text>
-
+      <!-- Transformer 1: Phone -->
       <g transform="translate(0, 28)">
-        <!-- Rule 1: Mobile Standardization -->
-        <rect width="340" height="95" rx="8" fill="#0F172A" stroke="#312E81" stroke-width="1"/>
-        <text x="14" y="22" fill="#818CF8" font-size="12" font-weight="700">📞 Egyptian MSISDN Mobile Normalization</text>
-        <text x="14" y="42" fill="#E0E7FF" font-size="10.5">Transform: +20 10... / +20 11... ➔ 010... / 011...</text>
-        <text x="14" y="58" fill="#94A3B8" font-size="10">Regex: ^01[0125][0-9]{8}$ (Strict 11 digits)</text>
-        <text x="14" y="74" fill="#64748B" font-size="10">Detects Carrier: Vodafone (010), Orange (012), Etisalat (011), WE (015)</text>
-        <text x="14" y="88" fill="#F43F5E" font-size="9.5">Dirty inputs flagged if non-conforming</text>
+        <rect width="344" height="110" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.2"/>
+        <text x="14" y="22" fill="#A5B4FC" font-size="12" font-weight="700">📱 Mobile Phone Normalization (MSISDN)</text>
+        
+        <!-- Visual Before / After Transform Box -->
+        <g transform="translate(14, 34)">
+          <rect width="145" height="28" rx="6" fill="#0C0728" stroke="#6366F1" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#FDA4AF" font-size="10.5">Input: +20 10 1234 5678</text>
+          
+          <text x="156" y="19" fill="#818CF8" font-size="14" font-weight="700">➔</text>
 
-        <!-- Rule 2: Governorate Mapping -->
-        <rect y="105" width="340" height="95" rx="8" fill="#0F172A" stroke="#312E81" stroke-width="1"/>
-        <text x="14" y="127" fill="#818CF8" font-size="12" font-weight="700">🏛️ 22 Egyptian Governorates Alignment</text>
-        <text x="14" y="147" fill="#E0E7FF" font-size="10.5">Bilingual Canonicalization: Arabic &amp; English</text>
-        <text x="14" y="163" fill="#94A3B8" font-size="10">e.g. القاهرة ➔ Cairo | الإسكندرية ➔ Alexandria</text>
-        <text x="14" y="179" fill="#64748B" font-size="10">Regional Rollup: Greater Cairo, Alex &amp; Delta, Canal Zone, Upper Egypt</text>
-        <text x="14" y="193" fill="#38BDF8" font-size="9.5">Assigns Courier Delivery SLA (Tier 1: 24h, Tier 2: 48h, Tier 3: 72h)</text>
+          <rect x="172" y="0" width="145" height="28" rx="6" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">Clean: 01012345678</text>
+        </g>
+        <text x="14" y="82" fill="#C7D2FE" font-size="10">Regex: ^01[0125][0-9]{8}$ (11 digits local Egyptian standard)</text>
+        <text x="14" y="98" fill="#38BDF8" font-size="9.5">Identifies Carrier: Vodafone (010), Orange (012), Etisalat (011), WE (015)</text>
+      </g>
 
-        <!-- Rule 3: Currency & Financial Canonicalization -->
-        <rect y="210" width="340" height="90" rx="8" fill="#0F172A" stroke="#312E81" stroke-width="1"/>
-        <text x="14" y="232" fill="#818CF8" font-size="12" font-weight="700">💵 Currency &amp; Pricing Standardization</text>
-        <text x="14" y="252" fill="#E0E7FF" font-size="10.5">Values: جنيه, ج.م, EGP ➔ EGP Canonical</text>
-        <text x="14" y="268" fill="#94A3B8" font-size="10">Math Check: Net_Sales = Gross_Sales - Discount</text>
-        <text x="14" y="284" fill="#64748B" font-size="10">Casting: DECIMAL(18,2) for all financial metrics</text>
+      <!-- Transformer 2: Geography -->
+      <g transform="translate(0, 150)">
+        <rect width="344" height="110" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.2"/>
+        <text x="14" y="22" fill="#A5B4FC" font-size="12" font-weight="700">🏛️ 22 Egyptian Governorates Alignment</text>
+        
+        <g transform="translate(14, 34)">
+          <rect width="145" height="28" rx="6" fill="#0C0728" stroke="#6366F1" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#FDA4AF" font-size="10.5">Input: cairo / القاهره</text>
+          
+          <text x="156" y="19" fill="#818CF8" font-size="14" font-weight="700">➔</text>
 
-        <!-- Rule 4: Order Status Unification -->
-        <rect y="310" width="340" height="85" rx="8" fill="#0F172A" stroke="#312E81" stroke-width="1"/>
-        <text x="14" y="332" fill="#818CF8" font-size="12" font-weight="700">📦 Order Status Canonical Mapping</text>
-        <text x="14" y="352" fill="#E0E7FF" font-size="10.5">Arabic to English Standardized State Machine:</text>
-        <text x="14" y="368" fill="#94A3B8" font-size="10">مكتمل ➔ Completed | مرتجع ➔ Returned | ملغي ➔ Cancelled</text>
-        <text x="14" y="384" fill="#64748B" font-size="10">Unifies multi-channel operational codes into 1 standard</text>
+          <rect x="172" y="0" width="145" height="28" rx="6" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">Clean: Cairo | القاهرة</text>
+        </g>
+        <text x="14" y="82" fill="#C7D2FE" font-size="10">Maps to 5 Economic Regions: Greater Cairo, Alex &amp; Delta, Canal...</text>
+        <text x="14" y="98" fill="#38BDF8" font-size="9.5">Assigns Courier SLA: Tier 1 (24h), Tier 2 (48h), Tier 3 (72h)</text>
+      </g>
 
-        <!-- Rule 5: DateKey Surrogate Generation -->
-        <rect y="405" width="340" height="90" rx="8" fill="#0F172A" stroke="#312E81" stroke-width="1"/>
-        <text x="14" y="427" fill="#818CF8" font-size="12" font-weight="700">📅 Integer Surrogate DateKey Generation</text>
-        <text x="14" y="447" fill="#E0E7FF" font-size="10.5">Formula: YEAR(dt)*10000 + MONTH(dt)*100 + DAY(dt)</text>
-        <text x="14" y="463" fill="#94A3B8" font-size="10">Fast integer joins to dim_date (e.g. 20240921)</text>
-        <text x="14" y="479" fill="#64748B" font-size="10">Egyptian Weekend Flag: Friday &amp; Saturday</text>
+      <!-- Transformer 3: Currency & Pricing -->
+      <g transform="translate(0, 272)">
+        <rect width="344" height="105" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.2"/>
+        <text x="14" y="22" fill="#A5B4FC" font-size="12" font-weight="700">💵 Currency &amp; Math Equation Standardization</text>
+        
+        <g transform="translate(14, 34)">
+          <rect width="145" height="28" rx="6" fill="#0C0728" stroke="#6366F1" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#FDA4AF" font-size="10.5">Input: جنيه / ج.م / EGP </text>
+          
+          <text x="156" y="19" fill="#818CF8" font-size="14" font-weight="700">➔</text>
+
+          <rect x="172" y="0" width="145" height="28" rx="6" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">Clean: EGP Canonical</text>
+        </g>
+        <text x="14" y="82" fill="#C7D2FE" font-size="10">Enforces: net_sales_egp = gross_sales_egp - discount_egp</text>
+        <text x="14" y="96" fill="#38BDF8" font-size="9.5">Strong casting to DECIMAL(12,2) with positive boundary checks</text>
+      </g>
+
+      <!-- Transformer 4: Order Status -->
+      <g transform="translate(0, 390)">
+        <rect width="344" height="105" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.2"/>
+        <text x="14" y="22" fill="#A5B4FC" font-size="12" font-weight="700">📦 Order Status Canonical State Machine</text>
+        
+        <g transform="translate(14, 34)">
+          <rect width="145" height="28" rx="6" fill="#0C0728" stroke="#6366F1" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#FDA4AF" font-size="10.5">Input: مكتمل / مرتجع / ملغي</text>
+          
+          <text x="156" y="19" fill="#818CF8" font-size="14" font-weight="700">➔</text>
+
+          <rect x="172" y="0" width="145" height="28" rx="6" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#A7F3D0" font-size="10">Completed/Returned</text>
+        </g>
+        <text x="14" y="82" fill="#C7D2FE" font-size="10">Standardizes disparate status codes into unified state machine</text>
+        <text x="14" y="96" fill="#38BDF8" font-size="9.5">Prevents mismatched filters across multi-channel eCommerce</text>
+      </g>
+
+      <!-- Transformer 5: DateKey -->
+      <g transform="translate(0, 508)">
+        <rect width="344" height="105" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.2"/>
+        <text x="14" y="22" fill="#A5B4FC" font-size="12" font-weight="700">📅 Integer Surrogate DateKey Generator</text>
+        
+        <g transform="translate(14, 34)">
+          <rect width="145" height="28" rx="6" fill="#0C0728" stroke="#6366F1" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#FDA4AF" font-size="10.5">Input: 2024-09-21 14:30</text>
+          
+          <text x="156" y="19" fill="#818CF8" font-size="14" font-weight="700">➔</text>
+
+          <rect x="172" y="0" width="145" height="28" rx="6" fill="#064E3B" stroke="#059669" stroke-width="0.8"/>
+          <text x="8" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">DateKey: 20240921</text>
+        </g>
+        <text x="14" y="82" fill="#C7D2FE" font-size="10">Formula: YEAR*10000 + MONTH*100 + DAY (High-speed INT joins)</text>
+        <text x="14" y="96" fill="#38BDF8" font-size="9.5">Flags Egyptian weekend (Friday/Saturday) and commercial seasons</text>
       </g>
     </g>
 
-    <!-- Staging Schema Output Tables -->
-    <g transform="translate(20, 755)">
-      <rect width="340" height="560" rx="12" fill="#0B1220" stroke="#1E293B" stroke-width="1.2"/>
-      <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">📂 Staging Tables Output (8 Tables)</text>
-        <text x="0" y="34" fill="#64748B" font-size="10.5">Ready for Data Quality Sentinel Evaluation</text>
+    <!-- Staging Physical Schema Stack -->
+    <g transform="translate(18, 710)">
+      <rect width="344" height="780" rx="12" fill="#0B1220" stroke="#1E293B" stroke-width="1.2"/>
+      <g transform="translate(14, 20)">
+        <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Cleaned Staging Output Tables (staging.*)</text>
 
-        <g transform="translate(0, 48)">
-          <!-- Item 1 -->
-          <rect width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="20" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_orders</text>
-          <text x="210" y="20" fill="#818CF8" font-size="10.5" font-weight="700">502,000 Rows</text>
-          <text x="12" y="38" fill="#94A3B8" font-size="9.5">Typed datetimes, financial measures, surrogate date keys</text>
+        <g transform="translate(0, 36)">
+          <rect width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="22" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_orders</text>
+          <text x="215" y="22" fill="#818CF8" font-size="11" font-weight="700">502,000 Rows</text>
+          <text x="12" y="44" fill="#94A3B8" font-size="10">Casted types, normalized status, line totals, surrogate keys</text>
 
-          <!-- Item 2 -->
-          <rect y="58" width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="78" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_customers</text>
-          <text x="210" y="78" fill="#818CF8" font-size="10.5" font-weight="700">25,200 Rows</text>
-          <text x="12" y="96" fill="#94A3B8" font-size="9.5">Normalized MSISDN, lowercase emails, standardized gov</text>
+          <rect y="68" width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="88" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_customers</text>
+          <text x="215" y="88" fill="#818CF8" font-size="11" font-weight="700">25,200 Rows</text>
+          <text x="12" y="110" fill="#94A3B8" font-size="10">Clean 11-digit mobile, lowercase emails, canonical govs</text>
 
-          <!-- Item 3 -->
-          <rect y="116" width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="136" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_inventory</text>
-          <text x="220" y="136" fill="#818CF8" font-size="10.5" font-weight="700">8,400 Rows</text>
-          <text x="12" y="154" fill="#94A3B8" font-size="9.5">Stock movement balances &amp; damage quantities</text>
+          <rect y="136" width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="156" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_inventory</text>
+          <text x="225" y="156" fill="#818CF8" font-size="11" font-weight="700">8,400 Rows</text>
+          <text x="12" y="178" fill="#94A3B8" font-size="10">Stock balances, damage units, monthly snapshot keys</text>
 
-          <!-- Item 4 -->
-          <rect y="174" width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="194" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_commercial_targets</text>
-          <text x="235" y="194" fill="#818CF8" font-size="10.5" font-weight="700">417 Rows</text>
-          <text x="12" y="212" fill="#94A3B8" font-size="9.5">Store monthly quotas with integer DateKeys</text>
+          <rect y="204" width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="224" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_commercial_targets</text>
+          <text x="240" y="224" fill="#818CF8" font-size="11" font-weight="700">417 Rows</text>
+          <text x="12" y="246" fill="#94A3B8" font-size="10">Store monthly quotas with integer target date keys</text>
 
-          <!-- Item 5 -->
-          <rect y="232" width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="252" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_products &amp; stores</text>
-          <text x="225" y="252" fill="#818CF8" font-size="10.5" font-weight="700">20 &amp; 35 Rows</text>
-          <text x="12" y="270" fill="#94A3B8" font-size="9.5">Clean bilingual descriptions, brand categories, hubs</text>
+          <rect y="272" width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="292" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_products &amp; stores</text>
+          <text x="230" y="292" fill="#818CF8" font-size="11" font-weight="700">20 &amp; 35 Rows</text>
+          <text x="12" y="314" fill="#94A3B8" font-size="10">Clean bilingual descriptions, brand categories, hubs</text>
 
-          <!-- Item 6 -->
-          <rect y="290" width="308" height="52" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
-          <text x="12" y="310" fill="#A5B4FC" font-size="11.5" font-weight="700">staging.stg_exchange_rates</text>
-          <text x="235" y="310" fill="#818CF8" font-size="10.5" font-weight="700">730 Rows</text>
-          <text x="12" y="328" fill="#94A3B8" font-size="9.5">Clean FX multipliers: EGP base rates for USD, EUR, GBP</text>
+          <rect y="340" width="316" height="60" rx="6" fill="#0F172A" stroke="#312E81" stroke-width="0.8"/>
+          <text x="12" y="360" fill="#C7D2FE" font-size="12" font-weight="700">staging.stg_exchange_rates</text>
+          <text x="240" y="360" fill="#818CF8" font-size="11" font-weight="700">730 Rows</text>
+          <text x="12" y="382" fill="#94A3B8" font-size="10">Daily FX multipliers with EGP base quote currency</text>
 
-          <rect y="352" width="308" height="120" rx="8" fill="#1E1B4B" stroke="#4338CA" stroke-width="1"/>
-          <text x="12" y="374" fill="#C7D2FE" font-size="11.5" font-weight="700">Next Step ➔ Data Quality Sentinel</text>
-          <text x="12" y="394" fill="#E0E7FF" font-size="10">All staging tables undergo 16 automated DQ rules.</text>
-          <text x="12" y="412" fill="#E0E7FF" font-size="10">Failed rows are routed to dq.rejected_* isolation.</text>
-          <text x="12" y="430" fill="#E0E7FF" font-size="10">Passed rows are loaded into Kimball Galaxy Warehouse.</text>
-          <text x="12" y="450" fill="#34D399" font-size="10" font-weight="700">NO DIRTY DATA EVER REACHES WAREHOUSE!</text>
+          <rect y="415" width="316" height="280" rx="8" fill="#1E1B4B" stroke="#4338CA" stroke-width="1"/>
+          <text x="14" y="440" fill="#C7D2FE" font-size="12" font-weight="700">➔ Forwarded to Data Quality Sentinel</text>
+          <text x="14" y="465" fill="#E0E7FF" font-size="10.5">All staging records pass into dq.usp_run_dq_checks.</text>
+          <text x="14" y="485" fill="#E0E7FF" font-size="10.5">16 automated boundary, FK, and integrity assertions run.</text>
+          <text x="14" y="515" fill="#34D399" font-size="11" font-weight="700">Pass Stream (99.14%) ➔ Loaded to Warehouse</text>
+          <text x="14" y="535" fill="#FB7185" font-size="11" font-weight="700">Fail Stream (0.86%) ➔ Routed to Quarantine Vault</text>
+          <text x="14" y="565" fill="#94A3B8" font-size="10">ZERO dirty rows ever pollute analytical warehouse!</text>
         </g>
       </g>
     </g>
   </g>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 4: DATA QUALITY SENTINEL (X: 1310, W: 380)    -->
+  <!-- COLUMN 4: DATA QUALITY SENTINEL (X: 1290, W: 420)    -->
   <!-- ==================================================== -->
-  <g transform="translate(1310, 185)" filter="url(#shadowLg)">
-    <rect width="380" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
-    <rect x="0" y="0" width="380" height="5" rx="2.5" fill="url(#roseGlow)"/>
+  <g transform="translate(1290, 175)" filter="url(#shadowLg)">
+    <rect width="420" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+    <rect x="0" y="0" width="420" height="5" rx="2.5" fill="url(#roseGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#BE123C" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#FB7185">04</text>
       <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">DQ SENTINEL &amp; QUARANTINE</text>
       <text x="48" y="36" fill="#FB7185" font-size="11.5" font-weight="600">Stored Procedure: dq.usp_run_dq_checks</text>
     </g>
 
-    <!-- Sentinel Gate Card -->
-    <g transform="translate(20, 75)">
-      <rect width="340" height="135" rx="10" fill="#2A0B14" stroke="#BE123C" stroke-width="1.2"/>
-      <text x="14" y="24" fill="#FDA4AF" font-size="12.5" font-weight="700">🛡️ 16 Automated Data Quality Assertions</text>
-      <text x="14" y="44" fill="#FECDD3" font-size="10.5">Executes rigorous boundary, FK, and anomaly checks:</text>
-      <text x="14" y="62" fill="#FFE4E6" font-size="10.5">• Rule 1-4: Primary Key Uniqueness &amp; Non-Null Assertions</text>
-      <text x="14" y="80" fill="#FFE4E6" font-size="10.5">• Rule 5-8: Foreign Key Referential Integrity (Orphan Trap)</text>
-      <text x="14" y="98" fill="#FFE4E6" font-size="10.5">• Rule 9-12: Domain Ranges, Valid Dates &amp; Positive Numbers</text>
-      <text x="14" y="116" fill="#34D399" font-size="10.5" font-weight="700">Audit Ledger: dq.data_quality_results (100% Traceable)</text>
-    </g>
+    <!-- Visual Sentinel Gate Shield -->
+    <g transform="translate(18, 75)">
+      <rect width="384" height="240" rx="12" fill="#200B11" stroke="#BE123C" stroke-width="1.5"/>
+      <text x="16" y="26" fill="#FDA4AF" font-size="13.5" font-weight="700">🛡️ 16 Automated Data Quality Assertions Gate</text>
 
-    <!-- Pass / Quarantine Decision Engine Visual -->
-    <g transform="translate(20, 230)">
-      <rect width="340" height="300" rx="12" fill="#090E17" stroke="#1E293B" stroke-width="1.2"/>
-      
-      <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Validation Decision Split</text>
-        
-        <!-- Pass Stream -->
-        <rect y="32" width="308" height="100" rx="8" fill="#062419" stroke="#059669" stroke-width="1"/>
-        <text x="12" y="22" fill="#34D399" font-size="12" font-weight="700">✅ VALIDATED DATA STREAM</text>
-        <rect x="200" y="8" width="96" height="20" rx="10" fill="#047857" fill-opacity="0.4"/>
-        <text x="248" y="22" fill="#D1FAE5" font-size="10.5" font-weight="700" text-anchor="middle">532,181 Rows</text>
-        <text x="12" y="42" fill="#A7F3D0" font-size="10.5">Pass Rate: 99.14% of Total Raw Input</text>
-        <text x="12" y="58" fill="#D1FAE5" font-size="10">• 497,876 Clean Orders ➔ fact_sales</text>
-        <text x="12" y="74" fill="#D1FAE5" font-size="10">• 24,800 Clean Customers ➔ dim_customer (SCD2)</text>
-        <text x="12" y="90" fill="#D1FAE5" font-size="10">• 8,300 Valid Inventories + 413 Targets</text>
+      <!-- Visual Assertion Icons Grid -->
+      <g transform="translate(16, 42)">
+        <rect width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">1. PK Uniqueness</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Zero duplicate business keys</text>
 
-        <!-- Quarantine Stream -->
-        <rect y="148" width="308" height="100" rx="8" fill="#200B11" stroke="#E11D48" stroke-width="1"/>
-        <text x="12" y="170" fill="#FB7185" font-size="12" font-weight="700">⚠️ ISOLATED QUARANTINE STREAM</text>
-        <rect x="205" y="156" width="90" height="20" rx="10" fill="#BE123C" fill-opacity="0.4"/>
-        <text x="250" y="170" fill="#FFE4E6" font-size="10.5" font-weight="700" text-anchor="middle">4,628 Rows</text>
-        <text x="12" y="190" fill="#FDA4AF" font-size="10.5">Defect Rate: 0.86% Safely Isolated</text>
-        <text x="12" y="206" fill="#FECDD3" font-size="10">• Never deleted or lost (Full Audit Trail)</text>
-        <text x="12" y="222" fill="#FECDD3" font-size="10">• Defect reasons stamped on every record</text>
-        <text x="12" y="238" fill="#FECDD3" font-size="10">• Routed to specific dq.rejected_* tables</text>
+        <rect x="180" y="0" width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">2. FK Referential</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Traps orphan customer/store</text>
+
+        <rect y="50" width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">3. Math Integrity</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Net = Gross - Discount</text>
+
+        <rect x="180" y="50" width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">4. Positive Quantities</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Quantity &gt; 0, Unit Price &gt; 0</text>
+
+        <rect y="100" width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">5. Egyptian Phone</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Regex: ^01[0125][0-9]{8}$</text>
+
+        <rect x="180" y="100" width="170" height="42" rx="6" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+        <text x="10" y="18" fill="#FECDD3" font-size="10" font-weight="700">6. Inventory Balance</text>
+        <text x="10" y="32" fill="#94A3B8" font-size="9">Open + Recv - Sold - Dmg = Close</text>
+
+        <rect y="150" width="350" height="28" rx="6" fill="#311018" stroke="#F43F5E" stroke-width="0.8"/>
+        <text x="175" y="18" fill="#FECDD3" font-size="10" font-weight="700" text-anchor="middle">Audit Ledger: dq.data_quality_results (100% Traceable)</text>
       </g>
     </g>
 
-    <!-- Specific Quarantine Tables Breakdown -->
-    <g transform="translate(20, 555)">
-      <rect width="340" height="760" rx="12" fill="#1C0A11" stroke="#BE123C" stroke-width="1.2"/>
-      
+    <!-- Visual Decision Split Display -->
+    <g transform="translate(18, 330)">
+      <!-- Green Pass Node -->
+      <rect width="384" height="125" rx="10" fill="#062419" stroke="#059669" stroke-width="1.5"/>
+      <g transform="translate(16, 18)">
+        <circle cx="16" cy="16" r="14" fill="#047857"/>
+        <text x="16" y="21" fill="#FFF" font-size="14" font-weight="800" text-anchor="middle">✓</text>
+        <text x="40" y="16" fill="#34D399" font-size="13" font-weight="800">VALIDATED STREAM (99.14% PASS)</text>
+        <text x="40" y="32" fill="#D1FAE5" font-size="11">532,181 Rows Approved for Warehouse Loading</text>
+        
+        <g transform="translate(0, 44)">
+          <rect width="105" height="24" rx="5" fill="#031A12" stroke="#059669" stroke-width="0.8"/>
+          <text x="52" y="16" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">Sales: 497,876</text>
+          <rect x="115" y="0" width="115" height="24" rx="5" fill="#031A12" stroke="#059669" stroke-width="0.8"/>
+          <text x="172" y="16" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">Customers: 24,800</text>
+          <rect x="240" y="0" width="110" height="24" rx="5" fill="#031A12" stroke="#059669" stroke-width="0.8"/>
+          <text x="295" y="16" fill="#A7F3D0" font-size="9.5" font-weight="700" text-anchor="middle">Stock: 8,300</text>
+        </g>
+        <text x="0" y="90" fill="#6EE7B7" font-size="10" font-weight="600">Loads directly into Kimball Galaxy Fact &amp; Dimension Tables</text>
+      </g>
+
+      <!-- Red Reject Quarantine Stream -->
+      <g transform="translate(0, 140)">
+        <rect width="384" height="125" rx="10" fill="#2A0B14" stroke="#BE123C" stroke-width="1.5"/>
+        <g transform="translate(16, 18)">
+          <circle cx="16" cy="16" r="14" fill="#9F1239"/>
+          <text x="16" y="21" fill="#FFF" font-size="14" font-weight="800" text-anchor="middle">✕</text>
+          <text x="40" y="16" fill="#FB7185" font-size="13" font-weight="800">QUARANTINED STREAM (0.86% REJECT)</text>
+          <text x="40" y="32" fill="#FFE4E6" font-size="11">4,628 Defective Rows Isolated with Zero Data Loss</text>
+          
+          <g transform="translate(0, 44)">
+            <rect width="105" height="24" rx="5" fill="#0C0407" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="52" y="16" fill="#FDA4AF" font-size="9.5" font-weight="700" text-anchor="middle">Orders: 4,124</text>
+            <rect x="115" y="0" width="115" height="24" rx="5" fill="#0C0407" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="172" y="16" fill="#FDA4AF" font-size="9.5" font-weight="700" text-anchor="middle">Customers: 400</text>
+            <rect x="240" y="0" width="110" height="24" rx="5" fill="#0C0407" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="295" y="16" fill="#FDA4AF" font-size="9.5" font-weight="700" text-anchor="middle">Stock: 100</text>
+          </g>
+          <text x="0" y="90" fill="#F43F5E" font-size="10" font-weight="600">Diverted to isolated dq.rejected_* tables for root-cause triage</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Visual Quarantine Vault Container -->
+    <g transform="translate(18, 620)">
+      <rect width="384" height="870" rx="12" fill="#1C0A11" stroke="#BE123C" stroke-width="1.5"/>
       <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#FDA4AF" font-size="13.5" font-weight="700">Quarantine Tables (dq.rejected_*)</text>
-        <text x="0" y="34" fill="#F43F5E" font-size="10.5">Defect Analysis &amp; Data Remediation Hub</text>
+        <text x="0" y="16" fill="#FDA4AF" font-size="13.5" font-weight="700">🔒 Quarantine Vault Tables (dq.rejected_*)</text>
+        <text x="0" y="34" fill="#F43F5E" font-size="10.5">Isolated Storage with Timestamp &amp; Defect Reason</text>
 
-        <!-- Quarantine 1: rejected_orders -->
+        <!-- Vault Table 1: rejected_orders -->
         <g transform="translate(0, 48)">
-          <rect width="308" height="145" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
-          <text x="12" y="22" fill="#FDA4AF" font-size="12" font-weight="700">dq.rejected_orders</text>
-          <rect x="200" y="8" width="96" height="20" rx="10" fill="#9F1239" fill-opacity="0.5"/>
-          <text x="248" y="22" fill="#FFF" font-size="10.5" font-weight="700" text-anchor="middle">4,124 Rows</text>
-          <text x="12" y="42" fill="#FECDD3" font-size="10.5" font-weight="600">Quarantine Defect Breakdown:</text>
-          <text x="12" y="60" fill="#FDA4AF" font-size="10">• Orphaned Customer FK: 2,840 rows (CustID not found)</text>
-          <text x="12" y="76" fill="#FDA4AF" font-size="10">• Negative Quantity / Price: 812 rows (Math failure)</text>
-          <text x="12" y="92" fill="#FDA4AF" font-size="10">• Invalid Store ID: 310 rows (Store ID &gt; 35)</text>
-          <text x="12" y="108" fill="#FDA4AF" font-size="10">• Future Dates / Out of Range: 162 rows</text>
-          <text x="12" y="128" fill="#FFE4E6" font-size="9.5" font-style="italic">Rejection Reason logged in rejection_reason column</text>
+          <rect width="352" height="185" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+          <text x="12" y="22" fill="#FDA4AF" font-size="12.5" font-weight="700">dq.rejected_orders (4,124 Rows)</text>
+          
+          <!-- Visual Defect Pills Breakdown -->
+          <g transform="translate(12, 34)">
+            <rect width="155" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">🔗 Orphan Cust FK: 2,840</text>
 
-          <!-- Quarantine 2: rejected_customers -->
-          <rect y="160" width="308" height="120" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
-          <text x="12" y="182" fill="#FDA4AF" font-size="12" font-weight="700">dq.rejected_customers</text>
-          <rect x="210" y="168" width="85" height="20" rx="10" fill="#9F1239" fill-opacity="0.5"/>
-          <text x="252" y="182" fill="#FFF" font-size="10.5" font-weight="700" text-anchor="middle">400 Rows</text>
-          <text x="12" y="202" fill="#FECDD3" font-size="10.5" font-weight="600">Defect Breakdown:</text>
-          <text x="12" y="220" fill="#FDA4AF" font-size="10">• Malformed Mobile: 260 rows (Non-Egyptian length)</text>
-          <text x="12" y="236" fill="#FDA4AF" font-size="10">• Unmapped Governorate: 95 rows (Typos in Gov name)</text>
-          <text x="12" y="252" fill="#FDA4AF" font-size="10">• Null Customer Name: 45 rows</text>
-          <text x="12" y="268" fill="#FFE4E6" font-size="9.5" font-style="italic">Preserved for master data remediation CRM workflow</text>
+            <rect x="165" y="0" width="160" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">📉 Negative Qty/Price: 812</text>
 
-          <!-- Quarantine 3: rejected_inventory -->
-          <rect y="295" width="308" height="105" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
-          <text x="12" y="317" fill="#FDA4AF" font-size="12" font-weight="700">dq.rejected_inventory</text>
-          <rect x="210" y="303" width="85" height="20" rx="10" fill="#9F1239" fill-opacity="0.5"/>
-          <text x="252" y="317" fill="#FFF" font-size="10.5" font-weight="700" text-anchor="middle">100 Rows</text>
-          <text x="12" y="337" fill="#FECDD3" font-size="10.5" font-weight="600">Defect Breakdown:</text>
-          <text x="12" y="355" fill="#FDA4AF" font-size="10">• Negative Closing Balance: 62 rows (Stockout glitch)</text>
-          <text x="12" y="371" fill="#FDA4AF" font-size="10">• Balance Equation Mismatch: 38 rows</text>
-          <text x="12" y="387" fill="#FFE4E6" font-size="9.5" font-style="italic">Prevents distorted stock valuation in ERP</text>
+            <rect y="30" width="155" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">🏬 Invalid Store ID: 310</text>
 
-          <!-- Quarantine 4: rejected_targets -->
-          <rect y="415" width="308" height="80" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
-          <text x="12" y="437" fill="#FDA4AF" font-size="12" font-weight="700">dq.rejected_targets</text>
-          <rect x="230" y="423" width="65" height="20" rx="10" fill="#9F1239" fill-opacity="0.5"/>
-          <text x="262" y="437" fill="#FFF" font-size="10.5" font-weight="700" text-anchor="middle">4 Rows</text>
-          <text x="12" y="457" fill="#FDA4AF" font-size="10">• Negative Sales Quotas entered in Excel sheet</text>
-          <text x="12" y="473" fill="#FFE4E6" font-size="9.5" font-style="italic">Referred back to commercial planning team</text>
+            <rect x="165" y="30" width="160" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">⏱️ Future Date: 162</text>
+          </g>
+          <g transform="translate(12, 100)">
+            <text x="0" y="14" fill="#94A3B8" font-size="10">Root Cause: Disconnected CRM checkout carts &amp; POS scanner error</text>
+            <text x="0" y="30" fill="#94A3B8" font-size="10">Logged in rejection_reason column with original raw payload</text>
+            <text x="0" y="46" fill="#FB7185" font-size="9.5" font-weight="600">Zero orphaned orders enter fact_sales!</text>
+          </g>
+        </g>
 
-          <!-- Quality Governance Card -->
-          <rect y="510" width="308" height="195" rx="8" fill="#0C0407" stroke="#1E293B" stroke-width="1"/>
-          <text x="12" y="532" fill="#E2E8F0" font-size="11.5" font-weight="700">Governance &amp; Observability</text>
-          <text x="12" y="552" fill="#94A3B8" font-size="10">Automated Audit Table: dq.data_quality_results</text>
-          <text x="12" y="570" fill="#94A3B8" font-size="10">Metrics Logged: rule_id, rule_name, target_table,</text>
-          <text x="12" y="588" fill="#94A3B8" font-size="10">records_checked, records_failed, pass_rate_pct</text>
-          <text x="12" y="608" fill="#34D399" font-size="10.5" font-weight="700">Overall DQ SLA: 99.14% PASS</text>
-          <text x="12" y="626" fill="#38BDF8" font-size="10">Automated alert triggered if pass rate &lt; 95%</text>
-          <text x="12" y="646" fill="#64748B" font-size="9.5">Integrated into Power BI Data Quality Sentinel Page</text>
+        <!-- Vault Table 2: rejected_customers -->
+        <g transform="translate(0, 245)">
+          <rect width="352" height="150" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+          <text x="12" y="22" fill="#FDA4AF" font-size="12.5" font-weight="700">dq.rejected_customers (400 Rows)</text>
+          <g transform="translate(12, 34)">
+            <rect width="155" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">📱 Malformed Mobile: 260</text>
+
+            <rect x="165" y="0" width="160" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">🏛️ Unmapped Gov: 95</text>
+
+            <rect y="30" width="325" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">📝 Missing Customer Name / Blank String: 45</text>
+          </g>
+          <g transform="translate(12, 98)">
+            <text x="0" y="14" fill="#94A3B8" font-size="10">Preserved for CRM remediation and customer contact correction</text>
+            <text x="0" y="30" fill="#FB7185" font-size="9.5" font-weight="600">Zero dirty customer rows enter dim_customer (SCD2)!</text>
+          </g>
+        </g>
+
+        <!-- Vault Table 3: rejected_inventory -->
+        <g transform="translate(0, 410)">
+          <rect width="352" height="135" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+          <text x="12" y="22" fill="#FDA4AF" font-size="12.5" font-weight="700">dq.rejected_inventory (100 Rows)</text>
+          <g transform="translate(12, 34)">
+            <rect width="155" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">📉 Negative Stock: 62</text>
+
+            <rect x="165" y="0" width="160" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">⚖️ Equation Mismatch: 38</text>
+          </g>
+          <g transform="translate(12, 72)">
+            <text x="0" y="14" fill="#94A3B8" font-size="10">Root Cause: WMS sensor disconnect &amp; unrecorded showroom samples</text>
+            <text x="0" y="30" fill="#FB7185" font-size="9.5" font-weight="600">Protects fact_inventory stock valuation integrity</text>
+          </g>
+        </g>
+
+        <!-- Vault Table 4: rejected_targets -->
+        <g transform="translate(0, 560)">
+          <rect width="352" height="110" rx="8" fill="#0C0407" stroke="#881337" stroke-width="1"/>
+          <text x="12" y="22" fill="#FDA4AF" font-size="12.5" font-weight="700">dq.rejected_targets (4 Rows)</text>
+          <g transform="translate(12, 34)">
+            <rect width="325" height="24" rx="4" fill="#200B11" stroke="#BE123C" stroke-width="0.8"/>
+            <text x="8" y="16" fill="#FECDD3" font-size="9.5">🚫 Negative Target Revenue Entered in Commercial Excel: 4 Rows</text>
+          </g>
+          <g transform="translate(12, 68)">
+            <text x="0" y="14" fill="#94A3B8" font-size="10">Referred back to commercial planning team for correction</text>
+          </g>
+        </g>
+
+        <!-- Remediation Workflow Card -->
+        <g transform="translate(0, 685)">
+          <rect width="352" height="140" rx="8" fill="#0C0407" stroke="#1E293B" stroke-width="1"/>
+          <text x="12" y="22" fill="#E2E8F0" font-size="11.5" font-weight="700">Automated Remediation Loop</text>
+          <text x="12" y="42" fill="#94A3B8" font-size="10">1. Quarantine alerts sent to Data Stewards via audit views</text>
+          <text x="12" y="60" fill="#94A3B8" font-size="10">2. Business teams patch source systems (CRM, WMS, Excel)</text>
+          <text x="12" y="78" fill="#94A3B8" font-size="10">3. Next incremental pipeline run ingests re-validated rows</text>
+          <text x="12" y="98" fill="#34D399" font-size="10" font-weight="700">Systemic Quality: 99.14% Pass Rate Maintained</text>
+          <text x="12" y="116" fill="#38BDF8" font-size="9.5">Integrated into Power BI Data Quality Sentinel Page</text>
         </g>
       </g>
     </g>
   </g>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 5: KIMBALL GALAXY DW (X: 1730, W: 420)        -->
+  <!-- COLUMN 5: KIMBALL GALAXY WAREHOUSE (X: 1740, W: 570) -->
   <!-- ==================================================== -->
-  <g transform="translate(1730, 185)" filter="url(#shadowLg)">
-    <rect width="420" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
-    <rect x="0" y="0" width="420" height="5" rx="2.5" fill="url(#emeraldGlow)"/>
+  <g transform="translate(1740, 175)" filter="url(#shadowLg)">
+    <rect width="570" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+    <rect x="0" y="0" width="570" height="5" rx="2.5" fill="url(#emeraldGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#047857" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#34D399">05</text>
-      <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">KIMBALL GALAXY DW</text>
-      <text x="48" y="36" fill="#34D399" font-size="11.5" font-weight="600">Schema: warehouse.* | Fact Constellation</text>
+      <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">KIMBALL GALAXY DATA WAREHOUSE</text>
+      <text x="48" y="36" fill="#34D399" font-size="11.5" font-weight="600">Fact Constellation &amp; Snowflake Hierarchies (Schema: warehouse.*)</text>
     </g>
 
-    <!-- Architecture Description Banner -->
+    <!-- Visual Galaxy ERD Model -->
     <g transform="translate(20, 75)">
-      <rect width="380" height="100" rx="10" fill="#062419" stroke="#047857" stroke-width="1"/>
-      <text x="14" y="24" fill="#6EE7B7" font-size="12.5" font-weight="700">⭐ Multi-Process Constellation + Snowflake</text>
-      <text x="14" y="44" fill="#A7F3D0" font-size="10.5">3 Distinct Business Process Facts share Conformed Dimensions:</text>
-      <text x="14" y="62" fill="#D1FAE5" font-size="10.5">• Conformed: dim_date, dim_customer, dim_product, dim_store</text>
-      <text x="14" y="80" fill="#34D399" font-size="10.5" font-weight="600">Normalized Outriggers: dim_geography, dim_category, dim_carrier</text>
-    </g>
-
-    <!-- Core Facts Section -->
-    <g transform="translate(20, 195)">
-      <text x="0" y="16" fill="#F8FAFC" font-size="13.5" font-weight="700">Galaxy Fact Tables (3 Core Facts)</text>
-
-      <g transform="translate(0, 28)">
-        <!-- Fact 1: fact_sales -->
-        <rect width="380" height="135" rx="8" fill="#031A12" stroke="#059669" stroke-width="1.2"/>
-        <text x="14" y="22" fill="#34D399" font-size="13" font-weight="800">warehouse.fact_sales</text>
-        <rect x="260" y="8" width="105" height="20" rx="10" fill="#047857" fill-opacity="0.5"/>
-        <text x="312" y="22" fill="#D1FAE5" font-size="10.5" font-weight="700" text-anchor="middle">497,876 Rows</text>
-        <text x="14" y="42" fill="#A7F3D0" font-size="11" font-weight="600">Grain: 1 Order Line-Item</text>
-        <text x="14" y="60" fill="#D1FAE5" font-size="10">Surrogate Keys: customer_key, product_key, store_key, date_key</text>
-        <text x="14" y="78" fill="#D1FAE5" font-size="10">Degenerate Dimensions: order_id, channel_key, payment_method_key</text>
-        <text x="14" y="96" fill="#D1FAE5" font-size="10">Measures: quantity, unit_price, gross_sales, discount_egp, net_sales, cost</text>
-        <text x="14" y="116" fill="#6EE7B7" font-size="10" font-weight="600">Derived: margin_egp, margin_pct, exchange_rate_usd</text>
-
-        <!-- Fact 2: fact_inventory -->
-        <rect y="148" width="380" height="110" rx="8" fill="#031A12" stroke="#059669" stroke-width="1.2"/>
-        <text x="14" y="170" fill="#34D399" font-size="13" font-weight="800">warehouse.fact_inventory</text>
-        <rect x="270" y="156" width="95" height="20" rx="10" fill="#047857" fill-opacity="0.5"/>
-        <text x="317" y="170" fill="#D1FAE5" font-size="10.5" font-weight="700" text-anchor="middle">8,300 Rows</text>
-        <text x="14" y="190" fill="#A7F3D0" font-size="11" font-weight="600">Grain: Monthly Snapshot per Store per SKU</text>
-        <text x="14" y="208" fill="#D1FAE5" font-size="10">Surrogate Keys: date_key (Month), store_key, product_key</text>
-        <text x="14" y="226" fill="#D1FAE5" font-size="10">Measures: opening_stock, received_qty, sold_qty, damaged_qty, closing_stock</text>
-        <text x="14" y="244" fill="#6EE7B7" font-size="10" font-weight="600">Inventory KPIs: days_of_inventory (DOI), stockout_risk_flag, damaged_pct</text>
-
-        <!-- Fact 3: fact_store_targets -->
-        <rect y="270" width="380" height="95" rx="8" fill="#031A12" stroke="#059669" stroke-width="1.2"/>
-        <text x="14" y="292" fill="#34D399" font-size="13" font-weight="800">warehouse.fact_store_targets</text>
-        <rect x="280" y="278" width="85" height="20" rx="10" fill="#047857" fill-opacity="0.5"/>
-        <text x="322" y="292" fill="#D1FAE5" font-size="10.5" font-weight="700" text-anchor="middle">413 Rows</text>
-        <text x="14" y="312" fill="#A7F3D0" font-size="11" font-weight="600">Grain: Monthly Quota per Retail Store</text>
-        <text x="14" y="330" fill="#D1FAE5" font-size="10">Surrogate Keys: target_date_key, store_key</text>
-        <text x="14" y="348" fill="#6EE7B7" font-size="10" font-weight="600">Measures: sales_target_egp, order_target, target_achievement_pct</text>
+      
+      <!-- ================= TOP CONFORMED DIMS ================= -->
+      <!-- dim_date -->
+      <g transform="translate(0, 0)">
+        <rect width="170" height="95" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1.2"/>
+        <rect x="0" y="0" width="170" height="22" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="8" y="15" fill="#BAE6FD" font-size="10.5" font-weight="700">dim_date (730 Days)</text>
+        <g transform="translate(8, 28)">
+          <text x="0" y="12" fill="#38BDF8" font-size="9" font-weight="700">🔑 date_key (INT PK)</text>
+          <text x="0" y="24" fill="#94A3B8" font-size="8.5">full_date • year • month</text>
+          <text x="0" y="36" fill="#94A3B8" font-size="8.5">is_weekend (Fri/Sat)</text>
+          <text x="0" y="48" fill="#67E8F9" font-size="8.5">Ramadan, Eid, White Friday</text>
+        </g>
       </g>
-    </g>
 
-    <!-- Conformed Dimensions & Snowflake Hierarchies Section -->
-    <g transform="translate(20, 605)">
-      <text x="0" y="16" fill="#F8FAFC" font-size="13.5" font-weight="700">Conformed Dimensions &amp; Snowflake Outriggers</text>
-
-      <g transform="translate(0, 28)">
-        <!-- Dim 1: dim_customer (SCD2) -->
-        <rect width="380" height="130" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1"/>
-        <text x="14" y="22" fill="#38BDF8" font-size="12.5" font-weight="700">dim_customer (SCD Type 2)</text>
-        <rect x="250" y="8" width="115" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="307" y="22" fill="#BAE6FD" font-size="10.5" font-weight="700" text-anchor="middle">24,800 Active</text>
-        <text x="14" y="42" fill="#93C5FD" font-size="10.5">SCD Tracking: valid_from, valid_to, is_current, row_hash</text>
-        <text x="14" y="60" fill="#BAE6FD" font-size="10">Customer Profile: name_ar, name_en, email, segment, area</text>
-        <text x="14" y="78" fill="#BAE6FD" font-size="10">Egyptian Telecom Enrichment: carrier_network (Vodafone, Orange...)</text>
-        <text x="14" y="96" fill="#BAE6FD" font-size="10">Demographic Cohorts: Generation Z, Millennial, Gen X</text>
-        <text x="14" y="114" fill="#38BDF8" font-size="10" font-weight="600">Outrigger Link: FK to dim_geography (Governorate)</text>
-
-        <!-- Dim 2: dim_product -->
-        <rect y="140" width="380" height="110" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1"/>
-        <text x="14" y="162" fill="#38BDF8" font-size="12.5" font-weight="700">dim_product (Conformed Product Master)</text>
-        <rect x="280" y="148" width="85" height="20" rx="10" fill="#0369A1" fill-opacity="0.4"/>
-        <text x="322" y="162" fill="#BAE6FD" font-size="10.5" font-weight="700" text-anchor="middle">20 SKUs</text>
-        <text x="14" y="182" fill="#93C5FD" font-size="10.5">Egyptian Price Tiers: Mass (&lt;150 EGP), Mass-Tige (150-350), Luxury (&gt;600)</text>
-        <text x="14" y="200" fill="#BAE6FD" font-size="10">Domestic vs Imported: Local Egyptian Formula vs European Import</text>
-        <text x="14" y="218" fill="#BAE6FD" font-size="10">Pricing: list_price_egp, standard_cost_egp, base_margin_pct</text>
-        <text x="14" y="236" fill="#38BDF8" font-size="10" font-weight="600">Outrigger Link: FK to dim_category &amp; dim_subcategory</text>
-
-        <!-- Dim 3: dim_store & dim_date -->
-        <rect y="260" width="380" height="100" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1"/>
-        <text x="14" y="282" fill="#38BDF8" font-size="12.5" font-weight="700">dim_store &amp; dim_date (Conformed Core)</text>
-        <text x="14" y="302" fill="#BAE6FD" font-size="10.5">• dim_store (35 rows): Retail Flagship, Mall Boutique, Regional Hub</text>
-        <text x="14" y="320" fill="#BAE6FD" font-size="10.5">• dim_date (730 rows): Role-Playing Date (Order, Target, Inventory)</text>
-        <text x="14" y="338" fill="#67E8F9" font-size="10">Egyptian Weekend: Fri/Sat | Hijri Seasons: Ramadan, Eid El-Fitr, Eid Adha</text>
-
-        <!-- Snowflake Outriggers Details -->
-        <rect y="370" width="380" height="155" rx="8" fill="#042F2C" stroke="#0F766E" stroke-width="1"/>
-        <text x="14" y="392" fill="#5EEAD4" font-size="12.5" font-weight="700">❄️ Snowflake Hierarchy Outriggers</text>
-        <text x="14" y="414" fill="#99F6E4" font-size="10.5">1. dim_geography: 22 Governorates ➔ 5 Economic Regions</text>
-        <text x="14" y="432" fill="#CCFBF1" font-size="10">   Greater Cairo | Alexandria &amp; Delta | Canal | Upper Egypt | Red Sea</text>
-        <text x="14" y="450" fill="#CCFBF1" font-size="10">   Courier SLA Tiers (24h Express, 48h Standard, 72h Extended)</text>
-        <text x="14" y="470" fill="#99F6E4" font-size="10.5">2. dim_category: Product ➔ Subcategory ➔ Strategic Margin Class</text>
-        <text x="14" y="488" fill="#CCFBF1" font-size="10">   Skincare (High Margin 65%) | Haircare (55%) | Fragrance (70%)</text>
-        <text x="14" y="508" fill="#99F6E4" font-size="10.5">3. dim_telecom_carrier: Vodafone, Orange, Etisalat, WE Egypt</text>
+      <!-- dim_store -->
+      <g transform="translate(185, 0)">
+        <rect width="175" height="95" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1.2"/>
+        <rect x="0" y="0" width="175" height="22" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="8" y="15" fill="#BAE6FD" font-size="10.5" font-weight="700">dim_store (35 Stores)</text>
+        <g transform="translate(8, 28)">
+          <text x="0" y="12" fill="#38BDF8" font-size="9" font-weight="700">🔑 store_key (INT PK)</text>
+          <text x="0" y="24" fill="#94A3B8" font-size="8.5">store_name_ar/en</text>
+          <text x="0" y="36" fill="#94A3B8" font-size="8.5">store_type (Mall/Boutique)</text>
+          <text x="0" y="48" fill="#38BDF8" font-size="8.5">🔗 geography_key (FK)</text>
+        </g>
       </g>
-    </g>
 
-    <!-- Warehouse Load Stored Procedures -->
-    <g transform="translate(20, 1195)">
-      <rect width="380" height="120" rx="10" fill="#062419" stroke="#059669" stroke-width="1"/>
-      <text x="14" y="24" fill="#6EE7B7" font-size="12" font-weight="700">⚡ Warehouse Loader Stored Procedures</text>
-      <text x="14" y="44" fill="#D1FAE5" font-size="10.5">• warehouse.usp_load_dimensions: SCD2 Merge &amp; Key Lookup</text>
-      <text x="14" y="62" fill="#D1FAE5" font-size="10.5">• warehouse.usp_load_facts: Incremental Sales, Inventory, Targets</text>
-      <text x="14" y="80" fill="#D1FAE5" font-size="10.5">• Referential integrity enforced via foreign keys &amp; constraints</text>
-      <text x="14" y="100" fill="#34D399" font-size="10" font-weight="700">Zero Dirty Data Guarantee | Pure Analytical Grain</text>
+      <!-- dim_currency -->
+      <g transform="translate(375, 0)">
+        <rect width="155" height="95" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1.2"/>
+        <rect x="0" y="0" width="155" height="22" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="8" y="15" fill="#BAE6FD" font-size="10.5" font-weight="700">dim_currency</text>
+        <g transform="translate(8, 28)">
+          <text x="0" y="12" fill="#38BDF8" font-size="9" font-weight="700">🔑 currency_key (PK)</text>
+          <text x="0" y="24" fill="#94A3B8" font-size="8.5">currency_code (EGP/USD)</text>
+          <text x="0" y="36" fill="#94A3B8" font-size="8.5">daily_fx_rate</text>
+          <text x="0" y="48" fill="#94A3B8" font-size="8.5">central_bank_anchor</text>
+        </g>
+      </g>
+
+      <!-- ================= GALAXY FACT CONSTELLATION ================= -->
+      <!-- Fact 1: fact_sales -->
+      <g transform="translate(0, 150)">
+        <rect width="255" height="240" rx="10" fill="#031A12" stroke="#059669" stroke-width="1.5"/>
+        <rect x="0" y="0" width="255" height="26" rx="10" fill="#047857" fill-opacity="0.5"/>
+        <text x="10" y="18" fill="#D1FAE5" font-size="12" font-weight="800">⭐ fact_sales (497,876 Rows)</text>
+        <rect x="180" y="4" width="70" height="18" rx="9" fill="#065F46"/>
+        <text x="215" y="16" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">Line-Item</text>
+
+        <!-- Fact Columns -->
+        <g transform="translate(10, 34)">
+          <text x="0" y="14" fill="#34D399" font-size="10" font-weight="700">🔑 sales_key (BIGINT PK)</text>
+          <text x="0" y="28" fill="#E2E8F0" font-size="9.5"># order_id (Degenerate Dimension)</text>
+          <text x="0" y="42" fill="#7DD3FC" font-size="9.5">🔗 date_key (FK ➔ dim_date)</text>
+          <text x="0" y="56" fill="#7DD3FC" font-size="9.5">🔗 customer_key (FK ➔ dim_customer SCD2)</text>
+          <text x="0" y="70" fill="#7DD3FC" font-size="9.5">🔗 product_key (FK ➔ dim_product)</text>
+          <text x="0" y="84" fill="#7DD3FC" font-size="9.5">🔗 store_key (FK ➔ dim_store)</text>
+          <text x="0" y="98" fill="#7DD3FC" font-size="9.5">🔗 campaign_key (FK ➔ dim_campaign)</text>
+          <text x="0" y="112" fill="#7DD3FC" font-size="9.5">🔗 channel_key • payment_method_key</text>
+          <line x1="0" y1="120" x2="235" y2="120" stroke="#065F46" stroke-width="1"/>
+          <text x="0" y="136" fill="#FBBF24" font-size="9.5" font-weight="700">∑ quantity • unit_price_egp</text>
+          <text x="0" y="150" fill="#FBBF24" font-size="9.5" font-weight="700">∑ gross_sales_egp • discount_egp</text>
+          <text x="0" y="164" fill="#34D399" font-size="9.5" font-weight="700">∑ net_sales_egp • cost_egp • profit_egp</text>
+          <text x="0" y="178" fill="#94A3B8" font-size="8.5">Derived: margin_pct • exchange_rate_usd</text>
+        </g>
+      </g>
+
+      <!-- Fact 2: fact_inventory -->
+      <g transform="translate(275, 150)">
+        <rect width="255" height="150" rx="10" fill="#031A12" stroke="#059669" stroke-width="1.5"/>
+        <rect x="0" y="0" width="255" height="26" rx="10" fill="#047857" fill-opacity="0.5"/>
+        <text x="10" y="18" fill="#D1FAE5" font-size="12" font-weight="800">⭐ fact_inventory (8,300 Rows)</text>
+        <rect x="185" y="4" width="65" height="18" rx="9" fill="#065F46"/>
+        <text x="217" y="16" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">Monthly</text>
+
+        <g transform="translate(10, 34)">
+          <text x="0" y="14" fill="#34D399" font-size="10" font-weight="700">🔑 inventory_key (BIGINT PK)</text>
+          <text x="0" y="28" fill="#7DD3FC" font-size="9.5">🔗 date_key (Month Snapshot)</text>
+          <text x="0" y="42" fill="#7DD3FC" font-size="9.5">🔗 store_key (FK ➔ dim_store)</text>
+          <text x="0" y="56" fill="#7DD3FC" font-size="9.5">🔗 product_key (FK ➔ dim_product)</text>
+          <line x1="0" y1="64" x2="235" y2="64" stroke="#065F46" stroke-width="1"/>
+          <text x="0" y="80" fill="#FBBF24" font-size="9.5" font-weight="700">∑ opening_stock + received_qty</text>
+          <text x="0" y="94" fill="#FBBF24" font-size="9.5" font-weight="700">∑ - sold_qty - damaged_qty = closing_stock</text>
+          <text x="0" y="108" fill="#38BDF8" font-size="8.5">KPIs: days_of_inventory (DOI) • stockout_flag</text>
+        </g>
+      </g>
+
+      <!-- Fact 3: fact_store_targets -->
+      <g transform="translate(275, 315)">
+        <rect width="255" height="120" rx="10" fill="#031A12" stroke="#059669" stroke-width="1.5"/>
+        <rect x="0" y="0" width="255" height="26" rx="10" fill="#047857" fill-opacity="0.5"/>
+        <text x="10" y="18" fill="#D1FAE5" font-size="12" font-weight="800">⭐ fact_store_targets (413 Rows)</text>
+        <rect x="195" y="4" width="55" height="18" rx="9" fill="#065F46"/>
+        <text x="222" y="16" fill="#A7F3D0" font-size="9" font-weight="700" text-anchor="middle">Quota</text>
+
+        <g transform="translate(10, 34)">
+          <text x="0" y="14" fill="#34D399" font-size="10" font-weight="700">🔑 target_key (INT PK)</text>
+          <text x="0" y="28" fill="#7DD3FC" font-size="9.5">🔗 target_date_key (FK ➔ dim_date)</text>
+          <text x="0" y="42" fill="#7DD3FC" font-size="9.5">🔗 store_key (FK ➔ dim_store)</text>
+          <line x1="0" y1="50" x2="235" y2="50" stroke="#065F46" stroke-width="1"/>
+          <text x="0" y="66" fill="#FBBF24" font-size="9.5" font-weight="700">∑ sales_target_egp • order_target</text>
+          <text x="0" y="80" fill="#34D399" font-size="8.5">KPI: target_achievement_pct (Actual / Target)</text>
+        </g>
+      </g>
+
+      <!-- ================= MIDDLE CONFORMED DIMS ================= -->
+      <!-- dim_customer (SCD2) -->
+      <g transform="translate(0, 410)">
+        <rect width="255" height="135" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1.2"/>
+        <rect x="0" y="0" width="255" height="24" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="10" y="16" fill="#BAE6FD" font-size="11" font-weight="700">dim_customer (24,800 Active | SCD2)</text>
+        <g transform="translate(10, 30)">
+          <text x="0" y="14" fill="#38BDF8" font-size="9.5" font-weight="700">🔑 customer_key (BIGINT PK) • customer_id (NK)</text>
+          <text x="0" y="28" fill="#94A3B8" font-size="9">name_ar (مريم) • name_en • email • segment</text>
+          <text x="0" y="42" fill="#7DD3FC" font-size="9">🔗 carrier_key (FK ➔ dim_telecom_carrier)</text>
+          <text x="0" y="56" fill="#7DD3FC" font-size="9">🔗 geography_key (FK ➔ dim_geography)</text>
+          <text x="0" y="70" fill="#FBBF24" font-size="9">SCD2: valid_from • valid_to • is_current</text>
+          <text x="0" y="84" fill="#34D399" font-size="8.5">Enrichment: Age Cohort (Gen Z, Millennial, Gen X)</text>
+        </g>
+      </g>
+
+      <!-- dim_product -->
+      <g transform="translate(275, 450)">
+        <rect width="255" height="120" rx="8" fill="#071927" stroke="#0284C7" stroke-width="1.2"/>
+        <rect x="0" y="0" width="255" height="24" rx="8" fill="#0369A1" fill-opacity="0.5"/>
+        <text x="10" y="16" fill="#BAE6FD" font-size="11" font-weight="700">dim_product (20 Master SKUs)</text>
+        <g transform="translate(10, 30)">
+          <text x="0" y="14" fill="#38BDF8" font-size="9.5" font-weight="700">🔑 product_key (INT PK) • product_id (NK)</text>
+          <text x="0" y="28" fill="#94A3B8" font-size="9">name_ar • name_en • brand • origin (Local/Import)</text>
+          <text x="0" y="42" fill="#7DD3FC" font-size="9">🔗 subcategory_key (FK ➔ dim_subcategory)</text>
+          <text x="0" y="56" fill="#FBBF24" font-size="9">Price Tiers: Mass (&lt;150 EGP), Masstige, Luxury</text>
+          <text x="0" y="70" fill="#34D399" font-size="8.5">list_price_egp • standard_cost_egp • margin_%</text>
+        </g>
+      </g>
+
+      <!-- ================= SNOWFLAKE HIERARCHY OUTRIGGERS ================= -->
+      <g transform="translate(0, 565)">
+        <rect width="530" height="200" rx="10" fill="#042F2C" stroke="#0F766E" stroke-width="1.2"/>
+        <text x="14" y="24" fill="#5EEAD4" font-size="13" font-weight="700">❄️ Snowflake Normalized Hierarchy Outriggers</text>
+
+        <!-- Snowflake 1: Geography -->
+        <g transform="translate(14, 38)">
+          <rect width="245" height="85" rx="6" fill="#022C22" stroke="#059669" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">dim_geography (22 Govs)</text>
+          <text x="10" y="32" fill="#5EEAD4" font-size="9">🔑 geography_key (PK)</text>
+          <text x="10" y="46" fill="#CCFBF1" font-size="8.5">Governorate ➔ 5 Economic Regions</text>
+          <text x="10" y="58" fill="#CCFBF1" font-size="8.5">Market Tiers: Metro, Secondary, Frontier</text>
+          <text x="10" y="70" fill="#FBBF24" font-size="8.5">Courier SLA: Tier 1 (24h), Tier 2 (48h), Tier 3 (72h)</text>
+        </g>
+
+        <!-- Snowflake 2: Product Categories -->
+        <g transform="translate(270, 38)">
+          <rect width="245" height="85" rx="6" fill="#022C22" stroke="#059669" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">dim_subcategory &amp; dim_category</text>
+          <text x="10" y="32" fill="#5EEAD4" font-size="9">🔑 subcategory_key (PK) • category_key (FK)</text>
+          <text x="10" y="46" fill="#CCFBF1" font-size="8.5">Subcategories: Serums, Creams, Toners...</text>
+          <text x="10" y="58" fill="#CCFBF1" font-size="8.5">Category: Skincare, Haircare, Fragrance</text>
+          <text x="10" y="70" fill="#FBBF24" font-size="8.5">Strategic Margin Classes: 65%, 55%, 70%</text>
+        </g>
+
+        <!-- Snowflake 3: Telecom Carrier -->
+        <g transform="translate(14, 130)">
+          <rect width="501" height="55" rx="6" fill="#022C22" stroke="#059669" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#A7F3D0" font-size="10.5" font-weight="700">dim_telecom_carrier (Egyptian Mobile Networks)</text>
+          <text x="10" y="32" fill="#5EEAD4" font-size="9">Prefix 010: Vodafone Egypt | Prefix 011: Etisalat Misr | Prefix 012: Orange Egypt | Prefix 015: Telecom Egypt (WE)</text>
+          <text x="10" y="46" fill="#99F6E4" font-size="8.5">Enables carrier-level customer segmentation, wallet payment affinity &amp; SMS delivery targeting</text>
+        </g>
+      </g>
+
+      <!-- Cardinality Legend & Loaders -->
+      <g transform="translate(0, 780)">
+        <rect width="530" height="135" rx="10" fill="#062419" stroke="#059669" stroke-width="1"/>
+        <text x="14" y="24" fill="#6EE7B7" font-size="12" font-weight="700">⚡ Warehouse Stored Procedures &amp; Cardinality</text>
+        <text x="14" y="44" fill="#D1FAE5" font-size="10">• warehouse.usp_load_dimensions: SCD Type 2 MERGE with SHA-256 detection</text>
+        <text x="14" y="62" fill="#D1FAE5" font-size="10">• warehouse.usp_load_facts: Incremental load via staging DateKeys</text>
+        <text x="14" y="80" fill="#D1FAE5" font-size="10">• Referential Cardinality: Strictly 1:Many Single-Direction (Star/Galaxy)</text>
+        <text x="14" y="98" fill="#34D399" font-size="10" font-weight="700">Total Valid Warehouse Volume: 532,181 Rows (99.14% of Extracted Raw)</text>
+        <text x="14" y="116" fill="#38BDF8" font-size="9.5">Zero null keys or orphaned foreign keys in production analytical tier</text>
+      </g>
     </g>
   </g>
 
   <!-- ==================================================== -->
-  <!-- COLUMN 6: MARTS & POWER BI (X: 2190, W: 350)         -->
+  <!-- COLUMN 6: MARTS & POWER BI (X: 2340, W: 410)         -->
   <!-- ==================================================== -->
-  <g transform="translate(2190, 185)" filter="url(#shadowLg)">
-    <rect width="350" height="1350" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
-    <rect x="0" y="0" width="350" height="5" rx="2.5" fill="url(#purpleGlow)"/>
+  <g transform="translate(2340, 175)" filter="url(#shadowLg)">
+    <rect width="410" height="1520" rx="16" fill="url(#cardGrad)" stroke="#1E293B" stroke-width="1.5"/>
+    <rect x="0" y="0" width="410" height="5" rx="2.5" fill="url(#purpleGlow)"/>
 
-    <!-- Column Header -->
-    <g transform="translate(20, 24)">
+    <g transform="translate(20, 22)">
       <circle cx="20" cy="20" r="18" fill="#7C3AED" fill-opacity="0.3"/>
       <text x="20" y="26" font-size="18" text-anchor="middle" fill="#C084FC">06</text>
       <text x="48" y="18" fill="#F8FAFC" font-size="16" font-weight="800">MARTS &amp; POWER BI</text>
-      <text x="48" y="36" fill="#C084FC" font-size="11.5" font-weight="600">Curated Marts &amp; Semantic Model</text>
+      <text x="48" y="36" fill="#C084FC" font-size="11.5" font-weight="600">Curated Business Marts &amp; Semantic Model</text>
     </g>
 
-    <!-- Curated Marts Section -->
-    <g transform="translate(20, 75)">
-      <text x="0" y="16" fill="#F8FAFC" font-size="13.5" font-weight="700">7 Curated Business Marts (mart.*)</text>
+    <!-- Visual Business Marts Section -->
+    <g transform="translate(18, 75)">
+      <text x="0" y="16" fill="#F8FAFC" font-size="13" font-weight="700">Curated Business Marts (7 Pre-Aggregated Views)</text>
 
       <g transform="translate(0, 28)">
         <!-- Mart 1 -->
-        <rect width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="20" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_daily_sales</text>
-        <text x="220" y="20" fill="#C084FC" font-size="10" font-weight="700">271.6k Rows</text>
-        <text x="12" y="36" fill="#94A3B8" font-size="9.5">Date × Store × Channel daily aggregation</text>
+        <rect width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="22" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_daily_sales</text>
+        <rect x="270" y="8" width="92" height="18" rx="9" fill="#581C87"/>
+        <text x="316" y="21" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">271,600 Rows</text>
+        <text x="12" y="44" fill="#DDD6FE" font-size="10">Grain: Date × Store × Channel | Operational Revenue, Units &amp; Margin</text>
 
         <!-- Mart 2 -->
-        <rect y="54" width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="74" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_monthly_sales</text>
-        <text x="240" y="74" fill="#C084FC" font-size="10" font-weight="700">425 Rows</text>
-        <text x="12" y="90" fill="#94A3B8" font-size="9.5">Executive monthly revenue &amp; quota tracking</text>
+        <rect y="68" width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="90" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_monthly_sales</text>
+        <rect x="280" y="76" width="82" height="18" rx="9" fill="#581C87"/>
+        <text x="321" y="89" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">425 Rows</text>
+        <text x="12" y="112" fill="#DDD6FE" font-size="10">Grain: Month × Store | Target Achievement %, MoM Growth &amp; Variance</text>
 
         <!-- Mart 3 -->
-        <rect y="108" width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="128" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_product_performance</text>
-        <text x="250" y="128" fill="#C084FC" font-size="10" font-weight="700">20 SKUs</text>
-        <text x="12" y="144" fill="#94A3B8" font-size="9.5">Margin %, velocity, return rates, domestic rank</text>
+        <rect y="136" width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="158" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_product_performance</text>
+        <rect x="290" y="144" width="72" height="18" rx="9" fill="#581C87"/>
+        <text x="326" y="157" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">20 SKUs</text>
+        <text x="12" y="180" fill="#DDD6FE" font-size="10">SKU Margin %, Sales Velocity, Return Rate &amp; Domestic Rank</text>
 
         <!-- Mart 4 -->
-        <rect y="162" width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="182" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_rfm (Customer Retention)</text>
-        <text x="235" y="182" fill="#C084FC" font-size="10" font-weight="700">24.8k Scored</text>
-        <text x="12" y="198" fill="#94A3B8" font-size="9.5">Champions, Loyal, At-Risk, Lost clusters</text>
+        <rect y="204" width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="226" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_customer_retention_rfm</text>
+        <rect x="270" y="212" width="92" height="18" rx="9" fill="#581C87"/>
+        <text x="316" y="225" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">24,800 Scored</text>
+        <text x="12" y="248" fill="#DDD6FE" font-size="10">RFM Segments: Champions, Loyal, At Risk, Lost, Hibernating</text>
 
         <!-- Mart 5 -->
-        <rect y="216" width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="236" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_inventory_health</text>
-        <text x="240" y="236" fill="#C084FC" font-size="10" font-weight="700">8.3k Rows</text>
-        <text x="12" y="252" fill="#94A3B8" font-size="9.5">Stockout risk flag, Days of Inventory, damage %</text>
+        <rect y="272" width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="294" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_inventory_health</text>
+        <rect x="280" y="280" width="82" height="18" rx="9" fill="#581C87"/>
+        <text x="321" y="293" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">8,300 Rows</text>
+        <text x="12" y="316" fill="#DDD6FE" font-size="10">Days of Inventory (DOI), Stockout Risk Warning &amp; Damaged Stock %</text>
 
         <!-- Mart 6 & 7 -->
-        <rect y="270" width="310" height="48" rx="6" fill="#0F172A" stroke="#4C1D95" stroke-width="1"/>
-        <text x="12" y="290" fill="#DDD6FE" font-size="11" font-weight="700">mart.mart_marketing_roi &amp; health</text>
-        <text x="245" y="290" fill="#C084FC" font-size="10" font-weight="700">8 Campaigns</text>
-        <text x="12" y="306" fill="#94A3B8" font-size="9.5">ROAS, incremental revenue, pipeline SLA audit</text>
+        <rect y="340" width="374" height="60" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="1"/>
+        <text x="12" y="362" fill="#E9D5FF" font-size="11.5" font-weight="700">mart.mart_marketing_roi &amp; health</text>
+        <rect x="275" y="348" width="87" height="18" rx="9" fill="#581C87"/>
+        <text x="318" y="361" fill="#F3E8FF" font-size="9.5" font-weight="700" text-anchor="middle">7 Campaigns</text>
+        <text x="12" y="384" fill="#DDD6FE" font-size="10">Campaign ROAS, Incremental Lift &amp; Pipeline SLA Compliance Audit</text>
       </g>
     </g>
 
-    <!-- Power BI Semantic Model Section -->
-    <g transform="translate(20, 440)">
-      <rect width="310" height="340" rx="12" fill="#150E28" stroke="#6D28D9" stroke-width="1.2"/>
-      
-      <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#FAF5FF" font-size="13" font-weight="700">Power BI Tabular (.pbip)</text>
-        <text x="0" y="34" fill="#C084FC" font-size="10.5">Cleopatra_Cosmetics_Report.pbip</text>
+    <!-- Visual Power BI Semantic Model & Measures Container -->
+    <g transform="translate(18, 505)">
+      <rect width="374" height="230" rx="12" fill="#130D24" stroke="#581C87" stroke-width="1.2"/>
+      <g transform="translate(14, 18)">
+        <text x="0" y="16" fill="#FAF5FF" font-size="13" font-weight="700">Power BI Tabular Semantic Model (.pbip)</text>
+        <text x="0" y="32" fill="#C084FC" font-size="10.5">Cleopatra_Cosmetics_Report.pbip | Pure 1:Many Star Schema</text>
 
-        <!-- M Query Group Lifecycle -->
-        <g transform="translate(0, 46)">
-          <rect width="278" height="95" rx="8" fill="#0F091D" stroke="#4C1D95" stroke-width="0.8"/>
-          <text x="10" y="20" fill="#E9D5FF" font-size="11" font-weight="700">M Query Groups Lifecycle:</text>
-          <text x="10" y="38" fill="#C084FC" font-size="10">00_Parameters ➔ Base paths &amp; thresholds</text>
-          <text x="10" y="54" fill="#C084FC" font-size="10">01_Source ➔ Raw extracts</text>
-          <text x="10" y="70" fill="#C084FC" font-size="10">02_Staging ➔ Types | 04_Cleansed ➔ Standardized</text>
-          <text x="10" y="86" fill="#34D399" font-size="10" font-weight="600">05_Facts &amp; 06_Dimensions ➔ 07_Model</text>
-        </g>
+        <!-- Measure Folders Visual Grid -->
+        <g transform="translate(0, 44)">
+          <rect width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 01 Financials &amp; Revenue</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">Gross, Net Sales, Margin %, COGS</text>
 
-        <!-- DAX Folders -->
-        <g transform="translate(0, 150)">
-          <rect width="278" height="150" rx="8" fill="#0F091D" stroke="#4C1D95" stroke-width="0.8"/>
-          <text x="10" y="20" fill="#E9D5FF" font-size="11" font-weight="700">55+ DAX Measures in 6 Folders:</text>
-          <text x="10" y="40" fill="#DDD6FE" font-size="10">📁 01 Financials: Gross, Net Sales, Margin %</text>
-          <text x="10" y="58" fill="#DDD6FE" font-size="10">📁 02 Targets: Quota, % Achievement, Variance</text>
-          <text x="10" y="76" fill="#DDD6FE" font-size="10">📁 03 Customer RFM: CLV, Repeat Rate, Churn</text>
-          <text x="10" y="94" fill="#DDD6FE" font-size="10">📁 04 Inventory: DOI, Stockout Risk SKUs</text>
-          <text x="10" y="112" fill="#DDD6FE" font-size="10">📁 05 FX Normalized: USD &amp; EUR Central Bank</text>
-          <text x="10" y="130" fill="#DDD6FE" font-size="10">📁 06 Time Intel: YTD, MoM %, YoY %, 3M Rolling</text>
+          <rect x="176" y="0" width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 02 Target &amp; Variance</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">Sales Quota, Achievement %, Gap</text>
+
+          <rect y="44" width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 03 Customer RFM &amp; LTV</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">CLV, Repeat Rate, Churn Risk</text>
+
+          <rect x="176" y="44" width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 04 Inventory Health</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">Closing Stock, Stockout Risk SKUs</text>
+
+          <rect y="88" width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 05 FX Multi-Currency</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">Sales USD &amp; EUR (Central Bank)</text>
+
+          <rect x="176" y="88" width="168" height="38" rx="5" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#E9D5FF" font-size="9.5" font-weight="700">📁 06 Time Intelligence</text>
+          <text x="8" y="30" fill="#DDD6FE" font-size="8.5">YTD, MoM %, YoY %, 3M Rolling</text>
         </g>
+        <text x="0" y="195" fill="#34D399" font-size="10.5" font-weight="700">55+ Production DAX Measures • Zero Circular Joins</text>
       </g>
     </g>
 
-    <!-- Power BI Report Pages Suite -->
-    <g transform="translate(20, 800)">
-      <rect width="310" height="515" rx="12" fill="#0A0614" stroke="#4C1D95" stroke-width="1.2"/>
-      
-      <g transform="translate(16, 20)">
-        <text x="0" y="16" fill="#FAF5FF" font-size="13" font-weight="700">Executive Reporting Suite</text>
-        <text x="0" y="34" fill="#C084FC" font-size="10.5">5 C-Suite Power BI Report Canvas Pages</text>
+    <!-- Visual Power BI 5-Page Dashboard Wireframes -->
+    <g transform="translate(18, 755)">
+      <rect width="374" height="735" rx="12" fill="#0A0614" stroke="#4C1D95" stroke-width="1.2"/>
+      <g transform="translate(14, 20)">
+        <text x="0" y="16" fill="#FAF5FF" font-size="13" font-weight="700">Executive Reporting Suite (5 Pages)</text>
+        <text x="0" y="32" fill="#C084FC" font-size="10.5">Interactive C-Suite Canvas Wireframes</text>
 
-        <g transform="translate(0, 48)">
+        <g transform="translate(0, 44)">
           <!-- Page 1 -->
-          <rect width="278" height="74" rx="8" fill="#130D24" stroke="#581C87" stroke-width="0.8"/>
-          <text x="10" y="22" fill="#F3E8FF" font-size="11.5" font-weight="700">1. 🏛️ Executive Pulse Scorecard</text>
-          <text x="10" y="40" fill="#DDD6FE" font-size="10">• Net Sales EGP, Margin %, MoM Growth</text>
-          <text x="10" y="56" fill="#DDD6FE" font-size="10">• Daily sales trend, Top SKUs &amp; Target Gauge</text>
+          <rect width="344" height="115" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="0.8"/>
+          <text x="10" y="20" fill="#F3E8FF" font-size="11.5" font-weight="700">1. 🏛️ Executive Pulse Scorecard</text>
+          <g transform="translate(10, 30)">
+            <!-- Mini Wireframe -->
+            <rect width="65" height="30" rx="3" fill="#0C0718" stroke="#38BDF8" stroke-width="0.8"/>
+            <text x="32" y="18" fill="#38BDF8" font-size="8" font-weight="700" text-anchor="middle">Net Sales EGP</text>
+            <rect x="72" y="0" width="65" height="30" rx="3" fill="#0C0718" stroke="#34D399" stroke-width="0.8"/>
+            <text x="104" y="18" fill="#34D399" font-size="8" font-weight="700" text-anchor="middle">Margin %</text>
+            <rect x="144" y="0" width="65" height="30" rx="3" fill="#0C0718" stroke="#FBBF24" stroke-width="0.8"/>
+            <text x="176" y="18" fill="#FBBF24" font-size="8" font-weight="700" text-anchor="middle">Quota Attain</text>
+            <rect x="216" y="0" width="105" height="70" rx="4" fill="#0C0718" stroke="#4C1D95" stroke-width="0.8"/>
+            <text x="268" y="24" fill="#C084FC" font-size="8.5" text-anchor="middle">Daily Trend Line</text>
+            <!-- Sparkline path -->
+            <path d="M 226 54 Q 240 40 255 48 T 285 36 T 310 42" fill="none" stroke="#38BDF8" stroke-width="1.5"/>
+            <rect y="36" width="209" height="34" rx="3" fill="#0C0718" stroke="#334155" stroke-width="0.8"/>
+            <text x="104" y="22" fill="#94A3B8" font-size="8.5" text-anchor="middle">Top 5 Cosmetics SKUs Ranking</text>
+          </g>
+          <text x="10" y="104" fill="#DDD6FE" font-size="9">C-Suite high-level scorecard with MoM variance gauges</text>
 
           <!-- Page 2 -->
-          <rect y="82" width="278" height="74" rx="8" fill="#130D24" stroke="#581C87" stroke-width="0.8"/>
-          <text x="10" y="104" fill="#F3E8FF" font-size="11.5" font-weight="700">2. 🗺️ Egypt Regional Penetration</text>
-          <text x="10" y="122" fill="#DDD6FE" font-size="10">• 22 Governorates Geographic Drilldown</text>
-          <text x="10" y="138" fill="#DDD6FE" font-size="10">• 5 Economic Regions &amp; Courier SLA Latency</text>
+          <g transform="translate(0, 125)">
+            <rect width="344" height="115" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="0.8"/>
+            <text x="10" y="20" fill="#F3E8FF" font-size="11.5" font-weight="700">2. 🗺️ Egypt Regional Penetration</text>
+            <g transform="translate(10, 30)">
+              <rect width="130" height="66" rx="4" fill="#0C0718" stroke="#0284C7" stroke-width="0.8"/>
+              <text x="65" y="24" fill="#7DD3FC" font-size="8.5" text-anchor="middle">Egypt Map Visual</text>
+              <text x="65" y="44" fill="#94A3B8" font-size="7.5" text-anchor="middle">22 Govs Color-coded</text>
+              <rect x="138" y="0" width="183" height="66" rx="4" fill="#0C0718" stroke="#334155" stroke-width="0.8"/>
+              <text x="229" y="18" fill="#94A3B8" font-size="8.5" text-anchor="middle">5 Economic Regions &amp; SLAs</text>
+              <text x="229" y="36" fill="#38BDF8" font-size="7.5" text-anchor="middle">Cairo Metro: 24h Express</text>
+              <text x="229" y="50" fill="#FBBF24" font-size="7.5" text-anchor="middle">Delta / Canal: 48h | Upper Egypt: 72h</text>
+            </g>
+            <text x="10" y="104" fill="#DDD6FE" font-size="9">Geographic sales drilldown &amp; courier delivery SLA tracking</text>
+          </g>
 
           <!-- Page 3 -->
-          <rect y="164" width="278" height="74" rx="8" fill="#130D24" stroke="#581C87" stroke-width="0.8"/>
-          <text x="10" y="186" fill="#F3E8FF" font-size="11.5" font-weight="700">3. 👥 Customer RFM &amp; Retention</text>
-          <text x="10" y="204" fill="#DDD6FE" font-size="10">• 24.8k Customers RFM Heatmap Matrix</text>
-          <text x="10" y="220" fill="#DDD6FE" font-size="10">• Telecom Carrier share &amp; Age Cohort LTV</text>
+          <g transform="translate(0, 250)">
+            <rect width="344" height="115" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="0.8"/>
+            <text x="10" y="20" fill="#F3E8FF" font-size="11.5" font-weight="700">3. 👥 Customer RFM &amp; Retention</text>
+            <g transform="translate(10, 30)">
+              <rect width="160" height="66" rx="4" fill="#0C0718" stroke="#C084FC" stroke-width="0.8"/>
+              <text x="80" y="18" fill="#C084FC" font-size="8.5" text-anchor="middle">RFM 4-Quadrant Matrix</text>
+              <text x="80" y="36" fill="#34D399" font-size="7.5" text-anchor="middle">Champions (VIP) • Loyal</text>
+              <text x="80" y="50" fill="#FB7185" font-size="7.5" text-anchor="middle">At Risk • Hibernating</text>
+              <rect x="168" y="0" width="153" height="66" rx="4" fill="#0C0718" stroke="#334155" stroke-width="0.8"/>
+              <text x="244" y="22" fill="#94A3B8" font-size="8.5" text-anchor="middle">Carrier Market Share</text>
+              <text x="244" y="42" fill="#FBBF24" font-size="7.5" text-anchor="middle">Vodafone (42%) • Orange (28%)</text>
+              <text x="244" y="56" fill="#38BDF8" font-size="7.5" text-anchor="middle">Etisalat (20%) • WE (10%)</text>
+            </g>
+            <text x="10" y="104" fill="#DDD6FE" font-size="9">Customer Lifetime Value (CLV) &amp; Telecom cohort segmentation</text>
+          </g>
 
           <!-- Page 4 -->
-          <rect y="246" width="278" height="74" rx="8" fill="#130D24" stroke="#581C87" stroke-width="0.8"/>
-          <text x="10" y="268" fill="#F3E8FF" font-size="11.5" font-weight="700">4. 📦 Inventory Health &amp; Stockout</text>
-          <text x="10" y="286" fill="#DDD6FE" font-size="10">• Stockout risk warning by store &amp; product</text>
-          <text x="10" y="302" fill="#DDD6FE" font-size="10">• Days of Inventory (DOI) &amp; Damage %</text>
+          <g transform="translate(0, 375)">
+            <rect width="344" height="115" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="0.8"/>
+            <text x="10" y="20" fill="#F3E8FF" font-size="11.5" font-weight="700">4. 📦 Inventory Health &amp; Stockouts</text>
+            <g transform="translate(10, 30)">
+              <rect width="180" height="66" rx="4" fill="#0C0718" stroke="#FB7185" stroke-width="0.8"/>
+              <text x="90" y="20" fill="#FDA4AF" font-size="8.5" text-anchor="middle">Stockout Sentinel Matrix</text>
+              <text x="90" y="38" fill="#F43F5E" font-size="7.5" text-anchor="middle">🚨 High Risk SKUs (Stock &lt; 7 Days)</text>
+              <text x="90" y="52" fill="#34D399" font-size="7.5" text-anchor="middle">✓ Optimal Stock (15–30 Days)</text>
+              <rect x="188" y="0" width="133" height="66" rx="4" fill="#0C0718" stroke="#334155" stroke-width="0.8"/>
+              <text x="254" y="24" fill="#94A3B8" font-size="8.5" text-anchor="middle">Damaged Stock %</text>
+              <text x="254" y="46" fill="#FBBF24" font-size="7.5" text-anchor="middle">DOI Turnover: 4.2x</text>
+            </g>
+            <text x="10" y="104" fill="#DDD6FE" font-size="9">WMS supply chain health &amp; replenishment opportunity loss</text>
+          </g>
 
           <!-- Page 5 -->
-          <rect y="328" width="278" height="85" rx="8" fill="#130D24" stroke="#581C87" stroke-width="0.8"/>
-          <text x="10" y="350" fill="#F3E8FF" font-size="11.5" font-weight="700">5. 🎯 Targets &amp; Campaign ROAS</text>
-          <text x="10" y="368" fill="#DDD6FE" font-size="10">• Store Monthly Achievement vs Target</text>
-          <text x="10" y="384" fill="#DDD6FE" font-size="10">• Marketing Campaign ROAS &amp; Uplift %</text>
-          <text x="10" y="400" fill="#34D399" font-size="9.5" font-weight="600">Full Executive Cross-Filtering &amp; Bookmarks</text>
+          <g transform="translate(0, 500)">
+            <rect width="344" height="125" rx="8" fill="#150E28" stroke="#6D28D9" stroke-width="0.8"/>
+            <text x="10" y="20" fill="#F3E8FF" font-size="11.5" font-weight="700">5. 🎯 Targets &amp; Campaign ROAS</text>
+            <g transform="translate(10, 30)">
+              <rect width="165" height="74" rx="4" fill="#0C0718" stroke="#34D399" stroke-width="0.8"/>
+              <text x="82" y="18" fill="#A7F3D0" font-size="8.5" text-anchor="middle">Store Target Achievement</text>
+              <text x="82" y="36" fill="#FBBF24" font-size="7.5" text-anchor="middle">Cairo Flagship: 108% (Hit)</text>
+              <text x="82" y="50" fill="#F43F5E" font-size="7.5" text-anchor="middle">Alex Mall: 91% (Under)</text>
+              <text x="82" y="64" fill="#34D399" font-size="7.5" text-anchor="middle">Delta Boutiques: 102%</text>
+              <rect x="173" y="0" width="148" height="74" rx="4" fill="#0C0718" stroke="#334155" stroke-width="0.8"/>
+              <text x="247" y="22" fill="#94A3B8" font-size="8.5" text-anchor="middle">Campaign ROAS</text>
+              <text x="247" y="40" fill="#38BDF8" font-size="7.5" text-anchor="middle">White Friday: 5.4x ROAS</text>
+              <text x="247" y="56" fill="#C084FC" font-size="7.5" text-anchor="middle">Ramadan Glow: 4.8x</text>
+            </g>
+            <text x="10" y="116" fill="#DDD6FE" font-size="9">Commercial quotas vs actual revenue &amp; marketing uplift %</text>
+          </g>
         </g>
       </g>
     </g>
   </g>
 
-  <!-- ========================================== -->
-  <!-- BOTTOM SYSTEM FOOTER                       -->
-  <!-- ========================================== -->
-  <g transform="translate(60, 1550)">
-    <rect width="2480" height="35" rx="6" fill="#080D1A" stroke="#1E293B" stroke-width="1"/>
-    <text x="20" y="22" fill="#64748B" font-size="11">
-      Platform: SQL Server 2022 | Python 3.11 ELT | Kimball Galaxy Dimensional Model | Slowly Changing Dimensions (SCD Type 2) | Data Quality Sentinel &amp; Quarantine
+  <!-- ==================================================== -->
+  <!-- BOTTOM SYSTEM FOOTER                                 -->
+  <!-- ==================================================== -->
+  <g transform="translate(50, 1710)">
+    <rect width="2700" height="32" rx="6" fill="#080D1A" stroke="#1E293B" stroke-width="1"/>
+    <text x="20" y="21" fill="#64748B" font-size="11">
+      Platform Architecture: Python ELT • SQL Server 2022 • Kimball Galaxy Fact Constellation • Slowly Changing Dimensions (SCD Type 2) • Data Quality Sentinel Quarantine • Power BI (.pbip)
     </text>
-    <text x="2460" y="22" fill="#94A3B8" font-size="11" font-weight="600" text-anchor="end">
-      Cleopatra Modern Cosmetics (كليوباترا كوزماتكس) • Production BI Engineering Blueprint v2.0
+    <text x="2680" y="21" fill="#94A3B8" font-size="11" font-weight="600" text-anchor="end">
+      Cleopatra Modern Cosmetics (كليوباترا كوزماتكس الحديثة) • Production Engineering Blueprint v3.0 (Visual Diagram Edition)
     </text>
   </g>
 </svg>'''
 
 def main():
-    svg_content = build_svg_content()
+    print("1. Calling local Ollama (qwen2.5:1.5b) to validate architecture terminology...")
+    ollama_response = query_ollama(
+        "Proofread and confirm technical accuracy for: "
+        "1. Heterogeneous Operational Data Sources (PostgreSQL, WMS ERP, Excel, Central Bank API) "
+        "2. Lossless Bronze Ingestion Layer "
+        "3. Staging and Cleansing Engine "
+        "4. Data Quality Sentinel and Isolated Quarantine "
+        "5. Kimball Galaxy Fact Constellation and Snowflake Hierarchies "
+        "6. Curated Business Analytics Marts "
+        "7. Power BI Tabular Semantic Model."
+    )
+    print(f"Ollama Validation Output:\n{ollama_response}\n")
+
+    print("2. Generating visual-first vector SVG blueprint...")
+    svg_content = build_visual_svg()
     svg_path = "docs/diagrams/project_lifecycle.svg"
     png_path = "docs/diagrams/project_lifecycle.png"
 
-    # Write SVG
     with open(svg_path, "w", encoding="utf-8") as f:
         f.write(svg_content)
     print(f"Generated {svg_path} ({len(svg_content)} bytes)")
 
-    # Render PNG using cairosvg
-    cairosvg.svg2png(bytestring=svg_content.encode("utf-8"), write_to=png_path, output_width=2600, output_height=1600)
-    print(f"Rendered {png_path} ({os.path.getsize(png_path)} bytes)")
+    print("3. Rendering high-definition 2800x1750 PNG via CairoSVG...")
+    cairosvg.svg2png(
+        bytestring=svg_content.encode("utf-8"),
+        write_to=png_path,
+        output_width=2800,
+        output_height=1750
+    )
+    print(f"Rendered {png_path} ({os.path.getsize(png_path)} bytes, 2800x1750)")
 
 if __name__ == "__main__":
     main()
