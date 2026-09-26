@@ -91,7 +91,19 @@ let
         {"sales_channel_en", fnCleanText, type text},
         {"sales_channel_ar", fnCleanText, type text},
         {"payment_method_en", fnCleanText, type text},
-        {"payment_method_ar", fnCleanText, type text}
+        {"payment_method_ar", fnCleanText, type text},
+        {"campaign_id", each 
+            let
+                raw = if _ = null then "" else Text.Trim(Text.From(_)),
+                mapped = 
+                    if raw = "" or raw = null then "CMP006"
+                    else if Text.StartsWith(raw, "CAMP0") then "CMP00" & Text.End(raw, 1)
+                    else if Text.StartsWith(raw, "CAMP") then Text.Replace(raw, "CAMP", "CMP00")
+                    else raw
+            in
+                mapped, 
+            type text
+        }
     })
 in
     NormalizedColumns

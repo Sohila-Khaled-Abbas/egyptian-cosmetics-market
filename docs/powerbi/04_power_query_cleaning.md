@@ -333,7 +333,28 @@ The Cleansed layer executes deterministic business standardization: removing whi
      - *Value To Find*: `جنيه`
      - *Replace With*: `EGP`
      - Click **OK**.
-   *(All 502,000 order currency values are now strictly canonicalized to `EGP`).*
+   *(All order currency values are now strictly canonicalized to `EGP`).*
+
+5. **Normalize Campaign Foreign Keys (`campaign_id`) via GUI**:
+   > [!NOTE]
+   > **Resolving 17% Empty / Null Campaign IDs & Legacy `CAMP0X` Formatting:**
+   > Profiling of `campaign_id` in the combined order stream reveals two distinct real-world characteristics:
+   > 1. **17% Empty / Null values:** Orders resulting from direct walk-ins or organic website visits where no promo campaign was active.
+   > 2. **Legacy `CAMP0X` format:** Historical 2024 orders used `CAMP01`–`CAMP07`, while the dimensional model (`dim_campaign`) expects `CMP001`–`CMP007`, where **`CMP006`** explicitly represents `"No Campaign"` (`لا توجد حملة`).
+   >
+   > If left blank or non-standard, these rows would generate broken relationships or blank member rows in Power BI. Replacing empty values with `CMP006` and unifying `CAMP0` to `CMP00` ensures 100% referential integrity with `dim_campaign`.
+
+   **Step-by-Step GUI Actions**:
+   - Select the `campaign_id` column.
+   - On the **Transform** ribbon tab $\rightarrow$ click **Replace Values**:
+     - *Value To Find*: *(leave completely empty or enter `null`)*
+     - *Replace With*: `CMP006`
+     - Click **OK** *(this routes all 17% organic/empty sales to the conformed "No Campaign" dimension member)*.
+   - Select the `campaign_id` column again $\rightarrow$ click **Replace Values**:
+     - *Value To Find*: `CAMP0`
+     - *Replace With*: `CMP00`
+     - Click **OK** *(this unifies legacy `CAMP01`-`CAMP07` codes to `CMP001`-`CMP007`)*.
+   *(Result: `campaign_id` is now 100% valid with 0% empty values, perfectly matching `dim_campaign[campaign_id]`).*
 
 ---
 
