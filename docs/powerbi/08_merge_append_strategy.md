@@ -28,35 +28,100 @@ This playbook details:
 
 ## 3. Step-by-Step Implementation of Core Joins
 
-### 3.1: Enriching Orders with Product Cost via Merge
-To calculate `calc_cost_egp` ($Quantity \times StandardCost$), we execute a Left Outer Join between `vld_orders` and `cln_products`:
+### 3.1: Enriching Orders with Product Cost via Merge (New Query Guide)
+To calculate line-item Cost of Goods Sold ($\text{COGS} = \text{Quantity} \times \text{StandardCost}$), we execute a Left Outer Join between `vld_orders` and `cln_products`. 
 
-1. In Power Query Editor, select `vld_orders`.
-2. On **Home** ribbon, click **Merge Queries** $\rightarrow$ **Merge Queries as New** (or within step).
-3. Configuration:
-   - First Table: `vld_orders`, select column `product_id`.
-   - Second Table: `cln_products`, select column `product_id`.
-   - Join Kind: **Left Outer (all from first, matching from second)**.
+Executing **Merge Queries as New** generates an independent, dedicated transformation query without modifying the upstream `vld_orders` table.
+
+---
+
+#### 🖱️ Step-by-Step GUI Implementation
+
+##### 1. Execute Merge Queries as New
+1. In the left **Queries** pane, click to select **`vld_orders`** (under group `05_Validated`).
+2. On the top ribbon, stay on the **Home** tab $\rightarrow$ click the small dropdown arrow next to **Merge Queries** $\rightarrow$ select **Merge Queries as New**.
+3. In the **Merge** dialog window:
+   - **First Table (Top)**: `vld_orders` is pre-selected. Click the header of column **`product_id`** (it will highlight in green/gray).
+   - **Second Table (Dropdown)**: Select table **`cln_products`**.
+   - In the `cln_products` preview, click the header of column **`product_id`**.
+   - **Join Kind**: Choose **Left Outer (all from first, matching from second)**.
+   - Look at the bottom validation message: It will confirm *"The selection matches 499,903 of 499,903 rows from the first table."*
 4. Click **OK**.
-5. In the newly created table column (`ProductRef`), click the **Expand** icon (two opposing arrows) in the column header.
-6. **Uncheck "(Select All Columns)"** $\rightarrow$ Check *only* `standard_cost_egp`.
-7. **Uncheck "Use original column name as prefix"**.
-8. Click **OK**.
+5. Power Query automatically generates a brand-new query in the Queries pane with the temporary default name **`Merge1`**.
 
-#### Corresponding M Expression:
+---
+
+##### 2. Non-Conflicting Naming Strategy
+To prevent naming collisions and keep data lineage crystal clear, choose the appropriate name based on your current project state:
+
+| Project State | Recommended Query Name | Architectural Purpose |
+| :--- | :--- | :--- |
+| **Path A: Building Primary Transformation Fact** (You do not have `trf_sales` yet) | **`trf_sales`** | This merge acts as the canonical foundation for all downstream sales financials (`calc_gross_sales_egp`, `calc_net_sales_egp`, `calc_cogs_egp`, `calc_gross_profit_egp`). |
+| **Path B: Dedicated Standalone Merge Query** (You already created `trf_sales` in Playbook 07) | **`mrg_orders_products`** *(or `trf_orders_enriched`)* | Adheres to the enterprise 3-letter prefix convention (`mrg_` = Merged Transformation Entity). Guarantees **zero collision** with `vld_orders`, `trf_sales`, or `fact_sales`. |
+
+**How to Rename in Power Query GUI:**
+1. In the right-hand **Query Settings** pane, locate the **PROPERTIES** section at the top.
+2. Click inside the **Name** input box, delete `Merge1`, and type **`mrg_orders_products`** (or **`trf_sales`** if building the primary pipeline).
+3. Press **Enter** on your keyboard to commit the new name.
+*(Alternatively, right-click `Merge1` in the left Queries list $\rightarrow$ select **Rename**).*
+
+---
+
+##### 3. Governance & Query Settings Configuration
+By default, Power Query creates new queries in the root folder with model loading enabled. You must configure its governance immediately:
+
+1. **Move to Folder Group**:
+   - Right-click the newly renamed query (`mrg_orders_products` or `trf_sales`) $\rightarrow$ select **Move to Group** $\rightarrow$ choose **`06_Transformations`**.
+2. **Disable Model Loading**:
+   - Right-click the query $\rightarrow$ click **Enable Load** to **UNCHECK** it.
+   - The query name in the Queries pane will immediately switch to *italics*.
+   > [!IMPORTANT]
+   > **Why Disable Load?**
+   > Queries in `06_Transformations` serve strictly as intermediate data pipeline steps. Leaving "Enable Load" checked would cause Power BI's VertiPaq tabular engine to load an extra 500,000 duplicate order rows into RAM, doubling memory consumption and creating schema ambiguity with `fact_sales`.
+3. **Keep Report Refresh Enabled**:
+   - Right-click the query $\rightarrow$ verify **Include in report refresh** remains **CHECKED** so that scheduled refreshes cascade smoothly.
+
+---
+
+##### 4. Expand Joined Column (`standard_cost_egp`)
+1. In the data preview window, scroll all the way to the rightmost column (named `cln_products`).
+2. Click the **Expand** icon (two opposing arrows) in the column header.
+3. In the popup menu:
+   - **Uncheck** *(Select All Columns)*.
+   - Check **only** `standard_cost_egp`.
+   - **Uncheck** *Use original column name as prefix*.
+4. Click **OK**.
+5. Double-click the header of the newly expanded column $\rightarrow$ rename it to **`product_standard_cost_egp`**.
+6. Click the data type icon next to the column header $\rightarrow$ select **Decimal Number** (`1.2`).
+
+---
+
+#### 💻 Full Generated M Expression (New Query)
+If you inspect the **Advanced Editor** for this new query, the clean, self-contained M code will look as follows:
+
 ```powerquery
-MergedProduct = Table.NestedJoin(
-    Source, {"product_id"}, 
-    cln_products, {"product_id"}, 
-    "ProductRef", 
-    JoinKind.LeftOuter
-),
-ExpandedProduct = Table.ExpandTableColumn(
-    MergedProduct, 
-    "ProductRef", 
-    {"standard_cost_egp"}, 
-    {"standard_cost_egp"}
-)
+let
+    // Step 1: Execute Left Outer Join between validated orders and cleansed products
+    Source = Table.NestedJoin(
+        vld_orders, {"product_id"}, 
+        cln_products, {"product_id"}, 
+        "cln_products", 
+        JoinKind.LeftOuter
+    ),
+    // Step 2: Expand standard_cost_egp without table prefix
+    #"Expanded cln_products" = Table.ExpandTableColumn(
+        Source, 
+        "cln_products", 
+        {"standard_cost_egp"}, 
+        {"product_standard_cost_egp"}
+    ),
+    // Step 3: Explicitly set data type to Decimal Number (1.2)
+    #"Changed Type" = Table.TransformColumnTypes(
+        #"Expanded cln_products", 
+        {{"product_standard_cost_egp", type number}}
+    )
+in
+    #"Changed Type"
 ```
 
 ---
@@ -102,14 +167,22 @@ UnpivotedTargets = Table.UnpivotOtherColumns(
 
 ### 3.4: Combining Sources Using `Append Queries`
 When ingesting historical and current transactional data from separate files:
-1. On **Home** ribbon, click **Append Queries** $\rightarrow$ **Append Queries as New**.
+1. On the **Home** ribbon, click the dropdown next to **Append Queries** $\rightarrow$ select **Append Queries as New**.
 2. Select **Two tables** (or **Three or more tables**).
 3. Select `orders_historical` and `orders_current`.
 4. Click **OK**.
+5. **Rename & Organize (Collision Prevention)**:
+   - Power Query generates default query `Append1`.
+   - In **Query Settings** $\rightarrow$ **Name**, rename to **`stg_orders_combined`** (or **`app_orders_all`**).
+   - Move to group **`02_Staging`** (or **`06_Transformations`**).
+   - Right-click $\rightarrow$ uncheck **Enable Load** if it feeds into downstream cleansing.
 
 #### Corresponding M Expression:
 ```powerquery
-CombinedOrders = Table.Combine({orders_historical, orders_current})
+let
+    Source = Table.Combine({orders_historical, orders_current})
+in
+    Source
 ```
 
 ---
