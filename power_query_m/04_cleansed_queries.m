@@ -79,10 +79,12 @@ in
 
 
 // ------------------------------------------------------------------------------
-// QUERY: cln_orders (502,000 rows)
+// QUERY: cln_orders (552,200 total rows: 2024 historical + 2025 current)
 // ------------------------------------------------------------------------------
 let
-    Source = stg_orders,
+    // Reference the unified multi-year partition query (stg_orders_combined)
+    // or fallback to stg_orders if evaluating single-partition batches
+    Source = try stg_orders_combined otherwise stg_orders,
     NormalizedColumns = Table.TransformColumns(Source, {
         {"order_status", fnNormalizeStatus, type text},
         {"currency", fnNormalizeCurrency, type text},

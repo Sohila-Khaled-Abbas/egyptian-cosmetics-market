@@ -129,7 +129,7 @@ in
 let
     RawText = if currVal = null then "" else Text.Trim(Text.From(currVal)),
     Normalized = 
-        if RawText = "EGP" or RawText = "EGP " or RawText = "جنيه" or RawText = "جنيه مصري" then "EGP"
+        if RawText = "EGP" or RawText = "EGP " or RawText = "جنيه" or RawText = "جنيه مصري" or RawText = "LE" or RawText = "L.E." or RawText = "ج.م" then "EGP"
         else if RawText = "USD" or RawText = "دولار" then "USD"
         else if RawText = "EUR" or RawText = "يورو" then "EUR"
         else if RawText = "" then "EGP"
