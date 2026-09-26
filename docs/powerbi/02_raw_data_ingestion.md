@@ -3,7 +3,7 @@
 ## 1. Objective & Scope
 
 This playbook details the extraction and ingestion of raw operational files into Power Query using the parameter `pRawDataPath`. We ingest:
-1. Four PostgreSQL operational CSV dumps (`customers.csv`, `products.csv`, `stores.csv`, `orders.csv`)
+1. Five PostgreSQL operational CSV dumps (`customers.csv`, `products.csv`, `stores.csv`, `orders.csv`, `orders_historical.csv`)
 2. One multi-sheet commercial Excel workbook (`commercial_reference_data.xlsx`) containing sheets `Stores`, `Products`, `Targets`, and `Campaigns`
 3. One monthly warehouse inventory CSV (`inventory_monthly.csv`)
 4. One API-derived JSON file (`exchange_rates.json`)
@@ -163,6 +163,45 @@ in
 
 ---
 
+#### Source 4b: `src_orders_historical` (50,200 raw rows)
+Ingests historical 2024 transactional sales records for consolidation and multi-year append queries.
+
+##### 🖱️ Option A: GUI Ribbon Method
+1. Click **Home** ribbon $\rightarrow$ **New Source** $\rightarrow$ **Text/CSV**.
+2. In the file picker, browse to:
+   `d:\courses\Data Science\Data Engineering\Projects\egyptian_cosmetics_market\data\raw\postgres_like\orders_historical.csv`
+3. In the preview dialog:
+   - **File Origin**: Select `65001: Unicode (UTF-8)` to preserve Arabic payment and channel text.
+   - **Delimiter**: Select `Comma`.
+   - Click **OK**.
+4. In the left **Queries** pane, right-click the new query $\rightarrow$ **Rename** to `src_orders_historical`.
+5. Drag into folder group **`01_Source`**, right-click $\rightarrow$ **UNCHECK "Enable Load"**.
+6. (Optional parameterized path): Click the gear icon ⚙️ next to the **Source** step $\rightarrow$ switch to parameter `pRawDataPath`.
+
+##### 💻 Option B: Advanced Editor (M Code with Dynamic Parameter)
+1. **Home** $\rightarrow$ **New Source** $\rightarrow$ **Blank Query** $\rightarrow$ Rename to `src_orders_historical`.
+2. Click **Advanced Editor** and paste:
+```powerquery
+let
+    RawBase = Text.From(pRawDataPath),
+    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+                    else WithoutQuotes,
+    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+               then CleanBasePath
+               else CleanBasePath & "\raw",
+    SourcePath = BasePath & "\postgres_like\orders_historical.csv",
+    SourceBytes = File.Contents(SourcePath),
+    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=19, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+in
+    PromotedHeaders
+```
+
+---
+
 ### 3.2: Ingesting Warehouse Monthly Inventory
 
 #### Source 5: `src_inventory` (8,400 raw rows)
@@ -302,8 +341,8 @@ in
 ## 4. Verification & Health Check
 
 After completing this playbook, inspect your Power Query window:
-1. In the **Queries** pane under `01_Source`, you must see all 8 queries in italics (*Enable Load = False*).
+1. In the **Queries** pane under `01_Source`, you must see all 9 source queries in italics (*Enable Load = False*): `src_customers`, `src_products`, `src_stores`, `src_orders`, `src_orders_historical`, `src_inventory`, `src_excel_workbook`, `src_targets`, `src_campaigns`, and `src_exchange_rates`.
 2. Click **View** ribbon $\rightarrow$ **Query Dependencies**.
-3. Verify that `pRawDataPath` flows into `src_customers`, `src_products`, `src_stores`, `src_orders`, `src_inventory`, `src_excel_workbook`, and `src_exchange_rates`.
+3. Verify that `pRawDataPath` flows into `src_customers`, `src_products`, `src_stores`, `src_orders`, `src_orders_historical`, `src_inventory`, `src_excel_workbook`, and `src_exchange_rates`.
 4. Verify that `src_excel_workbook` branches into `src_targets` and `src_campaigns`.
 5. No red errors or path exceptions should be present.

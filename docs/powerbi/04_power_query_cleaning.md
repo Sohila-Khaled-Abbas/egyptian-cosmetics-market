@@ -124,6 +124,21 @@ The Staging layer creates decoupled copies of your raw tables, sets proper colum
 
 ---
 
+### 3.4b: Building `stg_orders_historical` (50,200 Rows)
+
+#### 🖱️ Step-by-Step GUI Actions:
+1. Right-click `src_orders_historical` in `01_Source` $\rightarrow$ select **Reference**.
+2. Rename query to `stg_orders_historical` $\rightarrow$ move to group **`02_Staging`**.
+3. Set identical column types via header icons matching `stg_orders`:
+   * `order_id`, `customer_id`, `product_id`, `store_id`, `campaign_id` $\rightarrow$ **Text** (`ABC`)
+   * `order_datetime` $\rightarrow$ **Date/Time** (`📅🕒`)
+   * `sales_channel_en`, `sales_channel_ar`, `payment_method_en`, `payment_method_ar`, `order_status`, `currency` $\rightarrow$ **Text** (`ABC`)
+   * `quantity` $\rightarrow$ **Whole Number** (`123`)
+   * `unit_price_egp`, `discount_pct`, `gross_sales_egp`, `discount_egp`, `net_sales_egp`, `cost_egp` $\rightarrow$ **Decimal Number** (`1.2`)
+4. Verify **Enable Load** is **unchecked** (query name appears in italics).
+
+---
+
 ### 3.5: Building `stg_inventory` (8,400 Rows)
 
 #### 🖱️ Step-by-Step GUI Actions:

@@ -13,7 +13,7 @@ $$\text{Raw Source File} \longrightarrow \text{Source Query} \longrightarrow \te
 
 | Raw Source File | Source Query (`01_Source`) | Staging Query (`02_Staging`) | Cleansed Query (`04_Cleansed`) | Validated Query (`05_Validated`) | Transformation Query (`06_Transformations`) | Final Model Table (`07_Model`) | Primary Report Page Usage |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `raw/postgres_like/orders.csv` ($502,000$ rows) | `src_orders` | `stg_orders` | `cln_orders` | `vld_orders_prep`<br>$\rightarrow$ `vld_orders`<br>$\rightarrow$ `rejected_orders` | `trf_sales` | `fact_sales` ($499,903$ rows)<br>`rejected_orders` ($2,097$ rows) | **Page 1:** Executive Overview (Net Sales, Profit, AOV)<br>**Page 2:** Sales Analytics (Product, Brand, Channel)<br>**Page 5:** DQ Dashboard (Quarantine Audit) |
+| `raw/postgres_like/orders.csv` ($502,000$ rows)<br>`raw/postgres_like/orders_historical.csv` ($50,200$ rows) | `src_orders`<br>`src_orders_historical` | `stg_orders`<br>`stg_orders_historical`<br>$\rightarrow$ `stg_orders_combined` ($552,200$ rows) | `cln_orders` | `vld_orders_prep`<br>$\rightarrow$ `vld_orders`<br>$\rightarrow$ `rejected_orders` | `trf_sales` | `fact_sales`<br>`rejected_orders` | **Page 1:** Executive Overview (Net Sales, Profit, AOV)<br>**Page 2:** Sales Analytics (Product, Brand, Channel)<br>**Page 5:** DQ Dashboard (Quarantine Audit) |
 | `raw/postgres_like/customers.csv` ($25,200$ rows) | `src_customers` | `stg_customers` | `cln_customers` | `vld_customers_prep`<br>$\rightarrow$ `vld_customers`<br>$\rightarrow$ `rejected_customers` | `trf_customer` | `dim_customer` ($25,000$ rows)<br>`rejected_customers` ($200$ rows)<br>`customer_duplicate_analysis` | **Page 1:** Executive Overview (Customer Count)<br>**Page 3:** Customer Analytics (RFM Segments, LTV)<br>**Page 5:** DQ Dashboard (Duplicate Analysis) |
 | `raw/postgres_like/products.csv` ($20$ rows) | `src_products` | `stg_products` | `cln_products` | Integrated with Orders / Inventory | `trf_product` | `dim_product` ($20$ rows) | **Page 1:** Executive Overview (Top Products)<br>**Page 2:** Sales Analytics (Category, Margin %)<br>**Page 4:** Inventory (SKU Details) |
 | `raw/postgres_like/stores.csv` ($35$ rows) | `src_stores` | `stg_stores` | `cln_stores` | Integrated with Orders / Targets | `trf_store` | `dim_store` ($35$ rows) | **Page 1:** Executive Overview (Gov Sales)<br>**Page 2:** Sales Analytics (Store Formats)<br>**Page 4:** Inventory (Store Balance) |
@@ -29,14 +29,18 @@ $$\text{Raw Source File} \longrightarrow \text{Source Query} \longrightarrow \te
 
 ```mermaid
 flowchart TD
-    RawCSV["raw/postgres_like/orders.csv\n(502,000 Raw Records)"]
+    RawCSV["raw/postgres_like/orders.csv\n(502,000 Current Records)"]
+    RawHist["raw/postgres_like/orders_historical.csv\n(50,200 Historical Records)"]
     SrcOrd["01_Source/src_orders"]
+    SrcHist["01_Source/src_orders_historical"]
     StgOrd["02_Staging/stg_orders"]
+    StgHist["02_Staging/stg_orders_historical"]
+    StgComb["02_Staging/stg_orders_combined\n(Table.Combine)"]
     ClnOrd["04_Cleansed/cln_orders"]
     VldPrep["05_Validated/vld_orders_prep\n(Evaluates 17 Quality Rules)"]
     
-    RejOrd["rejected_orders\n(2,097 Quarantined Records)"]
-    VldOrd["05_Validated/vld_orders\n(499,903 Valid Records)"]
+    RejOrd["rejected_orders\n(Quarantined Records)"]
+    VldOrd["05_Validated/vld_orders\n(Valid Records)"]
     
     TrfSales["06_Transformations/trf_sales\n(Computes Gross, Net, COGS, Margin)"]
     FactSales["07_Model/fact_sales\n(Kimball Star Schema Fact Table)"]
@@ -47,7 +51,9 @@ flowchart TD
     P2["Page 2: Sales Analytics\n(Category Waterfall & Brand Matrix)"]
     P5["Page 5: Data Quality Cockpit\n(Quarantine Drill-Through Visuals)"]
 
-    RawCSV --> SrcOrd --> StgOrd --> ClnOrd --> VldPrep
+    RawCSV --> SrcOrd --> StgOrd --> StgComb
+    RawHist --> SrcHist --> StgHist --> StgComb
+    StgComb --> ClnOrd --> VldPrep
     VldPrep -->|DQ Violations| RejOrd --> P5
     VldPrep -->|Clean Records| VldOrd --> TrfSales --> FactSales
     FactSales --> DAXMeasures
