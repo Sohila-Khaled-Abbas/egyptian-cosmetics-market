@@ -141,7 +141,9 @@ let
 in
     Typed
 ```
-*Business Value:* Explicitly defines `IsRevenueRecognized` flag, separating orders that generate recognized net revenue (`Completed`) from non-recognized states (`Cancelled`, `Returned`, `Pending`).
+*Business Value & Data Enrichment:* 
+- **Operational Reality**: The source `orders.csv` table has **no Arabic words**; it stores only English status values with casing/spelling variations (`Completed`, `completed`, `Complete`, `Returned`, `Cancelled`, `Pending`).
+- **Data Modeling Enrichment**: `ref_status_mapping` serves as the single source of truth to build **`dim_order_status`** in the data modeling layer, enriching the dataset with official Egyptian Arabic terms (`مكتمل`, `قيد التنفيذ`, `ملغي`, `مرتجع`), operational lifecycle states, and an explicit `IsRevenueRecognized` boolean flag separating recognized net revenue (`Completed`) from non-recognized states (`Cancelled`, `Returned`, `Pending`).
 
 ---
 

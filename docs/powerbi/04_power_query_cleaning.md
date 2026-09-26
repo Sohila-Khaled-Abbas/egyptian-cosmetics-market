@@ -282,22 +282,43 @@ The Cleansed layer executes deterministic business standardization: removing whi
    - **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim**.
    - **Format** $\rightarrow$ **Clean**.
 3. **Normalize Order Status via GUI**:
+   > [!NOTE]
+   > **Source Reality Check: No Arabic Words in Raw `order_status`**:
+   > Profiling of the operational source table (`stg_orders` / `orders.csv`) confirms that `order_status` contains **only English strings** with casing and truncation anomalies:
+   > - `Completed` ($433,489$ rows)
+   > - `Returned` ($24,729$ rows)
+   > - `Cancelled` ($19,770$ rows)
+   > - `Pending` ($14,981$ rows)
+   > - `completed` ($4,516$ rows — lowercase noise)
+   > - `Complete` ($4,515$ rows — truncated spelling)
+   > 
+   > There are **no Arabic words** (`مكتمل`, `مرتجع`, `ملغي`) in the operational table itself. 
+   > The required cleansing action here is to repair English casing and spelling defects. Full bilingual Arabic localization (`مكتمل`, `مرتجع`, `ملغي`, `قيد التنفيذ`), lifecycle categorization, and GAAP financial flags (`Is Revenue Recognized`) are systematically injected downstream in the **Data Modeling & Enrichment** step (via `ref_status_mapping` and `dim_order_status`).
+
+   **Step-by-Step GUI Actions**:
    - Select the `order_status` column.
-   - On the **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ select **Capitalize Each Word**.
-   - Click **Replace Values**:
-     - *Value To Find*: `مكتمل`
+   - On the top ribbon, switch to the **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ select **Capitalize Each Word** *(this automatically normalizes all `completed` lowercase rows to `Completed`)*.
+   - On the **Transform** tab, click **Replace Values**:
+     - *Value To Find*: `Complete`
      - *Replace With*: `Completed`
+     - Click **OK** *(this unifies truncated `Complete` rows into `Completed`)*.
+   *(Result: The column is now 100% standardized into 4 canonical business states: `Completed` [442,520], `Returned` [24,729], `Cancelled` [19,770], and `Pending` [14,981]).*
+
+4. **Normalize Currency Strings via GUI**:
+   - Select the `currency` column.
+   - On the **Transform** tab, click **Replace Values**:
+     - *Value To Find*: `EGP ` *(with trailing space)*
+     - *Replace With*: `EGP`
      - Click **OK**.
    - Click **Replace Values** again:
-     - *Value To Find*: `مرتجع`
-     - *Replace With*: `Returned`
+     - *Value To Find*: `جنيه مصري`
+     - *Replace With*: `EGP`
      - Click **OK**.
    - Click **Replace Values** again:
-     - *Value To Find*: `ملغي`
-     - *Replace With*: `Cancelled`
+     - *Value To Find*: `جنيه`
+     - *Replace With*: `EGP`
      - Click **OK**.
-4. **Normalize Currency**:
-   - Select `currency` column $\rightarrow$ **Transform** tab $\rightarrow$ **Replace Values** $\rightarrow$ replace `EGP ` and `جنيه` with `EGP`.
+   *(All 502,000 order currency values are now strictly canonicalized to `EGP`).*
 
 ---
 
@@ -305,8 +326,70 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
 #### 🖱️ Step-by-Step GUI Actions:
 1. Right-click `stg_stores` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_stores` $\rightarrow$ Move to **`04_Cleansed`**.
-2. Hold `Ctrl` and select `store_name_en`, `store_name_ar`, `governorate`, `area`, `store_type`, `distribution_region`.
-3. Switch to **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ **Trim**, then **Format** $\rightarrow$ **Clean**.
+2. **Trim & Clean All Text Columns**:
+   - Hold `Ctrl` and select `store_name_en`, `store_name_ar`, `governorate`, `area`, `store_type`, `distribution_region`.
+   - Switch to **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ **Trim**.
+   - Click **Format** $\rightarrow$ **Clean**.
+3. **Normalize Mixed Branch Names (`store_name_ar`) to Pure Unmixed Language**:
+   > [!WARNING]
+   > **Mixed Script Defect in Source (`store_name_ar`)**:
+   > In raw `stores.csv`, the `store_name_ar` column contains an unsightly mix of Arabic prefix with Latin characters:
+   > e.g. `فرع Nasr City`, `فرع Heliopolis`, `فرع Dokki`, `فرع Mohandessin`, etc.
+   > Mixed scripts create BiDi (Bidirectional / RTL) visual rendering glitches in Power BI cards, tables, and slicers. A field must be **100% Arabic** or **100% English**, never mixed.
+
+   **Standardization Options via GUI**:
+
+   * **Option A: Pure Arabic Normalization (Recommended for Bilingual C-Suite Dashboards)**:
+     Convert the English neighborhood names into authentic, fully localized Egyptian Arabic:
+     - On the ribbon, go to **Add Column** $\rightarrow$ click **Column From Examples** $\rightarrow$ select **From Selection** (with `store_name_ar` selected).
+     - In row 1 (`فرع Nasr City`), type: `فرع مدينة نصر`.
+     - In row 2 (`فرع Heliopolis`), type: `فرع مصر الجديدة`.
+     - In row 3 (`فرع Dokki`), type: `فرع الدقي`.
+     - In row 4 (`فرع Mohandessin`), type: `فرع المهندسين`.
+     - Power Query auto-fills the remaining branches (or complete the 35 stores using the canonical lookup below):
+       * `فرع Smouha` $\rightarrow$ `فرع سموحة`
+       * `فرع Sidi Gaber` $\rightarrow$ `فرع سيدي جابر`
+       * `فرع Mansoura` $\rightarrow$ `فرع المنصورة`
+       * `فرع Talkha` $\rightarrow$ `فرع طلخا`
+       * `فرع Tanta` $\rightarrow$ `فرع طنطا`
+       * `فرع Mahalla` $\rightarrow$ `فرع المحلة الكبرى`
+       * `فرع Zagazig` $\rightarrow$ `فرع الزقازيق`
+       * `فرع 10th of Ramadan` $\rightarrow$ `فرع العاشر من رمضان`
+       * `فرع Banha` $\rightarrow$ `فرع بنها`
+       * `فرع Shubra El Kheima` $\rightarrow$ `فرع شبرا الخيمة`
+       * `فرع Damietta` $\rightarrow$ `فرع دمياط`
+       * `فرع New Damietta` $\rightarrow$ `فرع دمياط الجديدة`
+       * `فرع Damanhur` $\rightarrow$ `فرع دمنهور`
+       * `فرع Kafr El Dawwar` $\rightarrow$ `فرع كفر الدوار`
+       * `فرع Ismailia` $\rightarrow$ `فرع الإسماعيلية`
+       * `فرع Fayed` $\rightarrow$ `فرع فايد`
+       * `فرع Suez` $\rightarrow$ `فرع السويس`
+       * `فرع Ain Sokhna` $\rightarrow$ `فرع العين السخنة`
+       * `فرع Port Said` $\rightarrow$ `فرع بورسعيد`
+       * `فرع Fayoum` $\rightarrow$ `فرع الفيوم`
+       * `فرع Minya` $\rightarrow$ `فرع المنيا`
+       * `فرع Assiut` $\rightarrow$ `فرع أسيوط`
+       * `فرع Sohag` $\rightarrow$ `فرع سوهاج`
+       * `فرع Qena` $\rightarrow$ `فرع قنا`
+       * `فرع Luxor` $\rightarrow$ `فرع الأقصر`
+       * `فرع Aswan` $\rightarrow$ `فرع أسوان`
+       * `فرع Hurghada` $\rightarrow$ `فرع الغردقة`
+       * `فرع El Gouna` $\rightarrow$ `فرع الجونة`
+       * `فرع Arish` $\rightarrow$ `فرع العريش`
+       * `فرع Sharm El Sheikh` $\rightarrow$ `فرع شرم الشيخ`
+       * `فرع Dahab` $\rightarrow$ `فرع دهب`
+     - Click **OK**.
+     - Remove the old mixed `store_name_ar` column and rename the new column to `store_name_ar`.
+
+   * **Option B: Pure English Normalization (Single-Language Alternative)**:
+     If the organization chooses to eliminate Arabic and keep store labels strictly English:
+     - Select `store_name_ar`.
+     - On **Transform** tab $\rightarrow$ click **Replace Values**:
+       - *Value To Find*: `فرع `
+       - *Replace With*: *(leave empty)*
+       - Click **OK**.
+     - Rename column to `branch_name_en` (e.g. `Nasr City`, `Heliopolis`, `Dokki`).
+     *(Result: 100% English string, zero mixed characters).*
 
 ---
 
@@ -361,8 +444,8 @@ After completing these GUI steps, verify your queries:
 | `stg_fx_rates` | `02_Staging` | $730$ | `rate` typed as Decimal (`1.2`); `base_currency` & `quote_currency` typed as Text. |
 | `cln_customers` | `04_Cleansed` | $25,200$ | Phone normalized (`010...`), lowercase emails, clean governorates. |
 | `cln_products` | `04_Cleansed` | $20$ | Currency canonicalized to `EGP`; clean whitespace. |
-| `cln_orders` | `04_Cleansed` | $502,000$ | Status normalized to `Completed`, `Returned`, `Cancelled`. |
-| `cln_stores` | `04_Cleansed` | $35$ | Clean governorate and store names. |
+| `cln_orders` | `04_Cleansed` | $502,000$ | Status normalized to `Completed`, `Returned`, `Cancelled`, `Pending`; currency unified to `EGP`. |
+| `cln_stores` | `04_Cleansed` | $35$ | Clean governorate and store names; `store_name_ar` normalized to pure unmixed Arabic (`فرع مدينة نصر`). |
 | `cln_inventory` | `04_Cleansed` | $8,400$ | Trimmed SKU and store identifiers. |
 | `cln_targets` | `04_Cleansed` | $417$ | Trimmed store key and typed monthly quota. |
 | `cln_campaigns` | `04_Cleansed` | $7$ | Cleaned bilingual event names and trimmed IDs. |

@@ -49,6 +49,7 @@ erDiagram
     DIM_CAMPAIGN ||--o{ FACT_SALES : "1:N (CampaignKey)"
     DIM_CHANNEL ||--o{ FACT_SALES : "1:N (ChannelKey)"
     DIM_PAYMENT_METHOD ||--o{ FACT_SALES : "1:N (PaymentMethodKey)"
+    DIM_ORDER_STATUS ||--o{ FACT_SALES : "1:N (OrderStatusKey)"
 
     %% Conformed Dimensions to FactInventory
     DIM_DATE ||--o{ FACT_INVENTORY : "1:N (MonthDateKey)"
@@ -68,6 +69,7 @@ erDiagram
         int CampaignKey FK
         int ChannelKey FK
         int PaymentMethodKey FK
+        int OrderStatusKey FK
         int quantity
         decimal net_sales_egp
         decimal gross_profit_egp
@@ -115,6 +117,15 @@ erDiagram
         string Subcategory_AR
         string Formulation_Type
     }
+
+    DIM_ORDER_STATUS {
+        int OrderStatusKey PK
+        string Order_Status_EN
+        string Order_Status_AR
+        boolean Is_Revenue_Recognized
+        string Lifecycle_Stage
+        int Status_Sort_Order
+    }
 ```
 
 ---
@@ -131,6 +142,7 @@ To elevate this project beyond generic templates, we engineered specific domain-
 | **Logistics** | `Logistics Shipping Zone` & `Courier SLA` | Zone 1 (24h, 35 EGP), Zone 2 (48h, 50 EGP), Zone 3 (72h, 75 EGP) | E-commerce delivery margin analysis and carrier SLA auditing. |
 | **Product Tiering** | `Market Price Segment` | Based on Egyptian retail unit pricing:<br/>• `<180` EGP $\rightarrow$ `Mass Market (شعبي / اقتصادي)`<br/>• `180-450` EGP $\rightarrow$ `Masstige (متوسط متميز)`<br/>• `>450` EGP $\rightarrow$ `Prestige / Luxury (فاخر)` | Price-point sensitivity and purchasing power indexing. |
 | **Formulation** | `Formulation Sourcing` | Flagging `100% Domestic Egyptian Formulation (صنع في مصر)` vs `Imported Finished Goods (مستورد)` | Import substitution tracking and currency depreciation impact assessment. |
+| **Order Lifecycle & Governance** | `Bilingual Status & Revenue Recognition` | **Operational Problem in Source:** Raw `orders.csv` table has **no Arabic words**; contains only English strings with casing/truncation drift (`Completed`, `completed`, `Complete`, `Returned`, `Cancelled`, `Pending`).<br/>**Modeling Enrichment via `dim_order_status`:**<br/>• Injects official Egyptian Arabic terminology: `مكتمل` (Completed), `مرتجع` (Returned), `ملغي` (Cancelled), `قيد التنفيذ` (Pending)<br/>• Introduces boolean `Is Revenue Recognized` (`TRUE` for `Completed`, `FALSE` for others)<br/>• Operational lifecycle stages: `Fulfilled & Delivered`, `Reverse Logistics / Restocked`, `Aborted Prior to Fulfillment`, `In Flight / Processing`<br/>• Maps `OrderStatusKey` integer surrogate for high-performance VertiPaq joins | Enables executive bilingual reporting for Egyptian C-suite leadership and ensures GAAP/IFRS revenue recognition compliance by replacing fragile hardcoded string filters with governance flags. |
 
 ---
 
@@ -138,7 +150,7 @@ To elevate this project beyond generic templates, we engineered specific domain-
 
 | Fact Table | Operational Process | Grain Specification | Loaded Rows | Foreign Keys | Key Additive Measures |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`FactSales`** | Retail & Digital Order Transactions | **One row per validated line-item sale.** | $499,903$ | `OrderDateKey`, `CustomerKey`, `ProductKey`, `StoreKey`, `CampaignKey`, `ChannelKey`, `PaymentMethodKey` | `quantity`, `gross_sales_egp`, `discount_egp`, `net_sales_egp`, `cost_egp`, `gross_profit_egp` |
+| **`FactSales`** | Retail & Digital Order Transactions | **One row per validated line-item sale.** | $499,903$ | `OrderDateKey`, `CustomerKey`, `ProductKey`, `StoreKey`, `CampaignKey`, `ChannelKey`, `PaymentMethodKey`, `OrderStatusKey` | `quantity`, `gross_sales_egp`, `discount_egp`, `net_sales_egp`, `cost_egp`, `gross_profit_egp` |
 | **`FactInventory`** | Monthly Store Stock Balances | **One row per Store + Product at month-end.** | $8,300$ | `MonthDateKey`, `StoreKey`, `ProductKey` | `opening_stock`, `received_qty`, `sold_qty`, `damaged_qty`, `closing_stock`, `net_stock_flow` |
 | **`FactTargets`** | Monthly Commercial Quotas | **One row per Store sales target per month.** | $415$ | `TargetDateKey`, `StoreKey` | `sales_target_egp`, `order_target` |
 
@@ -159,15 +171,16 @@ Every relationship in the model must adhere to these strict dimensional standard
 | **5** | `dim_campaign` | `CampaignKey` | `fact_sales` | `CampaignKey` | $1:*$ | Single | **Active** |
 | **6** | `dim_channel` | `ChannelKey` | `fact_sales` | `ChannelKey` | $1:*$ | Single | **Active** |
 | **7** | `dim_payment_method`| `PaymentMethodKey` | `fact_sales` | `PaymentMethodKey` | $1:*$ | Single | **Active** |
-| **8** | `dim_date` | `DateKey` | `fact_inventory` | `MonthDateKey` | $1:*$ | Single | **Active** |
-| **9** | `dim_store` | `StoreKey` | `fact_inventory` | `StoreKey` | $1:*$ | Single | **Active** |
-| **10**| `dim_product` | `ProductKey` | `fact_inventory` | `ProductKey` | $1:*$ | Single | **Active** |
-| **11**| `dim_date` | `DateKey` | `fact_targets` | `TargetDateKey` | $1:*$ | Single | **Active** |
-| **12**| `dim_store` | `StoreKey` | `fact_targets` | `StoreKey` | $1:*$ | Single | **Active** |
-| **13**| `dim_geography` | `GeographyKey` | `dim_store` | `GeographyKey` | $1:*$ | Single | **Active (Snowflake)** |
-| **14**| `dim_geography` | `GeographyKey` | `dim_customer` | `GeographyKey` | $1:*$ | Single | **Active (Snowflake)** |
-| **15**| `dim_category` | `CategoryKey` | `dim_subcategory` | `CategoryKey` | $1:*$ | Single | **Active (Snowflake)** |
-| **16**| `dim_subcategory` | `SubcategoryKey` | `dim_product` | `SubcategoryKey` | $1:*$ | Single | **Active (Snowflake)** |
+| **8** | `dim_order_status` | `OrderStatusKey` | `fact_sales` | `OrderStatusKey` | $1:*$ | Single | **Active** |
+| **9** | `dim_date` | `DateKey` | `fact_inventory` | `MonthDateKey` | $1:*$ | Single | **Active** |
+| **10**| `dim_store` | `StoreKey` | `fact_inventory` | `StoreKey` | $1:*$ | Single | **Active** |
+| **11**| `dim_product` | `ProductKey` | `fact_inventory` | `ProductKey` | $1:*$ | Single | **Active** |
+| **12**| `dim_date` | `DateKey` | `fact_targets` | `TargetDateKey` | $1:*$ | Single | **Active** |
+| **13**| `dim_store` | `StoreKey` | `fact_targets` | `StoreKey` | $1:*$ | Single | **Active** |
+| **14**| `dim_geography` | `GeographyKey` | `dim_store` | `GeographyKey` | $1:*$ | Single | **Active (Snowflake)** |
+| **15**| `dim_geography` | `GeographyKey` | `dim_customer` | `GeographyKey` | $1:*$ | Single | **Active (Snowflake)** |
+| **16**| `dim_category` | `CategoryKey` | `dim_subcategory` | `CategoryKey` | $1:*$ | Single | **Active (Snowflake)** |
+| **17**| `dim_subcategory` | `SubcategoryKey` | `dim_product` | `SubcategoryKey` | $1:*$ | Single | **Active (Snowflake)** |
 
 ---
 
@@ -187,7 +200,7 @@ Every relationship in the model must adhere to these strict dimensional standard
    - Cross-filter direction: **Single**
    - Check **Make this relationship active**.
    - Click **OK**.
-3. Repeat for all 16 relationships listed in the Matrix above.
+3. Repeat for all 17 relationships listed in the Matrix above.
 
 ### 🖱️ Step 7.3: Mark as Date Table
 1. In the **Data** pane on the right, right-click `dim_date`.
