@@ -254,17 +254,28 @@ To convert this matrix into a normalized, Kimball-compliant tall analytical tabl
 ---
 
 ##### 4. Configure `Unpivot Other Columns` in the GUI
-1. In the data preview table, click the header of column **`store_id`** to select it.
-   *(If unpivoting multiple metric columns while preserving dates, hold `Ctrl` and select both `store_id` and `target_month`).*
+> [!CAUTION]
+> **Data Mixing Pitfall: Never Select Only `store_id` on `stg_targets`**
+> In `stg_targets`, the columns are: `store_id`, `target_month`, `sales_target_egp`, and `order_target`.
+> If you select *only* `store_id` before unpivoting, Power Query will unpivot **all three remaining columns** into one!
+> - `target_month` (a date) turns into text `"target_month"` and its serial date number (`45658` for 2025-01-01) is dumped into `target_revenue_egp`!
+> - `order_target` (a count of orders) is also dumped into `target_revenue_egp`!
+>
+> **The Fix:** You must hold `Ctrl` and select **BOTH `store_id` AND `target_month`** so that the date remains an independent column!
+
+1. In the data preview table, hold down `Ctrl` and click the headers of:
+   - Column **`store_id`**
+   - Column **`target_month`**
 2. On the top ribbon, switch to the **Transform** tab.
 3. Click the dropdown arrow next to **Unpivot Columns** $\rightarrow$ select **Unpivot Other Columns**.
-   > [!TIP]
-   > **Why "Unpivot Other Columns" instead of "Unpivot Only Selected Columns"?**
-   > Selecting "Unpivot Other Columns" dynamically accommodates schema growth. When new projection months (e.g. `Oct_Target`, `Nov_Target`) are added to the Excel sheet in future quarters, Power Query will automatically include them without requiring formula edits or throwing schema errors!
 4. **Rename and Format Generated Columns**:
-   - A new column named `Attribute` contains the unpivoted headers: Double-click header $\rightarrow$ rename to **`MonthName`**.
-   - A new column named `Value` contains the numeric values: Double-click header $\rightarrow$ rename to **`target_revenue_egp`**.
-   - Click the data type icon on `target_revenue_egp` $\rightarrow$ set to **Decimal Number** (`1.2`).
+   - `Attribute` contains metric names: Double-click header $\rightarrow$ rename to **`MetricName`** (values: `sales_target_egp`, `order_target`).
+   - `Value` contains target numbers: Double-click header $\rightarrow$ rename to **`MetricValue`**.
+   - Click the data type icon on `MetricValue` $\rightarrow$ set to **Decimal Number** (`1.2`).
+
+> [!NOTE]
+> **Production Architecture Clarification:**
+> In Cleopatra Modern Cosmetics' dimensional model, `stg_targets` is **already in a normalized tall format** ($417$ rows of Store $\times$ Month). Query **`trf_targets`** (created in Playbook 07) consumes `vld_targets` directly and derives `TargetDateKey`. `trf_targets_unpivoted` is primarily an architectural demonstration of normalizing wide multi-month spreadsheets.
 
 ---
 
@@ -273,19 +284,20 @@ To convert this matrix into a normalized, Kimball-compliant tall analytical tabl
 let
     // Step 1: Reference staging targets
     Source = stg_targets,
-    // Step 2: Unpivot all dynamic columns while keeping store_id fixed
+    // Step 2: Unpivot metrics while keeping BOTH store_id and target_month fixed
     #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(
         Source, 
-        {"store_id"}, 
-        "MonthName", 
-        "target_revenue_egp"
+        {"store_id", "target_month"}, 
+        "MetricName", 
+        "MetricValue"
     ),
     // Step 3: Enforce strict data types on normalized attributes
     #"Changed Type" = Table.TransformColumnTypes(
         #"Unpivoted Other Columns", 
         {
-            {"MonthName", type text}, 
-            {"target_revenue_egp", type number}
+            {"target_month", type date},
+            {"MetricName", type text}, 
+            {"MetricValue", type number}
         }
     )
 in
@@ -295,47 +307,68 @@ in
 ---
 
 ### 3.4: Combining Sources Using `Append Queries as New` (New Query Guide)
-When transactional data is partitioned across multiple operational files or batches (e.g. `orders_2024.csv` and `orders_2025.csv`, or `orders_historical` and `orders_current`), we combine them into a single consolidated stream using **Append Queries as New**.
+When transactional data is partitioned across multiple operational files or batches (e.g. `orders_historical.csv` covering 2024 and `orders.csv` covering 2025), we combine them into a single consolidated stream using **Append Queries as New**.
+
+#### 📂 Dataset Availability & Domain Anomalies
+To test this append architecture against realistic messy operational data, a dedicated historical dataset has been generated at:
+`data/raw/postgres_like/orders_historical.csv` (50,200 transactions from full-year 2024).
+
+This historical dataset features realistic Egyptian cosmetics retail domain problems:
+- **Currency variations:** `EGP`, `EGP `, `جنيه`, `جنيه مصري`, and `LE` (reflecting pre-standardization POS entries).
+- **Bilingual & legacy payment channels:** `Cash on Delivery` ($50\%$), `Fawry` ($18\%$), `InstaPay` ($14\%$), `Vodafone Cash` ($12\%$), `Credit Card` ($6\%$).
+- **Bilingual sales channels:** `In-Store`, `Website`, `Mobile App`, and `WhatsApp Order` (`طلبات واتساب`).
+- **Domain data quality issues:**
+  - Negative quantities (`-1`) representing unlinked customer returns/chargebacks.
+  - Zero quantities (`0`) from voided cart tests.
+  - Negative prices (`-50.00`) representing promotional credit overrides.
+  - Legacy `1900-01-01` date anomaly and future-dated records (`2026-11-20`).
+  - Orphaned foreign keys: Closed Heliopolis pop-up store `S999`, guest walk-in customer `C9999999`, discontinued product `P999`.
+  - Duplicate order IDs (~$200$ duplicate rows to test deduplication).
 
 ---
 
 #### 🖱️ Step-by-Step GUI Implementation
 
-##### 1. Execute Append Queries as New
-1. In the left **Queries** pane, select the first partition query (e.g. **`orders_historical`** or `stg_orders_2024`).
+##### 1. Ingest `orders_historical` (Staging Query)
+1. On the **Home** tab $\rightarrow$ **New Source** $\rightarrow$ **Text/CSV**.
+2. Browse to `data/raw/postgres_like/orders_historical.csv` $\rightarrow$ click **OK**.
+3. Rename the query to **`stg_orders_historical`** $\rightarrow$ Move to group **`02_Staging`**.
+4. Right-click **`stg_orders_historical`** $\rightarrow$ **UNCHECK "Enable Load"**.
+
+##### 2. Execute Append Queries as New
+1. In the left **Queries** pane, click on **`stg_orders_historical`**.
 2. On the top ribbon, stay on the **Home** tab $\rightarrow$ click the dropdown arrow next to **Append Queries** $\rightarrow$ select **Append Queries as New**.
 3. In the **Append** dialog window:
-   - If combining two tables: Select radio button **Two tables**.
-     - Primary table: `orders_historical` (pre-selected).
-     - Second table dropdown: Select `orders_current`.
-   - If combining three or more batches: Select radio button **Three or more tables** $\rightarrow$ add partitions to the right-hand *Tables to append* list.
+   - Radio button: **Two tables**.
+   - First table: `stg_orders_historical` (pre-selected).
+   - Second table dropdown: Select **`stg_orders`**.
 4. Click **OK**.
 5. Power Query automatically generates a brand-new query named **`Append1`**.
 
 ---
 
-##### 2. Non-Conflicting Naming Strategy
+##### 3. Non-Conflicting Naming Strategy
 
 | Partition Ingestion Level | Recommended Query Name | Architectural Purpose |
 | :--- | :--- | :--- |
-| **Raw / Staging Union** (Combining partitions before cleaning) | **`stg_orders_combined`** *(or `stg_orders_all`)* | Combines raw partitions into one staging stream for downstream cleansing (`cln_orders`). Zero collision with individual partition names. |
+| **Raw / Staging Union** (Combining 2024 & 2025 before cleaning) | **`stg_orders_combined`** *(or `stg_orders_all`)* | Combines raw 2024 historical and 2025 current partitions into one staging stream for downstream cleansing (`cln_orders`). Zero collision with individual partition names. |
 | **Historical & Incremental Append** | **`app_orders_historical_current`** | Follows the standard `app_` (Append) prefix. Avoids collisions with `src_orders` or `vld_orders`. |
 
 **How to Rename in GUI:**
 1. In the right-hand **Query Settings** pane under **PROPERTIES** $\rightarrow$ click inside the **Name** box.
-2. Delete `Append1` $\rightarrow$ type **`stg_orders_combined`** (or **`app_orders_historical_current`**) $\rightarrow$ press **Enter**.
+2. Delete `Append1` $\rightarrow$ type **`stg_orders_combined`** $\rightarrow$ press **Enter**.
 
 ---
 
-##### 3. Governance & Query Settings Configuration
+##### 4. Governance & Query Settings Configuration
 1. **Move to Folder Group**:
-   - Right-click the newly renamed query $\rightarrow$ select **Move to Group** $\rightarrow$ choose **`02_Staging`** (or **`06_Transformations`**).
+   - Right-click the newly renamed query $\rightarrow$ select **Move to Group** $\rightarrow$ choose **`02_Staging`**.
 2. **Disable Load on Individual Partitions (Crucial for Memory)**:
-   - In the Queries pane, right-click `orders_historical` $\rightarrow$ **UNCHECK "Enable Load"**.
-   - Right-click `orders_current` $\rightarrow$ **UNCHECK "Enable Load"**.
+   - In the Queries pane, right-click `stg_orders_historical` $\rightarrow$ **UNCHECK "Enable Load"**.
+   - Right-click `stg_orders` $\rightarrow$ **UNCHECK "Enable Load"**.
    > [!CAUTION]
    > **Memory Bloat Warning:**
-   > If you leave "Enable Load" checked on both the individual partition queries AND the appended query, Power BI will load the exact same rows twice into the VertiPaq engine, doubling file size and memory footprint!
+   > If you leave "Enable Load" checked on both the separate partition queries AND the appended query, Power BI will load the exact same rows twice into the VertiPaq engine, doubling file size and memory footprint!
 3. **Configure Load on the Appended Query**:
    - If `stg_orders_combined` feeds downstream into `cln_orders`: **UNCHECK "Enable Load"**.
    - Only the final dimension and fact tables in **`07_Model`** (`fact_sales`) should have **Enable Load = Checked**.
@@ -345,8 +378,8 @@ When transactional data is partitioned across multiple operational files or batc
 #### 💻 Full Generated M Expression (Append Query)
 ```powerquery
 let
-    // Step 1: Vertically combine multiple table partitions into a single schema
-    Source = Table.Combine({orders_historical, orders_current})
+    // Step 1: Vertically combine 2024 historical and 2025 current partitions
+    Source = Table.Combine({stg_orders_historical, stg_orders})
 in
     Source
 ```
