@@ -101,6 +101,48 @@ in
 
 
 // ------------------------------------------------------------------------------
+// QUERY: stg_orders_historical
+// Source: src_orders_historical (50,200 rows, full-year 2024 transactions)
+// ------------------------------------------------------------------------------
+let
+    Source = src_orders_historical,
+    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+        {"order_id", type text},
+        {"order_datetime", type datetime},
+        {"customer_id", type text},
+        {"product_id", type text},
+        {"store_id", type text},
+        {"campaign_id", type text},
+        {"sales_channel_en", type text},
+        {"sales_channel_ar", type text},
+        {"payment_method_en", type text},
+        {"payment_method_ar", type text},
+        {"quantity", Int64.Type},
+        {"unit_price_egp", type number},
+        {"discount_pct", type number},
+        {"gross_sales_egp", type number},
+        {"discount_egp", type number},
+        {"net_sales_egp", type number},
+        {"cost_egp", type number},
+        {"order_status", type text},
+        {"currency", type text}
+    }, "en-US")
+in
+    TypedColumns
+
+
+// ------------------------------------------------------------------------------
+// QUERY: stg_orders_combined
+// Purpose: Union of 2024 historical and 2025 current partitions (552,200 total rows)
+// ------------------------------------------------------------------------------
+let
+    Source = Table.Combine({stg_orders_historical, stg_orders})
+in
+    Source
+
+
+// ------------------------------------------------------------------------------
 // QUERY: stg_inventory
 // ------------------------------------------------------------------------------
 let

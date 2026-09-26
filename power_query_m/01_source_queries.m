@@ -107,6 +107,28 @@ in
 
 
 // ------------------------------------------------------------------------------
+// QUERY: src_orders_historical
+// Source: raw/postgres_like/orders_historical.csv (50,200 rows, 2024 historical)
+// ------------------------------------------------------------------------------
+let
+    RawBase = Text.From(pRawDataPath),
+    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+                    else WithoutQuotes,
+    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+               then CleanBasePath
+               else CleanBasePath & "\raw",
+    SourcePath = BasePath & "\postgres_like\orders_historical.csv",
+    SourceBytes = File.Contents(SourcePath),
+    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=19, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+in
+    PromotedHeaders
+
+
+// ------------------------------------------------------------------------------
 // QUERY: src_inventory
 // Source: raw/csv/inventory_monthly.csv (8,400 rows)
 // ------------------------------------------------------------------------------
