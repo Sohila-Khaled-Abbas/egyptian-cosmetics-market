@@ -268,18 +268,39 @@ in
 ---
 
 ### 🖱️ Step 4.2: Generate Month DateKey via Custom Column
+> [!IMPORTANT]
+> **Fixing `Expression.Error: The Date value must contain the Date component (Details: January)`**:
+> This error happens when `[month]` was transformed in `cln_inventory` into a text month name (e.g., `"January"`). Functions like `Date.Year()` fail because `"January"` is a text string lacking date components.
+> 
+> The formula below is **bulletproof**: it dynamically detects whether `[month]` is a native Date/DateTime or a text month string like `"January"`, mapping it cleanly to the integer surrogate key ($20250101$):
+
 1. Switch to the **Add Column** tab $\rightarrow$ click **Custom Column**.
 2. In the dialog:
    - *New column name*: `MonthDateKey`
-   - *Custom column formula*:
-     ```powerquery
-     Date.Year([month]) * 10000 + Date.Month([month]) * 100 + 1
-     ```
+   - *Custom column formula*: Copy and paste the formula below:
+
+   ```powerquery
+   let
+       Val = [month],
+       DateKey = 
+           if Val is date or Val is datetime then
+               Date.Year(DateTime.Date(Val)) * 10000 + Date.Month(DateTime.Date(Val)) * 100 + 1
+           else
+               let
+                   MonthMap = [
+                       January = 1, February = 2, March = 3, April = 4,
+                       May = 5, June = 6, July = 7, August = 8,
+                       September = 9, October = 10, November = 11, December = 12
+                   ],
+                   MonthNum = Record.FieldOrDefault(MonthMap, Text.Trim(Text.Proper(Text.From(Val))), 1)
+               in
+                   2025 * 10000 + MonthNum * 100 + 1
+   in
+       DateKey
+   ```
+
 3. Click **OK**.
 4. Click the type icon on `MonthDateKey` $\rightarrow$ set to **Whole Number** (`123`).
-
-> [!NOTE]
-> If your `month` column was previously transformed in-place into text month names (e.g., `"January"`), restore the canonical date column or derive the date key before applying text conversions.
 
 ---
 
@@ -332,9 +353,25 @@ Power Query provides a visual **Conditional Column** builder that generates clea
 let
     Source = vld_inventory,
     
-    // 1. DateKey generation for Month join (YYYYMM01)
+    // 1. DateKey generation handling both Date types and Text Month Names ("January" -> 20250101)
     Add_MonthKey = Table.AddColumn(Source, "MonthDateKey", each 
-        Date.Year([month]) * 10000 + Date.Month([month]) * 100 + 1, 
+        let
+            Val = [month],
+            DateKey = 
+                if Val is date or Val is datetime then
+                    Date.Year(DateTime.Date(Val)) * 10000 + Date.Month(DateTime.Date(Val)) * 100 + 1
+                else
+                    let
+                        MonthMap = [
+                            January = 1, February = 2, March = 3, April = 4,
+                            May = 5, June = 6, July = 7, August = 8,
+                            September = 9, October = 10, November = 11, December = 12
+                        ],
+                        MonthNum = Record.FieldOrDefault(MonthMap, Text.Trim(Text.Proper(Text.From(Val))), 1)
+                    in
+                        2025 * 10000 + MonthNum * 100 + 1
+        in
+            DateKey, 
         Int64.Type
     ),
     
@@ -370,10 +407,28 @@ in
 4. On the **Add Column** tab $\rightarrow$ click **Custom Column**.
 5. In the **Custom Column** dialog:
    - *New column name*: `TargetDateKey`
-   - *Custom column formula*:
-     ```powerquery
-     Date.Year([target_month]) * 10000 + Date.Month([target_month]) * 100 + 1
-     ```
+   - *Custom column formula*: Copy and paste the resilient formula below (handles both Date types and text month names like `"January"`):
+
+   ```powerquery
+   let
+       Val = [target_month],
+       TargetKey = 
+           if Val is date or Val is datetime then
+               Date.Year(DateTime.Date(Val)) * 10000 + Date.Month(DateTime.Date(Val)) * 100 + 1
+           else
+               let
+                   MonthMap = [
+                       January = 1, February = 2, March = 3, April = 4,
+                       May = 5, June = 6, July = 7, August = 8,
+                       September = 9, October = 10, November = 11, December = 12
+                   ],
+                   MonthNum = Record.FieldOrDefault(MonthMap, Text.Trim(Text.Proper(Text.From(Val))), 1)
+               in
+                   2025 * 10000 + MonthNum * 100 + 1
+   in
+       TargetKey
+   ```
+
 6. Click **OK**.
 7. Click the type icon on `TargetDateKey` $\rightarrow$ set to **Whole Number** (`123`).
 
@@ -384,9 +439,25 @@ in
 let
     Source = vld_targets,
     
-    // Generate TargetDateKey (YYYYMM01) for DimDate relationship
+    // Generate TargetDateKey (YYYYMM01) handling both Date types and Text Month Names ("January" -> 20250101)
     Add_TargetKey = Table.AddColumn(Source, "TargetDateKey", each 
-        Date.Year([target_month]) * 10000 + Date.Month([target_month]) * 100 + 1, 
+        let
+            Val = [target_month],
+            TargetKey = 
+                if Val is date or Val is datetime then
+                    Date.Year(DateTime.Date(Val)) * 10000 + Date.Month(DateTime.Date(Val)) * 100 + 1
+                else
+                    let
+                        MonthMap = [
+                            January = 1, February = 2, March = 3, April = 4,
+                            May = 5, June = 6, July = 7, August = 8,
+                            September = 9, October = 10, November = 11, December = 12
+                        ],
+                        MonthNum = Record.FieldOrDefault(MonthMap, Text.Trim(Text.Proper(Text.From(Val))), 1)
+                    in
+                        2025 * 10000 + MonthNum * 100 + 1
+        in
+            TargetKey, 
         Int64.Type
     )
 in
