@@ -210,16 +210,21 @@ in
 ---
 
 ### 3.3: Normalizing Wide Tables Using `Unpivot` (New Query Guide)
-Commercial spreadsheets often deliver targets, budgets, or projections as wide matrices where months are individual columns (e.g. `store_id`, `store_name`, `Jan_Target`, `Feb_Target`, `Mar_Target`...). 
+Commercial spreadsheets often deliver targets, budgets, or projections as wide matrices where months are individual columns (e.g. `store_id`, `Jan_Target`, `Feb_Target`, `Mar_Target`...). 
 
 To convert this matrix into a normalized, Kimball-compliant tall analytical table without destroying the wide staging view, we execute **Unpivot Other Columns** inside a new referenced query.
+
+> [!NOTE]
+> **Schema Note (`store_id` vs `store_name`):**
+> In our operational database, `stg_targets` contains only **`store_id`**, `target_month`, `sales_target_egp`, and `order_target`. The descriptive name `store_name` does not exist in the raw targets table; store names are conformed inside **`dim_store`** (from `cln_stores`).
+> When selecting the fixed descriptor column to unpivot around, select **`store_id`** (not `store_name`).
 
 ---
 
 #### 🖱️ Step-by-Step GUI Implementation
 
 ##### 1. Create New Query via Reference
-1. In the left **Queries** pane, right-click the wide staging query (e.g. **`stg_targets`**).
+1. In the left **Queries** pane, right-click the staging query (e.g. **`stg_targets`**).
 2. Select **Reference**.
 3. Power Query creates a new query named `stg_targets (2)`.
 
@@ -229,7 +234,7 @@ To convert this matrix into a normalized, Kimball-compliant tall analytical tabl
 
 | Project State | Recommended Query Name | Architectural Rationale |
 | :--- | :--- | :--- |
-| **Normalized Commercial Targets** | **`trf_targets_unpivoted`** *(or `unp_targets_monthly`)* | Follows the `trf_` prefix for transformed staging or `unp_` for unpivoted matrixes. Guarantees **zero collision** with `src_targets`, `stg_targets`, `cln_targets`, `vld_targets`, or `fact_targets`. |
+| **Normalized Commercial Targets** | **`trf_targets_unpivoted`** *(or `unp_targets_monthly`)* | Follows the `trf_` prefix for transformed staging or `unp_` for unpivoted matrices. Guarantees **zero collision** with `src_targets`, `stg_targets`, `cln_targets`, `vld_targets`, or `fact_targets`. |
 
 **How to Rename in GUI:**
 1. In the right-hand **Query Settings** pane $\rightarrow$ under **PROPERTIES** $\rightarrow$ click inside **Name**.
@@ -249,17 +254,16 @@ To convert this matrix into a normalized, Kimball-compliant tall analytical tabl
 ---
 
 ##### 4. Configure `Unpivot Other Columns` in the GUI
-1. In the data preview, hold down the `Ctrl` key and click to select the fixed descriptor columns:
-   - Click column **`store_id`**.
-   - Click column **`store_name`**.
+1. In the data preview table, click the header of column **`store_id`** to select it.
+   *(If unpivoting multiple metric columns while preserving dates, hold `Ctrl` and select both `store_id` and `target_month`).*
 2. On the top ribbon, switch to the **Transform** tab.
 3. Click the dropdown arrow next to **Unpivot Columns** $\rightarrow$ select **Unpivot Other Columns**.
    > [!TIP]
    > **Why "Unpivot Other Columns" instead of "Unpivot Only Selected Columns"?**
    > Selecting "Unpivot Other Columns" dynamically accommodates schema growth. When new projection months (e.g. `Oct_Target`, `Nov_Target`) are added to the Excel sheet in future quarters, Power Query will automatically include them without requiring formula edits or throwing schema errors!
 4. **Rename and Format Generated Columns**:
-   - A new column named `Attribute` contains the month headers: Double-click header $\rightarrow$ rename to **`MonthName`**.
-   - A new column named `Value` contains the numeric quota: Double-click header $\rightarrow$ rename to **`target_revenue_egp`**.
+   - A new column named `Attribute` contains the unpivoted headers: Double-click header $\rightarrow$ rename to **`MonthName`**.
+   - A new column named `Value` contains the numeric values: Double-click header $\rightarrow$ rename to **`target_revenue_egp`**.
    - Click the data type icon on `target_revenue_egp` $\rightarrow$ set to **Decimal Number** (`1.2`).
 
 ---
@@ -267,12 +271,12 @@ To convert this matrix into a normalized, Kimball-compliant tall analytical tabl
 #### 💻 Full Generated M Expression (Unpivot Query)
 ```powerquery
 let
-    // Step 1: Reference wide staging targets
+    // Step 1: Reference staging targets
     Source = stg_targets,
-    // Step 2: Unpivot all dynamic month columns while keeping descriptor keys fixed
+    // Step 2: Unpivot all dynamic columns while keeping store_id fixed
     #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(
         Source, 
-        {"store_id", "store_name"}, 
+        {"store_id"}, 
         "MonthName", 
         "target_revenue_egp"
     ),
