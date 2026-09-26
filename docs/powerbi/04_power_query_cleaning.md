@@ -413,8 +413,21 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
 #### 🖱️ Step-by-Step GUI Actions:
 1. Right-click `stg_inventory` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_inventory` $\rightarrow$ Move to **`04_Cleansed`**.
-2. Hold `Ctrl` and select `store_id` and `product_id`.
-3. Switch to **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ **Trim**.
+2. **Trim Foreign Key Identifiers**:
+   - Hold `Ctrl` and select `store_id` and `product_id`.
+   - Switch to **Transform** tab $\rightarrow$ click **Format** $\rightarrow$ **Trim**.
+3. **Extract Month Name**:
+   - Select the `month` column.
+   - On the top ribbon, switch to the **Transform** tab $\rightarrow$ in the **Date & Time Column** group $\rightarrow$ click the **Date** dropdown $\rightarrow$ **Month** $\rightarrow$ select **Name of Month**.
+   *(Under the hood in Advanced Editor, this generates the formula)*:
+   ```powerquery
+   = Table.TransformColumns(Source, {{"month", each Date.MonthName(_, "en-GB"), type text}})
+   ```
+
+   > [!TIP]
+   > **Architectural Tip: In-Place Transformation vs Adding a Separate Column**:
+   > - **In-Place Transformation (`Date.MonthName`)**: Converts the `month` column directly into English month names (`January`, `February`, etc.), which is ideal for single-period descriptive reporting.
+   > - **Downstream Multi-Year Note**: If your data spans multiple years (e.g. 2023 and 2024) and downstream queries require joining to a conformed calendar dimension via an integer key (e.g. `MonthDateKey` = `20230101` in Playbook 07), make sure the original date is either preserved in a separate column (via **Add Column** $\rightarrow$ **Date** $\rightarrow$ **Month** $\rightarrow$ **Name of Month** as `month_name`) or reconstructed during downstream modeling.
 
 ---
 
@@ -422,7 +435,20 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
 #### 🖱️ Step-by-Step GUI Actions:
 1. Right-click `stg_targets` $\rightarrow$ select **Reference** $\rightarrow$ Rename to `cln_targets` $\rightarrow$ Move to **`04_Cleansed`**.
-2. Click header `store_id` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim**.
+2. **Trim Foreign Key Identifiers**:
+   - Click header `store_id` $\rightarrow$ **Transform** tab $\rightarrow$ **Format** $\rightarrow$ **Trim**.
+3. **Extract Month Name**:
+   - Select the `target_month` column.
+   - On the top ribbon, switch to the **Transform** tab $\rightarrow$ in the **Date & Time Column** group $\rightarrow$ click the **Date** dropdown $\rightarrow$ **Month** $\rightarrow$ select **Name of Month**.
+   *(Under the hood in Advanced Editor, this generates the formula)*:
+   ```powerquery
+   = Table.TransformColumns(Source, {{"target_month", each Date.MonthName(_, "en-GB"), type text}})
+   ```
+
+   > [!TIP]
+   > **Architectural Tip: In-Place Transformation vs Adding a Separate Column**:
+   > - **In-Place Transformation (`Date.MonthName`)**: Converts `target_month` directly into English month names (`January`, `February`, etc.), which is ideal for single-period quota visualization.
+   > - **Downstream Multi-Year Note**: If target projections span multiple calendar years and downstream models join on an integer calendar key (e.g. `TargetDateKey` = `20230101` in Playbook 07), make sure the original date is either preserved in a separate column (via **Add Column** $\rightarrow$ **Date** $\rightarrow$ **Month** $\rightarrow$ **Name of Month** as `target_month_name`) or reconstructed during downstream modeling.
 
 ---
 
@@ -462,8 +488,8 @@ After completing these GUI steps, verify your queries:
 | `cln_products` | `04_Cleansed` | $20$ | Currency canonicalized to `EGP`; clean whitespace. |
 | `cln_orders` | `04_Cleansed` | $502,000$ | Status normalized to `Completed`, `Returned`, `Cancelled`, `Pending`; currency unified to `EGP`. |
 | `cln_stores` | `04_Cleansed` | $35$ | Clean governorate and store names; `store_name_ar` normalized to pure unmixed Arabic (`فرع مدينة نصر`). |
-| `cln_inventory` | `04_Cleansed` | $8,400$ | Trimmed SKU and store identifiers. |
-| `cln_targets` | `04_Cleansed` | $417$ | Trimmed store key and typed monthly quota. |
+| `cln_inventory` | `04_Cleansed` | $8,400$ | Trimmed SKU and store identifiers; month name extracted (`Date.MonthName`). |
+| `cln_targets` | `04_Cleansed` | $417$ | Trimmed store key and typed monthly quota; month name extracted (`Date.MonthName`). |
 | `cln_campaigns` | `04_Cleansed` | $7$ | Cleaned bilingual event names and trimmed IDs. |
 | `cln_fx_rates` | `04_Cleansed` | $730$ | Uppercase currency codes (`USD`, `EUR`, `EGP`) and validated daily multipliers. |
 
