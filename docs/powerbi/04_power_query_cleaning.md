@@ -339,47 +339,63 @@ The Cleansed layer executes deterministic business standardization: removing whi
 
    **Standardization Options via GUI**:
 
-   * **Option A: Pure Arabic Normalization (Recommended for Bilingual C-Suite Dashboards)**:
-     Convert the English neighborhood names into authentic, fully localized Egyptian Arabic:
-     - On the ribbon, go to **Add Column** $\rightarrow$ click **Column From Examples** $\rightarrow$ select **From Selection** (with `store_name_ar` selected).
-     - In row 1 (`فرع Nasr City`), type: `فرع مدينة نصر`.
-     - In row 2 (`فرع Heliopolis`), type: `فرع مصر الجديدة`.
-     - In row 3 (`فرع Dokki`), type: `فرع الدقي`.
-     - In row 4 (`فرع Mohandessin`), type: `فرع المهندسين`.
-     - Power Query auto-fills the remaining branches (or complete the 35 stores using the canonical lookup below):
-       * `فرع Smouha` $\rightarrow$ `فرع سموحة`
-       * `فرع Sidi Gaber` $\rightarrow$ `فرع سيدي جابر`
-       * `فرع Mansoura` $\rightarrow$ `فرع المنصورة`
-       * `فرع Talkha` $\rightarrow$ `فرع طلخا`
-       * `فرع Tanta` $\rightarrow$ `فرع طنطا`
-       * `فرع Mahalla` $\rightarrow$ `فرع المحلة الكبرى`
-       * `فرع Zagazig` $\rightarrow$ `فرع الزقازيق`
-       * `فرع 10th of Ramadan` $\rightarrow$ `فرع العاشر من رمضان`
-       * `فرع Banha` $\rightarrow$ `فرع بنها`
-       * `فرع Shubra El Kheima` $\rightarrow$ `فرع شبرا الخيمة`
-       * `فرع Damietta` $\rightarrow$ `فرع دمياط`
-       * `فرع New Damietta` $\rightarrow$ `فرع دمياط الجديدة`
-       * `فرع Damanhur` $\rightarrow$ `فرع دمنهور`
-       * `فرع Kafr El Dawwar` $\rightarrow$ `فرع كفر الدوار`
-       * `فرع Ismailia` $\rightarrow$ `فرع الإسماعيلية`
-       * `فرع Fayed` $\rightarrow$ `فرع فايد`
-       * `فرع Suez` $\rightarrow$ `فرع السويس`
-       * `فرع Ain Sokhna` $\rightarrow$ `فرع العين السخنة`
-       * `فرع Port Said` $\rightarrow$ `فرع بورسعيد`
-       * `فرع Fayoum` $\rightarrow$ `فرع الفيوم`
-       * `فرع Minya` $\rightarrow$ `فرع المنيا`
-       * `فرع Assiut` $\rightarrow$ `فرع أسيوط`
-       * `فرع Sohag` $\rightarrow$ `فرع سوهاج`
-       * `فرع Qena` $\rightarrow$ `فرع قنا`
-       * `فرع Luxor` $\rightarrow$ `فرع الأقصر`
-       * `فرع Aswan` $\rightarrow$ `فرع أسوان`
-       * `فرع Hurghada` $\rightarrow$ `فرع الغردقة`
-       * `فرع El Gouna` $\rightarrow$ `فرع الجونة`
-       * `فرع Arish` $\rightarrow$ `فرع العريش`
-       * `فرع Sharm El Sheikh` $\rightarrow$ `فرع شرم الشيخ`
-       * `فرع Dahab` $\rightarrow$ `فرع دهب`
-     - Click **OK**.
-     - Remove the old mixed `store_name_ar` column and rename the new column to `store_name_ar`.
+   * **Option A: Pure Arabic Normalization via Custom Column (Recommended for Bilingual C-Suite Dashboards)**:
+     Power Query's *Column From Examples* can fail with an error when attempting cross-lingual phonetic translations because the pattern synthesizer cannot infer Arabic vocabulary from English words. Instead, use a deterministic **Custom Column M Formula**:
+     1. On the top ribbon, switch to the **Add Column** tab $\rightarrow$ click **Custom Column**.
+     2. In the **Custom Column** dialog:
+        - *New column name*: `store_name_ar_clean`
+        - *Custom column formula*: Copy and paste the formula below:
+
+     ```powerquery
+     let
+         BranchMap = [
+             #"فرع Nasr City"           = "فرع مدينة نصر",
+             #"فرع Heliopolis"          = "فرع مصر الجديدة",
+             #"فرع Dokki"               = "فرع الدقي",
+             #"فرع Mohandessin"         = "فرع المهندسين",
+             #"فرع Smouha"              = "فرع سموحة",
+             #"فرع Sidi Gaber"          = "فرع سيدي جابر",
+             #"فرع Mansoura"            = "فرع المنصورة",
+             #"فرع Talkha"              = "فرع طلخا",
+             #"فرع Tanta"               = "فرع طنطا",
+             #"فرع Mahalla"             = "فرع المحلة الكبرى",
+             #"فرع Zagazig"             = "فرع الزقازيق",
+             #"فرع 10th of Ramadan"     = "فرع العاشر من رمضان",
+             #"فرع Banha"               = "فرع بنها",
+             #"فرع Shubra El Kheima"    = "فرع شبرا الخيمة",
+             #"فرع Damietta"            = "فرع دمياط",
+             #"فرع New Damietta"        = "فرع دمياط الجديدة",
+             #"فرع Damanhur"            = "فرع دمنهور",
+             #"فرع Kafr El Dawwar"      = "فرع كفر الدوار",
+             #"فرع Ismailia"            = "فرع الإسماعيلية",
+             #"فرع Fayed"               = "فرع فايد",
+             #"فرع Suez"                = "فرع السويس",
+             #"فرع Ain Sokhna"          = "فرع العين السخنة",
+             #"فرع Port Said"           = "فرع بورسعيد",
+             #"فرع Fayoum"              = "فرع الفيوم",
+             #"فرع Minya"               = "فرع المنيا",
+             #"فرع Assiut"              = "فرع أسيوط",
+             #"فرع Sohag"               = "فرع سوهاج",
+             #"فرع Qena"                = "فرع قنا",
+             #"فرع Luxor"               = "فرع الأقصر",
+             #"فرع Aswan"               = "فرع أسوان",
+             #"فرع Hurghada"            = "فرع الغردقة",
+             #"فرع El Gouna"            = "فرع الجونة",
+             #"فرع Arish"               = "فرع العريش",
+             #"فرع Sharm El Sheikh"     = "فرع شرم الشيخ",
+             #"فرع Dahab"               = "فرع دهب"
+         ],
+         RawText = Text.Trim([store_name_ar]),
+         CleanText = Record.FieldOrDefault(BranchMap, RawText, RawText)
+     in
+         CleanText
+     ```
+
+     3. Click **OK**.
+     4. Select the old mixed `store_name_ar` column $\rightarrow$ right-click $\rightarrow$ select **Remove**.
+     5. Double-click the header of `store_name_ar_clean` $\rightarrow$ rename it to `store_name_ar`.
+     6. Click the type icon next to `store_name_ar` $\rightarrow$ select **Text** (`ABC`).
+     *(All 35 retail locations now feature 100% authentic, unmixed Arabic branch titles).*
 
    * **Option B: Pure English Normalization (Single-Language Alternative)**:
      If the organization chooses to eliminate Arabic and keep store labels strictly English:
