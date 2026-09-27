@@ -1,0 +1,83 @@
+table dim_order_status
+	lineageTag: a1073bc4-f879-54c5-904d-27797d7ed973
+
+	column OrderStatusKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 70e1724c-9ac3-546f-9471-de3f022854e4
+		summarizeBy: none
+		sourceColumn: OrderStatusKey
+
+	column 'Order Status EN'
+		dataType: string
+		lineageTag: 687210ee-676f-51bf-95b3-6e38aff010fc
+		summarizeBy: none
+		sourceColumn: 'Order Status EN'
+
+	column 'Order Status AR'
+		dataType: string
+		lineageTag: a9d24c78-94d4-5e93-9ec3-9101b77d00b5
+		summarizeBy: none
+		sourceColumn: 'Order Status AR'
+
+	column 'Is Revenue Recognized'
+		dataType: boolean
+		lineageTag: 91412f07-22e6-5505-901f-b1a483dfd18f
+		summarizeBy: none
+		sourceColumn: 'Is Revenue Recognized'
+
+	column 'Lifecycle Stage'
+		dataType: string
+		lineageTag: cdc93c7b-74e8-5c52-8a01-4d41c01f5b58
+		summarizeBy: none
+		sourceColumn: 'Lifecycle Stage'
+
+	column 'Status Sort Order'
+		dataType: int64
+		formatString: 0
+		lineageTag: e0345a3d-26e2-5a9f-88b5-4d86b1da5944
+		summarizeBy: none
+		sourceColumn: 'Status Sort Order'
+
+	partition dim_order_status = m
+		mode: import
+		source = ```
+			let
+			    Source = ref_status_mapping,
+			    Deduplicated = Table.Distinct(Source, {"NormalizedStatus"}),
+			    Sorted = Table.Sort(Deduplicated, {{"NormalizedStatus", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "OrderStatusKey", 1, 1, Int64.Type),
+
+			    Add_Lifecycle = Table.AddColumn(AddKey, "Lifecycle Stage", each 
+			        let s = [NormalizedStatus] in
+			        if s = "Completed" then "Fulfilled & Delivered"
+			        else if s = "Returned" then "Reverse Logistics / Restocked"
+			        else if s = "Cancelled" then "Aborted Prior to Fulfillment"
+			        else "In Flight / Processing",
+			        type text
+			    ),
+			    Add_SortOrder = Table.AddColumn(Add_Lifecycle, "Status Sort Order", each 
+			        let s = [NormalizedStatus] in
+			        if s = "Completed" then 1
+			        else if s = "Pending" then 2
+			        else if s = "Returned" then 3
+			        else 4,
+			        Int64.Type
+			    ),
+			    Renamed = Table.RenameColumns(Add_SortOrder, {
+			        {"NormalizedStatus", "Order Status EN"},
+			        {"Status_AR", "Order Status AR"},
+			        {"IsRevenueRecognized", "Is Revenue Recognized"}
+			    }),
+			    Projected = Table.SelectColumns(Renamed, {
+			        "OrderStatusKey", "Order Status EN", "Order Status AR", 
+			        "Is Revenue Recognized", "Lifecycle Stage", "Status Sort Order"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

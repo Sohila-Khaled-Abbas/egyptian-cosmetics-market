@@ -14,20 +14,20 @@
 // Snowflake Dimension: Normalizes Geographic hierarchy for dim_store and dim_customer
 // ------------------------------------------------------------------------------
 let
-    Source = ref_governorates,
+    Source = ref_governorate_mapping,
     // Ensure uniqueness at Governorate level
-    Deduplicated = Table.Distinct(Source, {"governorate_en"}),
-    Sorted = Table.Sort(Deduplicated, {{"governorate_en", Order.Ascending}}),
+    Deduplicated = Table.Distinct(Source, {"NormalizedGovernorate"}),
+    Sorted = Table.Sort(Deduplicated, {{"NormalizedGovernorate", Order.Ascending}}),
     AddKey = Table.AddIndexColumn(Sorted, "GeographyKey", 1, 1, Int64.Type),
 
     // Add Economic Region Hierarchy (AR & EN)
     Add_RegionEN = Table.AddColumn(AddKey, "Economic Region EN", each 
-        let g = [governorate_en] in
+        let g = [NormalizedGovernorate] in
         if List.Contains({"Cairo", "Giza", "Qalyubia"}, g) then "Greater Cairo"
         else if List.Contains({"Alexandria", "Beheira", "Matrouh"}, g) then "Alexandria & West Coast"
         else if List.Contains({"Dakahlia", "Gharbia", "Monufia", "Kafr El Sheikh", "Damietta", "Sharqia"}, g) then "Nile Delta"
         else if List.Contains({"Port Said", "Ismailia", "Suez"}, g) then "Canal Zone"
-        else if List.Contains({"Fayoum", "Beni Suef", "Minya", "Asyut", "Sohag", "Qena", "Luxor", "Aswan"}, g) then "Upper Egypt"
+        else if List.Contains({"Fayoum", "Beni Suef", "Minya", "Assiut", "Sohag", "Qena", "Luxor", "Aswan"}, g) then "Upper Egypt"
         else if List.Contains({"Red Sea", "South Sinai", "North Sinai", "New Valley"}, g) then "Frontier & Sinai"
         else "Other Egypt",
         type text
@@ -46,7 +46,7 @@ let
 
     // Add Market Development Tier (Metropolitan Tier 1 vs Regional Tier 2 vs Frontier Tier 3)
     Add_MarketTier = Table.AddColumn(Add_RegionAR, "Market Tier", each 
-        let g = [governorate_en] in
+        let g = [NormalizedGovernorate] in
         if List.Contains({"Cairo", "Giza", "Alexandria"}, g) then "Tier 1 - Metropolitan Hub"
         else if List.Contains({"Dakahlia", "Gharbia", "Sharqia", "Qalyubia", "Port Said", "Suez", "Asyut", "Luxor"}, g) then "Tier 2 - Secondary Urban"
         else "Tier 3 - Regional Frontier",
@@ -77,12 +77,24 @@ let
     ),
 
     Renamed = Table.RenameColumns(Add_CourierCost, {
-        {"governorate_en", "Governorate EN"},
-        {"governorate_ar", "Governorate AR"},
-        {"region_en", "Distribution Region EN"},
-        {"region_ar", "Distribution Region AR"}
+        {"NormalizedGovernorate", "Governorate EN"},
+        {"Governorate_AR", "Governorate AR"},
+        {"EconomicRegion", "Distribution Region EN"}
     }),
-    Projected = Table.SelectColumns(Renamed, {
+    Add_DistRegionAR = Table.AddColumn(Renamed, "Distribution Region AR", each
+        let r = [Distribution Region EN] in
+        if r = "Cairo Region" then "إقليم القاهرة"
+        else if r = "Delta Region" then "إقليم الدلتا"
+        else if r = "Alexandria Region" then "إقليم الإسكندرية والساحل"
+        else if r = "Canal Region" then "إقليم القناة"
+        else if r = "Northern Upper Egypt" then "إقليم شمال الصعيد"
+        else if r = "Central Upper Egypt" then "إقليم وسط الصعيد"
+        else if r = "Southern Upper Egypt" then "إقليم جنوب الصعيد"
+        else if r = "Frontier Region" then "إقليم المحافظات الحدودية"
+        else r,
+        type text
+    ),
+    Projected = Table.SelectColumns(Add_DistRegionAR, {
         "GeographyKey", "Governorate EN", "Governorate AR", 
         "Economic Region EN", "Economic Region AR", "Distribution Region EN", "Distribution Region AR",
         "Market Tier", "Logistics Shipping Zone", "Courier SLA Days", "Standard Courier Cost EGP"
@@ -289,13 +301,14 @@ let
     ),
 
     Projected = Table.SelectColumns(Add_Lifecycle, {
-        "CustomerKey", "GeographyKey", "customer_id", 
+        "CustomerKey", "GeographyKey", "customer_id", "governorate",
         "customer_name_ar", "customer_name_en", "gender", 
         "Age", "Age Cohort", "Egyptian Telecom Carrier", "phone", "email", 
         "signup_date", "customer_segment", "Lifecycle Tier"
     }),
 
     Renamed = Table.RenameColumns(Projected, {
+        {"governorate", "Governorate"},
         {"customer_name_ar", "Customer Name AR"},
         {"customer_name_en", "Customer Name EN"},
         {"customer_segment", "Original Segment"},
@@ -460,6 +473,45 @@ in
     Projected
 
 
+// ------------------------------------------------------------------------------
+// QUERY: dim_order_status (4 Canonical Order Lifecycle States)
+// Links to fact_sales via OrderStatusKey
+// ------------------------------------------------------------------------------
+let
+    Source = ref_status_mapping,
+    Deduplicated = Table.Distinct(Source, {"NormalizedStatus"}),
+    Sorted = Table.Sort(Deduplicated, {{"NormalizedStatus", Order.Ascending}}),
+    AddKey = Table.AddIndexColumn(Sorted, "OrderStatusKey", 1, 1, Int64.Type),
+    
+    Add_Lifecycle = Table.AddColumn(AddKey, "Lifecycle Stage", each 
+        let s = [NormalizedStatus] in
+        if s = "Completed" then "Fulfilled & Delivered"
+        else if s = "Returned" then "Reverse Logistics / Restocked"
+        else if s = "Cancelled" then "Aborted Prior to Fulfillment"
+        else "In Flight / Processing",
+        type text
+    ),
+    Add_SortOrder = Table.AddColumn(Add_Lifecycle, "Status Sort Order", each 
+        let s = [NormalizedStatus] in
+        if s = "Completed" then 1
+        else if s = "Pending" then 2
+        else if s = "Returned" then 3
+        else 4,
+        Int64.Type
+    ),
+    Renamed = Table.RenameColumns(Add_SortOrder, {
+        {"NormalizedStatus", "Order Status EN"},
+        {"Status_AR", "Order Status AR"},
+        {"IsRevenueRecognized", "Is Revenue Recognized"}
+    }),
+    Projected = Table.SelectColumns(Renamed, {
+        "OrderStatusKey", "Order Status EN", "Order Status AR", 
+        "Is Revenue Recognized", "Lifecycle Stage", "Status Sort Order"
+    })
+in
+    Projected
+
+
 // ==============================================================================
 // 3. GALAXY FACT CONSTELLATIONS (FACT SALES, FACT INVENTORY, FACT TARGETS)
 // ==============================================================================
@@ -489,7 +541,10 @@ let
     MergePay = Table.NestedJoin(ExpandChan, {"payment_method_en"}, dim_payment_method, {"RawPayment"}, "PayDim", JoinKind.LeftOuter),
     ExpandPay = Table.ExpandTableColumn(MergePay, "PayDim", {"PaymentMethodKey"}, {"PaymentMethodKey"}),
     
-    Projected = Table.SelectColumns(ExpandPay, {
+    MergeStatus = Table.NestedJoin(ExpandPay, {"order_status"}, dim_order_status, {"Order Status EN"}, "StatusDim", JoinKind.LeftOuter),
+    ExpandStatus = Table.ExpandTableColumn(MergeStatus, "StatusDim", {"OrderStatusKey"}, {"OrderStatusKey"}),
+    
+    Projected = Table.SelectColumns(ExpandStatus, {
         "order_id",
         "order_datetime",
         "OrderDateKey",
@@ -499,6 +554,7 @@ let
         "CampaignKey",
         "ChannelKey",
         "PaymentMethodKey",
+        "OrderStatusKey",
         "order_status",
         "quantity",
         "unit_price_egp",

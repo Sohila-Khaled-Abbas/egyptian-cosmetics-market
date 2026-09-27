@@ -1,0 +1,72 @@
+table dim_campaign
+	lineageTag: 1dc982d6-24f9-590b-a6f6-c2f02590df4c
+
+	column CampaignKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 78193167-6fa8-5894-b545-37f91e224d8d
+		summarizeBy: none
+		sourceColumn: CampaignKey
+
+	column campaign_id
+		dataType: string
+		lineageTag: d68db713-5315-5b97-b245-88b038303bd6
+		summarizeBy: none
+		sourceColumn: campaign_id
+
+	column 'Campaign Name EN'
+		dataType: string
+		lineageTag: 2f7a22c7-4573-5eea-b63b-67d0c6776295
+		summarizeBy: none
+		sourceColumn: 'Campaign Name EN'
+
+	column 'Campaign Name AR'
+		dataType: string
+		lineageTag: 338fd26c-06fd-537c-ab11-d3daba7cad44
+		summarizeBy: none
+		sourceColumn: 'Campaign Name AR'
+
+	column 'Marketing Platform'
+		dataType: string
+		lineageTag: 0c3fb03f-c51a-50e6-b043-8ef5c958ec1a
+		summarizeBy: none
+		sourceColumn: 'Marketing Platform'
+
+	column 'Budget EGP'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 02b93989-7c4e-5de3-a405-1d1ab54be560
+		summarizeBy: none
+		sourceColumn: 'Budget EGP'
+
+	column 'Expected Conversion Rate'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: b9c827e8-0428-5c84-a48c-b24ec617a673
+		summarizeBy: none
+		sourceColumn: 'Expected Conversion Rate'
+
+	partition dim_campaign = m
+		mode: import
+		source = ```
+			let
+			    Source = stg_campaigns,
+			    Deduplicated = Table.Distinct(Source, {"campaign_id"}),
+			    Sorted = Table.Sort(Deduplicated, {{"campaign_id", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "CampaignKey", 1, 1, Int64.Type),
+
+			    Renamed = Table.RenameColumns(AddKey, {
+			        {"campaign_name_en", "Campaign Name EN"},
+			        {"campaign_name_ar", "Campaign Name AR"},
+			        {"platform", "Marketing Platform"},
+			        {"budget_egp", "Budget EGP"},
+			        {"expected_conversion_rate", "Expected Conversion Rate"}
+			    })
+			in
+			    Renamed
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

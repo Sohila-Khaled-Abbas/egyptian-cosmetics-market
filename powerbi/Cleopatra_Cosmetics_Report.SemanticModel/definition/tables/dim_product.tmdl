@@ -1,0 +1,139 @@
+table dim_product
+	lineageTag: 1fbb8cfc-f1b6-5ce7-b4e6-cf5b020cfe64
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d4efbe0c-e52c-5d57-89a3-120cd3209224
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column SubcategoryKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a16d30c5-d367-573d-be23-e12ef28a479e
+		summarizeBy: none
+		sourceColumn: SubcategoryKey
+
+	column product_id
+		dataType: string
+		lineageTag: a4dc4aa4-b638-57e7-aafa-cf633d61045c
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column 'Product Name EN'
+		dataType: string
+		lineageTag: ad88fcf7-9202-539e-b7ac-63c22a56e0c9
+		summarizeBy: none
+		sourceColumn: 'Product Name EN'
+
+	column 'Product Name AR'
+		dataType: string
+		lineageTag: 4ddab05d-97dc-5377-95d3-f2cb82e5be30
+		summarizeBy: none
+		sourceColumn: 'Product Name AR'
+
+	column 'Brand EN'
+		dataType: string
+		lineageTag: f3721463-586d-52dc-b3ba-d0c2603d47f1
+		summarizeBy: none
+		sourceColumn: 'Brand EN'
+
+	column 'Brand AR'
+		dataType: string
+		lineageTag: 92069566-334b-5128-aa7e-cb64cc66e5e2
+		summarizeBy: none
+		sourceColumn: 'Brand AR'
+
+	column 'List Price EGP'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 427ed118-71b2-5d19-96df-454fbfd5bd78
+		summarizeBy: none
+		sourceColumn: 'List Price EGP'
+
+	column 'Standard Cost EGP'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 02ff99a8-5a2b-541f-a1b7-3d81bd8fae23
+		summarizeBy: none
+		sourceColumn: 'Standard Cost EGP'
+
+	column 'Baseline Margin Pct'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 30738fa1-70a5-5c69-9126-47cd90b7ca34
+		summarizeBy: none
+		sourceColumn: 'Baseline Margin Pct'
+
+	column 'Market Price Segment'
+		dataType: string
+		lineageTag: 33d1bdc3-9e9a-567f-bb41-bbec5633c5c5
+		summarizeBy: none
+		sourceColumn: 'Market Price Segment'
+
+	column 'Formulation Sourcing'
+		dataType: string
+		lineageTag: b8bd9d8d-88e3-5aae-97f1-ff65d7c05c05
+		summarizeBy: none
+		sourceColumn: 'Formulation Sourcing'
+
+	partition dim_product = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_products,
+			    Deduplicated = Table.Distinct(Source, {"product_id"}),
+			    Sorted = Table.Sort(Deduplicated, {{"product_id", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "ProductKey", 1, 1, Int64.Type),
+
+			    MergeSubcat = Table.NestedJoin(AddKey, {"subcategory"}, dim_subcategory, {"Subcategory EN"}, "SubcatDim", JoinKind.LeftOuter),
+			    ExpandSubcat = Table.ExpandTableColumn(MergeSubcat, "SubcatDim", {"SubcategoryKey"}, {"SubcategoryKey"}),
+
+			    Add_MarketSegment = Table.AddColumn(ExpandSubcat, "Market Price Segment", each 
+			        let price = [list_price_egp] in
+			        if price < 180.00 then "Mass Market (شعبي / اقتصادي)"
+			        else if price <= 450.00 then "Masstige (متوسط متميز)"
+			        else "Prestige / Luxury (فاخر)",
+			        type text
+			    ),
+
+			    Add_OriginEnriched = Table.AddColumn(Add_MarketSegment, "Formulation Sourcing", each 
+			        let orig = [origin] in
+			        if orig = "Egypt" or orig = "Local" then "100% Domestic Egyptian Formulation (صنع في مصر)"
+			        else "Imported Finished Goods (مستورد)",
+			        type text
+			    ),
+
+			    Add_MarginPct = Table.AddColumn(Add_OriginEnriched, "Baseline Margin Pct", each 
+			        let 
+			            p = [list_price_egp],
+			            c = [standard_cost_egp]
+			        in
+			            if p > 0 then Number.Round((p - c) / p, 4) else 0,
+			        type number
+			    ),
+
+			    Renamed = Table.RenameColumns(Add_MarginPct, {
+			        {"product_name_en", "Product Name EN"},
+			        {"product_name_ar", "Product Name AR"},
+			        {"brand_en", "Brand EN"},
+			        {"brand_ar", "Brand AR"},
+			        {"list_price_egp", "List Price EGP"},
+			        {"standard_cost_egp", "Standard Cost EGP"}
+			    }),
+			    Projected = Table.SelectColumns(Renamed, {
+			        "ProductKey", "SubcategoryKey", "product_id", 
+			        "Product Name EN", "Product Name AR", "Brand EN", "Brand AR", 
+			        "List Price EGP", "Standard Cost EGP", "Baseline Margin Pct",
+			        "Market Price Segment", "Formulation Sourcing"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

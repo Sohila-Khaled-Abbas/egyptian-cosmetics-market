@@ -1,0 +1,44 @@
+table refresh_metadata
+	lineageTag: c8eea1fd-15b6-530f-b902-365b0acdaa13
+
+	column Attribute
+		dataType: string
+		lineageTag: f21315bd-6f2a-5ee4-a14e-3e714ee6b2ed
+		summarizeBy: none
+		sourceColumn: Attribute
+
+	column Value
+		dataType: string
+		lineageTag: 5cb0125b-3389-5087-89b3-362904de7eae
+		summarizeBy: none
+		sourceColumn: Value
+
+	column Category
+		dataType: string
+		lineageTag: ad591e31-e23b-5036-a36a-d759c14bde87
+		summarizeBy: none
+		sourceColumn: Category
+
+	partition refresh_metadata = m
+		mode: import
+		source = ```
+			let
+			    Source = Table.FromRows({
+			        {"Last Refresh UTC", DateTimeZone.ToText(DateTimeZone.UtcNow()), "Pipeline Engine"},
+			        {"Data Architecture", "Self-Contained Power BI Lifecycle", "Architecture Standard"},
+			        {"Environment", "Production / Portfolio", "Deployment Stage"},
+			        {"Currencies Active", "EGP (Anchored), USD, EUR", "Monetary Framework"},
+			        {"Market", "Egypt (22 Governorates)", "Geographic Scope"}
+			    }, {"Attribute", "Value", "Category"}),
+			    Typed = Table.TransformColumnTypes(Source, {
+			        {"Attribute", type text},
+			        {"Value", type text},
+			        {"Category", type text}
+			    })
+			in
+			    Typed
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

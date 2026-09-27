@@ -1,0 +1,47 @@
+table customer_duplicate_analysis
+	lineageTag: 8a656d66-d7f3-585c-b3c4-1ac3f5d09ec3
+
+	column phone
+		dataType: string
+		lineageTag: 4356addc-a048-501a-9fd5-fd0e205d0cf1
+		summarizeBy: none
+		sourceColumn: phone
+
+	column CustomerCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 3d3419d7-9042-55a6-96b4-af67c355ca08
+		summarizeBy: none
+		sourceColumn: CustomerCount
+
+	column CustomerIDs
+		dataType: string
+		lineageTag: cb498d63-88a0-533a-920a-24a659ea9a83
+		summarizeBy: none
+		sourceColumn: CustomerIDs
+
+	column Names
+		dataType: string
+		lineageTag: 66c0b2e9-1d80-5a96-a7b9-a91fb6080c00
+		summarizeBy: none
+		sourceColumn: Names
+
+	partition customer_duplicate_analysis = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_customers,
+			    WithPhone = Table.SelectRows(Source, each [phone] <> null),
+			    GroupedPhone = Table.Group(WithPhone, {"phone"}, {
+			        {"CustomerCount", Table.RowCount, Int64.Type},
+			        {"CustomerIDs", each Text.Combine([customer_id], ", "), type text},
+			        {"Names", each Text.Combine([customer_name_en], ", "), type text}
+			    }),
+			    SuspectedDuplicates = Table.SelectRows(GroupedPhone, each [CustomerCount] > 1)
+			in
+			    SuspectedDuplicates
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

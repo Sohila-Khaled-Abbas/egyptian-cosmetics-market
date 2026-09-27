@@ -1,0 +1,79 @@
+table dim_category
+	lineageTag: f8c147e1-bab8-5ee1-94c2-bf8d5f9f6377
+
+	column CategoryKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5e6e0d80-4922-54ab-95db-1ac8ed762d8e
+		summarizeBy: none
+		sourceColumn: CategoryKey
+
+	column 'Category EN'
+		dataType: string
+		lineageTag: db490e57-44f1-5db8-967e-dd12529bafa3
+		summarizeBy: none
+		sourceColumn: 'Category EN'
+
+	column 'Category AR'
+		dataType: string
+		lineageTag: 6b988975-f1b6-57f7-9a35-c56e05f478c4
+		summarizeBy: none
+		sourceColumn: 'Category AR'
+
+	column 'Strategic Margin Tier'
+		dataType: string
+		lineageTag: 0248f130-0953-580a-a630-758b9df55ea1
+		summarizeBy: none
+		sourceColumn: 'Strategic Margin Tier'
+
+	column 'Commercial Category Lead'
+		dataType: string
+		lineageTag: 383671cf-a047-58bc-ba0b-2426a3e4fcec
+		summarizeBy: none
+		sourceColumn: 'Commercial Category Lead'
+
+	partition dim_category = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_products,
+			    Categories = Table.SelectColumns(Source, {"category"}),
+			    Deduplicated = Table.Distinct(Categories),
+			    Sorted = Table.Sort(Deduplicated, {{"category", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "CategoryKey", 1, 1, Int64.Type),
+
+			    Add_CategoryAR = Table.AddColumn(AddKey, "Category AR", each 
+			        let c = [category] in
+			        if c = "Skincare" then "العناية بالبشرة"
+			        else if c = "Haircare" then "العناية بالشعر"
+			        else if c = "Makeup" then "المكياج ومستحضرات التجميل"
+			        else if c = "Fragrance" then "العطور"
+			        else if c = "Bath & Body" then "العناية بالجسم والاستحمام"
+			        else c,
+			        type text
+			    ),
+			    Add_MarginClass = Table.AddColumn(Add_CategoryAR, "Strategic Margin Tier", each 
+			        let c = [category] in
+			        if c = "Fragrance" or c = "Skincare" then "High Margin Premium (>45%)"
+			        else if c = "Makeup" then "Core Volume Masstige (35-45%)"
+			        else "Volume Driver Essential (<35%)",
+			        type text
+			    ),
+			    Add_CategoryLead = Table.AddColumn(Add_MarginClass, "Commercial Category Lead", each 
+			        let c = [category] in
+			        if c = "Skincare" then "Dr. Mariam Farouk"
+			        else if c = "Haircare" then "Eng. Ahmed Tarek"
+			        else if c = "Makeup" then "Salma Abdelrahman"
+			        else if c = "Fragrance" then "Karim El-Sayed"
+			        else "Hoda Mostafa",
+			        type text
+			    ),
+			    Renamed = Table.RenameColumns(Add_CategoryLead, {{"category", "Category EN"}})
+			in
+			    Renamed
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,165 @@
+table dim_geography
+	lineageTag: 755a9310-0948-55dd-a71d-4ce8199af782
+
+	column GeographyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 741e62e4-c014-5880-8f92-0c966e9dcd42
+		summarizeBy: none
+		sourceColumn: GeographyKey
+
+	column 'Governorate EN'
+		dataType: string
+		lineageTag: eb6b016c-6f00-5199-a8f3-8ac76f6474b0
+		summarizeBy: none
+		sourceColumn: 'Governorate EN'
+
+	column 'Governorate AR'
+		dataType: string
+		lineageTag: 12c115a0-98da-572f-96ec-37012150915d
+		summarizeBy: none
+		sourceColumn: 'Governorate AR'
+
+	column 'Economic Region EN'
+		dataType: string
+		lineageTag: c7476b07-2777-5ade-9c6e-b576be1d8f54
+		summarizeBy: none
+		sourceColumn: 'Economic Region EN'
+
+	column 'Economic Region AR'
+		dataType: string
+		lineageTag: c8a32840-6862-52ac-89cd-8f838defb0a9
+		summarizeBy: none
+		sourceColumn: 'Economic Region AR'
+
+	column 'Distribution Region EN'
+		dataType: string
+		lineageTag: 389dc452-282a-5a26-8c08-caa949d68e3a
+		summarizeBy: none
+		sourceColumn: 'Distribution Region EN'
+
+	column 'Distribution Region AR'
+		dataType: string
+		lineageTag: 05b17c00-e01b-584a-883b-8f2eb005f268
+		summarizeBy: none
+		sourceColumn: 'Distribution Region AR'
+
+	column 'Market Tier'
+		dataType: string
+		lineageTag: a903c333-51b0-5213-9a52-acdc54756b2d
+		summarizeBy: none
+		sourceColumn: 'Market Tier'
+
+	column 'Logistics Shipping Zone'
+		dataType: string
+		lineageTag: 3bf474d0-d26b-5963-a8f5-034f5b3f3630
+		summarizeBy: none
+		sourceColumn: 'Logistics Shipping Zone'
+
+	column 'Courier SLA Days'
+		dataType: int64
+		formatString: 0
+		lineageTag: 70ae221f-009a-5351-aa43-d9e96421fe6d
+		summarizeBy: none
+		sourceColumn: 'Courier SLA Days'
+
+	column 'Standard Courier Cost EGP'
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: ea9f8d74-5eba-5ba7-a300-88ee72999e8e
+		summarizeBy: none
+		sourceColumn: 'Standard Courier Cost EGP'
+
+	partition dim_geography = m
+		mode: import
+		source = ```
+			let
+			    Source = ref_governorate_mapping,
+			    Deduplicated = Table.Distinct(Source, {"NormalizedGovernorate"}),
+			    Sorted = Table.Sort(Deduplicated, {{"NormalizedGovernorate", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "GeographyKey", 1, 1, Int64.Type),
+
+			    Add_RegionEN = Table.AddColumn(AddKey, "Economic Region EN", each 
+			        let g = [NormalizedGovernorate] in
+			        if List.Contains({"Cairo", "Giza", "Qalyubia"}, g) then "Greater Cairo"
+			        else if List.Contains({"Alexandria", "Beheira", "Matrouh"}, g) then "Alexandria & West Coast"
+			        else if List.Contains({"Dakahlia", "Gharbia", "Monufia", "Kafr El Sheikh", "Damietta", "Sharqia"}, g) then "Nile Delta"
+			        else if List.Contains({"Port Said", "Ismailia", "Suez"}, g) then "Canal Zone"
+			        else if List.Contains({"Fayoum", "Beni Suef", "Minya", "Assiut", "Sohag", "Qena", "Luxor", "Aswan"}, g) then "Upper Egypt"
+			        else if List.Contains({"Red Sea", "South Sinai", "North Sinai", "New Valley"}, g) then "Frontier & Sinai"
+			        else "Other Egypt",
+			        type text
+			    ),
+			    Add_RegionAR = Table.AddColumn(Add_RegionEN, "Economic Region AR", each 
+			        let r = [Economic Region EN] in
+			        if r = "Greater Cairo" then "القاهرة الكبرى"
+			        else if r = "Alexandria & West Coast" then "الإسكندرية والساحل الشمالي"
+			        else if r = "Nile Delta" then "دلتا النيل"
+			        else if r = "Canal Zone" then "مدن القناة"
+			        else if r = "Upper Egypt" then "صعيد مصر"
+			        else if r = "Frontier & Sinai" then "المحافظات الحدودية وسيناء"
+			        else "محافظات أخرى",
+			        type text
+			    ),
+
+			    Add_MarketTier = Table.AddColumn(Add_RegionAR, "Market Tier", each 
+			        let g = [NormalizedGovernorate] in
+			        if List.Contains({"Cairo", "Giza", "Alexandria"}, g) then "Tier 1 - Metropolitan Hub"
+			        else if List.Contains({"Dakahlia", "Gharbia", "Sharqia", "Qalyubia", "Port Said", "Suez", "Asyut", "Luxor"}, g) then "Tier 2 - Secondary Urban"
+			        else "Tier 3 - Regional Frontier",
+			        type text
+			    ),
+
+			    Add_ShippingZone = Table.AddColumn(Add_MarketTier, "Logistics Shipping Zone", each 
+			        let tier = [Market Tier] in
+			        if Text.StartsWith(tier, "Tier 1") then "Zone 1 (Same-Day / 24h)"
+			        else if Text.StartsWith(tier, "Tier 2") then "Zone 2 (24h - 48h Delivery)"
+			        else "Zone 3 (48h - 72h Extended)",
+			        type text
+			    ),
+			    Add_CourierSLA = Table.AddColumn(Add_ShippingZone, "Courier SLA Days", each 
+			        let tier = [Market Tier] in
+			        if Text.StartsWith(tier, "Tier 1") then 1
+			        else if Text.StartsWith(tier, "Tier 2") then 2
+			        else 3,
+			        Int64.Type
+			    ),
+			    Add_CourierCost = Table.AddColumn(Add_CourierSLA, "Standard Courier Cost EGP", each 
+			        let tier = [Market Tier] in
+			        if Text.StartsWith(tier, "Tier 1") then 35.00
+			        else if Text.StartsWith(tier, "Tier 2") then 50.00
+			        else 75.00,
+			        type number
+			    ),
+
+			    Renamed = Table.RenameColumns(Add_CourierCost, {
+			        {"NormalizedGovernorate", "Governorate EN"},
+			        {"Governorate_AR", "Governorate AR"},
+			        {"EconomicRegion", "Distribution Region EN"}
+			    }),
+			    Add_DistRegionAR = Table.AddColumn(Renamed, "Distribution Region AR", each
+			        let r = [Distribution Region EN] in
+			        if r = "Cairo Region" then "إقليم القاهرة"
+			        else if r = "Delta Region" then "إقليم الدلتا"
+			        else if r = "Alexandria Region" then "إقليم الإسكندرية والساحل"
+			        else if r = "Canal Region" then "إقليم القناة"
+			        else if r = "Northern Upper Egypt" then "إقليم شمال الصعيد"
+			        else if r = "Central Upper Egypt" then "إقليم وسط الصعيد"
+			        else if r = "Southern Upper Egypt" then "إقليم جنوب الصعيد"
+			        else if r = "Frontier Region" then "إقليم المحافظات الحدودية"
+			        else r,
+			        type text
+			    ),
+			    Projected = Table.SelectColumns(Add_DistRegionAR, {
+			        "GeographyKey", "Governorate EN", "Governorate AR", 
+			        "Economic Region EN", "Economic Region AR", "Distribution Region EN", "Distribution Region AR",
+			        "Market Tier", "Logistics Shipping Zone", "Courier SLA Days", "Standard Courier Cost EGP"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

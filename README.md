@@ -10,7 +10,7 @@
 [![Power Query M](https://img.shields.io/badge/Power_Query_M-ETL_Engine-23714A?style=for-the-badge&logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/powerquery-m/)
 [![DAX Semantic Layer](https://img.shields.io/badge/DAX-55%2B_Measures-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://learn.microsoft.com/en-us/dax/)
 [![Data Quality Score](https://img.shields.io/badge/DQ_Health_Index-99.14%25-success?style=for-the-badge&logo=shield&logoColor=white)](#-data-quality-framework--quarantine-ledger)
-[![CI Tests Passing](https://img.shields.io/badge/CI_Tests-39_Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-automated-testing--ci)
+[![CI Tests Passing](https://img.shields.io/badge/CI_Tests-40_Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-automated-testing--ci)
 [![Star Schema](https://img.shields.io/badge/Architecture-Kimball_Star_Schema-blueviolet?style=for-the-badge)](#-kimball-star-schema-data-warehouse)
 [![Market](https://img.shields.io/badge/Market-Egypt_%F0%9F%87%AA%F0%9F%87%AC-red?style=for-the-badge)](#-business-scenario)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
@@ -281,11 +281,16 @@ egyptian_cosmetics_market/
 │   ├── 07_model_queries.m                     # Star schema model tables
 │   └── 99_admin_queries.m                     # Refresh audit & observability
 ├── powerbi/
-│   └── Cleopatra_Cosmetics_Report.pbip        # Power BI Project (developer managed)
-├── scripts/                                   # Operational Pipeline & Database CLI Tools
+│   ├── Cleopatra_Cosmetics_Report.pbip        # Power BI Project definition
+│   └── Cleopatra_Cosmetics_Report.SemanticModel/ # TMDL Semantic Model (22 tables, 17 relationships)
+│       └── definition/                        # TMDL expressions, tables, and relationships
+├── scripts/                                   # Operational Pipeline & Model Compilers
 │   ├── setup_database.py                      # Deploys SQL Server schemas, DDL, stored procs
 │   ├── run_pipeline.py                        # Executes 6-stage end-to-end ELT pipeline
-│   └── benchmark_loads.py                     # Full Load vs Incremental Load benchmark
+│   ├── benchmark_loads.py                     # Full Load vs Incremental Load benchmark
+│   ├── build_full_powerbi_model.py            # Generates full PBIP TMDL Semantic Model
+│   ├── validate_tmdl_m.py                     # Validates TMDL M syntax & bracket balancing
+│   └── verify_power_query_pipeline.py         # End-to-end Python validation of Power Query ETL
 ├── sql/                                       # T-SQL Scripts & Stored Procedures
 │   ├── ddl/01_create_database.sql             # DB creation with Arabic collation & snapshot isolation
 │   ├── ddl/02_create_schemas.sql              # bronze, staging, warehouse, mart, dq, audit
@@ -306,13 +311,13 @@ egyptian_cosmetics_market/
 │   ├── validation/ (dq_checker.py)
 │   ├── loading/ (warehouse_loader.py, marts_loader.py, audit_logger.py)
 │   └── utils/ (hashing.py, logger.py)
-├── tests/                                     # Automated Pytest Suite (39 Tests Passed)
+├── tests/                                     # Automated Pytest Suite (40 Tests Passed)
 │   ├── test_anomaly_detection.py
 │   ├── test_business_metrics.py
 │   ├── test_data_integrity.py
 │   ├── test_docs_completeness.py
 │   ├── test_hashing.py
-│   ├── test_m_code_syntax.py
+│   ├── test_m_code_syntax.py                  # Includes M & TMDL bracket & syntax checks
 │   ├── test_rules_engine.py
 │   └── test_scd2.py
 ├── .gitattributes                             # UTF-8 Arabic encoding and LF line-ending rules
@@ -328,7 +333,7 @@ egyptian_cosmetics_market/
 
 ## 🧪 Automated Testing & CI
 
-The platform implements rigorous automated testing using `pytest` validating data integrity, documentation completeness, SCD2 transitions, and Power Query syntax:
+The platform implements rigorous automated testing using `pytest` validating data integrity, documentation completeness, SCD2 transitions, Power Query M syntax, and TMDL definitions:
 
 ```bash
 # Run the complete test suite
@@ -338,18 +343,18 @@ python -m pytest tests/ -v
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0
-collected 39 items
+collected 40 items
 
 tests/test_anomaly_detection.py ..                                       [  5%]
 tests/test_business_metrics.py ..                                        [ 10%]
 tests/test_data_integrity.py ....                                        [ 20%]
-tests/test_docs_completeness.py ...                                      [ 28%]
+tests/test_docs_completeness.py ...                                      [ 27%]
 tests/test_hashing.py ...                                                [ 35%]
-tests/test_m_code_syntax.py ...................                          [ 84%]
+tests/test_m_code_syntax.py ....................                         [ 85%]
 tests/test_rules_engine.py .....                                         [ 97%]
 tests/test_scd2.py .                                                     [100%]
 
-============================= 39 passed in 3.18s ==============================
+============================= 40 passed in 2.36s ==============================
 ```
 
 ---

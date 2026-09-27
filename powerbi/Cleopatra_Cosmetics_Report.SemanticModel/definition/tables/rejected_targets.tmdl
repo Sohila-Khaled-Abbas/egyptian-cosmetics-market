@@ -1,0 +1,53 @@
+table rejected_targets
+	lineageTag: 8f382839-255e-5bf1-ae41-ab424f490f5f
+
+	column target_month
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 6edddefa-4266-5b01-bc39-ca4c0df1f55a
+		summarizeBy: none
+		sourceColumn: target_month
+
+	column store_id
+		dataType: string
+		lineageTag: 1021a975-ee5a-548e-ad9f-4f78eca04702
+		summarizeBy: none
+		sourceColumn: store_id
+
+	column sales_target_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 24b29ea2-8526-5327-bf85-1ab8071660cb
+		summarizeBy: none
+		sourceColumn: sales_target_egp
+
+	column order_target
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d81f738-1424-5813-b86e-2672eddef4f5
+		summarizeBy: none
+		sourceColumn: order_target
+
+	column DataQualityReason
+		dataType: string
+		lineageTag: 2234f5e4-9c42-5f4b-b669-4c7743796e9e
+		summarizeBy: none
+		sourceColumn: DataQualityReason
+
+	partition rejected_targets = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_targets,
+			    Grouped = Table.Group(Source, {"target_month", "store_id"}, {{"Count", Table.RowCount, Int64.Type}}),
+			    DupKeys = Table.SelectRows(Grouped, each [Count] > 1),
+			    MergeDups = Table.NestedJoin(Source, {"target_month", "store_id"}, DupKeys, {"target_month", "store_id"}, "Dups", JoinKind.Inner),
+			    DroppedColumns = Table.RemoveColumns(MergeDups, {"Dups"}),
+			    AddSourceTag = Table.AddColumn(DroppedColumns, "DataQualityReason", each "Duplicate Store-Month Target Record", type text)
+			in
+			    AddSourceTag
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

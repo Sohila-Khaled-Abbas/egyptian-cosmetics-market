@@ -1,0 +1,89 @@
+table dim_subcategory
+	lineageTag: b85a723c-6e74-5fae-8a92-2997776ef012
+
+	column SubcategoryKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 60aaa20e-bd6f-5573-9b91-0d577011cfa6
+		summarizeBy: none
+		sourceColumn: SubcategoryKey
+
+	column CategoryKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d022fead-68f1-5f7b-a62f-103bcd2c739f
+		summarizeBy: none
+		sourceColumn: CategoryKey
+
+	column 'Subcategory EN'
+		dataType: string
+		lineageTag: 32d9fbad-b7af-5f72-a9e4-1161ac879aff
+		summarizeBy: none
+		sourceColumn: 'Subcategory EN'
+
+	column 'Subcategory AR'
+		dataType: string
+		lineageTag: b4798073-27ac-5298-8174-c04de41494b1
+		summarizeBy: none
+		sourceColumn: 'Subcategory AR'
+
+	column 'Formulation Type'
+		dataType: string
+		lineageTag: cfe3c0a8-5dd9-5e3a-8680-7c1c040d1dc6
+		summarizeBy: none
+		sourceColumn: 'Formulation Type'
+
+	partition dim_subcategory = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_products,
+			    Subcategories = Table.SelectColumns(Source, {"category", "subcategory"}),
+			    Deduplicated = Table.Distinct(Subcategories),
+			    Sorted = Table.Sort(Deduplicated, {{"category", Order.Ascending}, {"subcategory", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "SubcategoryKey", 1, 1, Int64.Type),
+
+			    MergeCategory = Table.NestedJoin(AddKey, {"category"}, dim_category, {"Category EN"}, "CatDim", JoinKind.Inner),
+			    ExpandCategory = Table.ExpandTableColumn(MergeCategory, "CatDim", {"CategoryKey"}, {"CategoryKey"}),
+
+			    Add_SubcategoryAR = Table.AddColumn(ExpandCategory, "Subcategory AR", each 
+			        let s = [subcategory] in
+			        if s = "Moisturizer" then "مرطبات البشرة"
+			        else if s = "Serum" then "سيروم علاجي"
+			        else if s = "Cleanser" then "غسول ومنظف"
+			        else if s = "Sunscreen" then "واقي شمس"
+			        else if s = "Shampoo" then "شامبو مغذي"
+			        else if s = "Conditioner" then "بلسم شعر"
+			        else if s = "Hair Mask" then "ماسك ترميم الشعر"
+			        else if s = "Hair Oil" then "زيوت وسيروم الشعر"
+			        else if s = "Foundation" then "كريم أساس"
+			        else if s = "Lipstick" then "أحمر شفاه"
+			        else if s = "Mascara" then "ماسكارا"
+			        else if s = "Eyeshadow" then "ظلال عيون"
+			        else if s = "Eau de Parfum" then "ماء عطر مركز"
+			        else if s = "Body Mist" then "معطر رذاذ للجسم"
+			        else if s = "Body Wash" then "غسول الجسم والشاور"
+			        else if s = "Body Scrub" then "مقشر الجسم"
+			        else s,
+			        type text
+			    ),
+			    Add_FormType = Table.AddColumn(Add_SubcategoryAR, "Formulation Type", each 
+			        let s = [subcategory] in
+			        if List.Contains({"Serum", "Hair Oil"}, s) then "Oil & Active Serum"
+			        else if List.Contains({"Moisturizer", "Conditioner", "Hair Mask", "Foundation"}, s) then "Emulsion & Cream"
+			        else if List.Contains({"Cleanser", "Shampoo", "Body Wash"}, s) then "Foaming Surfactant"
+			        else if List.Contains({"Sunscreen", "Body Mist", "Eau de Parfum"}, s) then "Fluid & Spray"
+			        else "Solid / Pigment",
+			        type text
+			    ),
+			    Renamed = Table.RenameColumns(Add_FormType, {{"subcategory", "Subcategory EN"}}),
+			    Projected = Table.SelectColumns(Renamed, {"SubcategoryKey", "CategoryKey", "Subcategory EN", "Subcategory AR", "Formulation Type"})
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

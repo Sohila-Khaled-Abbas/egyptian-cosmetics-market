@@ -1,0 +1,168 @@
+table dim_customer
+	lineageTag: c7486d2e-e933-520f-a9c6-c68f04b7596c
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3faf0175-a349-55c9-a492-908caab34192
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	column GeographyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: dadb1228-cf62-52b8-a44a-4c526f9e1bac
+		summarizeBy: none
+		sourceColumn: GeographyKey
+
+	column customer_id
+		dataType: string
+		lineageTag: 7f79ef02-0f08-5e12-ac38-ac3264551a48
+		summarizeBy: none
+		sourceColumn: customer_id
+
+	column 'Customer Name AR'
+		dataType: string
+		lineageTag: db8077ed-7692-5501-95b2-d844c77d3c8a
+		summarizeBy: none
+		sourceColumn: 'Customer Name AR'
+
+	column 'Customer Name EN'
+		dataType: string
+		lineageTag: 201552da-47c2-5d4c-8ae5-17b2164c9c5b
+		summarizeBy: none
+		sourceColumn: 'Customer Name EN'
+
+	column Governorate
+		dataType: string
+		lineageTag: 381c9062-3617-5222-b667-8f4852eee6fe
+		summarizeBy: none
+		sourceColumn: Governorate
+
+	column gender
+		dataType: string
+		lineageTag: 72141fda-9341-5d65-ba19-ce62a5beecdb
+		summarizeBy: none
+		sourceColumn: gender
+
+	column Age
+		dataType: int64
+		formatString: 0
+		lineageTag: 3c0ac33c-a6a9-505a-804f-6fa1c1879ebf
+		summarizeBy: none
+		sourceColumn: Age
+
+	column 'Age Cohort'
+		dataType: string
+		lineageTag: 1079e2f1-fc9c-537c-a1ca-e983afdde30a
+		summarizeBy: none
+		sourceColumn: 'Age Cohort'
+
+	column 'Egyptian Telecom Carrier'
+		dataType: string
+		lineageTag: c373e9a0-0246-5ea5-8051-ebda8b98dc91
+		summarizeBy: none
+		sourceColumn: 'Egyptian Telecom Carrier'
+
+	column phone
+		dataType: string
+		lineageTag: 1c64f894-24b3-5832-aafe-4809bfec9bbc
+		summarizeBy: none
+		sourceColumn: phone
+
+	column email
+		dataType: string
+		lineageTag: 84004de3-3270-57f5-a901-dd1927c603b4
+		summarizeBy: none
+		sourceColumn: email
+
+	column 'Signup Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 4390e4c6-53e1-566e-aafa-ddcea16d0851
+		summarizeBy: none
+		sourceColumn: 'Signup Date'
+
+	column 'Original Segment'
+		dataType: string
+		lineageTag: 089ace8a-2ec5-5036-9614-13eb3560efd2
+		summarizeBy: none
+		sourceColumn: 'Original Segment'
+
+	column 'Lifecycle Tier'
+		dataType: string
+		lineageTag: 145b3822-cb4d-56b3-935a-8ec0a5a8705b
+		summarizeBy: none
+		sourceColumn: 'Lifecycle Tier'
+
+	partition dim_customer = m
+		mode: import
+		source = ```
+			let
+			    Source = vld_customers,
+			    Deduplicated = Table.Distinct(Source, {"customer_id"}),
+			    Sorted = Table.Sort(Deduplicated, {{"customer_id", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "CustomerKey", 1, 1, Int64.Type),
+
+			    MergeGeo = Table.NestedJoin(AddKey, {"governorate"}, dim_geography, {"Governorate EN"}, "GeoDim", JoinKind.LeftOuter),
+			    ExpandGeo = Table.ExpandTableColumn(MergeGeo, "GeoDim", {"GeographyKey"}, {"GeographyKey"}),
+			    DefaultGeo = Table.ReplaceValue(ExpandGeo, null, 1, Replacer.ReplaceValue, {"GeographyKey"}),
+
+			    Add_Carrier = Table.AddColumn(DefaultGeo, "Egyptian Telecom Carrier", each 
+			        let 
+			            phoneClean = Text.Select(Text.From([phone] ?? ""), {"0".."9"}),
+			            prefix = Text.Start(phoneClean, 3)
+			        in
+			            if prefix = "010" then "Vodafone Egypt"
+			            else if prefix = "011" then "Etisalat Misr (e&)"
+			            else if prefix = "012" then "Orange Egypt"
+			            else if prefix = "015" then "Telecom Egypt (WE)"
+			            else "Other / Landline",
+			        type text
+			    ),
+
+			    Add_Age = Table.AddColumn(Add_Carrier, "Age", each 
+			        if [birth_year] = null then 32 else 2026 - [birth_year], 
+			        Int64.Type
+			    ),
+			    Add_AgeCohort = Table.AddColumn(Add_Age, "Age Cohort", each 
+			        let a = [Age] in
+			        if a < 25 then "18-24 (Gen Z)"
+			        else if a <= 34 then "25-34 (Young Professional)"
+			        else if a <= 49 then "35-49 (Prime Family)"
+			        else "50+ (Mature Consumer)",
+			        type text
+			    ),
+
+			    Add_Lifecycle = Table.AddColumn(Add_AgeCohort, "Lifecycle Tier", each 
+			        let s = [customer_segment] in
+			        if s = "VIP" then "VIP Platinum"
+			        else if s = "Loyal" then "Gold Enthusiast"
+			        else if s = "Occasional" then "Silver Active"
+			        else "Bronze Starter",
+			        type text
+			    ),
+
+			    Projected = Table.SelectColumns(Add_Lifecycle, {
+			        "CustomerKey", "GeographyKey", "customer_id", "governorate",
+			        "customer_name_ar", "customer_name_en", "gender", 
+			        "Age", "Age Cohort", "Egyptian Telecom Carrier", "phone", "email", 
+			        "signup_date", "customer_segment", "Lifecycle Tier"
+			    }),
+
+			    Renamed = Table.RenameColumns(Projected, {
+			        {"governorate", "Governorate"},
+			        {"customer_name_ar", "Customer Name AR"},
+			        {"customer_name_en", "Customer Name EN"},
+			        {"customer_segment", "Original Segment"},
+			        {"signup_date", "Signup Date"}
+			    })
+			in
+			    Renamed
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

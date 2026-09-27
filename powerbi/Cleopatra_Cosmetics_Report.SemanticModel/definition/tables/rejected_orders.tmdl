@@ -1,0 +1,219 @@
+table rejected_orders
+	lineageTag: 25a9c758-1830-5ef1-9e8a-f7d33fad549f
+
+	column order_id
+		dataType: string
+		lineageTag: dfc50970-5f36-53d1-b914-de7ef96fd759
+		summarizeBy: none
+		sourceColumn: order_id
+
+	column order_datetime
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: b902b9ca-c846-5de5-9654-3df80666d24d
+		summarizeBy: none
+		sourceColumn: order_datetime
+
+	column customer_id
+		dataType: string
+		lineageTag: fe5d0308-a1db-57f4-ab83-702cbee56b07
+		summarizeBy: none
+		sourceColumn: customer_id
+
+	column product_id
+		dataType: string
+		lineageTag: 00c34275-388f-5788-97f8-11b7444424a4
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column store_id
+		dataType: string
+		lineageTag: 179a1a91-8b35-52e9-9a9e-58e2786e39c9
+		summarizeBy: none
+		sourceColumn: store_id
+
+	column campaign_id
+		dataType: string
+		lineageTag: 7383efb7-dd42-593e-bcbc-2c1144224b7f
+		summarizeBy: none
+		sourceColumn: campaign_id
+
+	column sales_channel_en
+		dataType: string
+		lineageTag: 6ec24079-f7a0-5946-97b7-55fb32613c0f
+		summarizeBy: none
+		sourceColumn: sales_channel_en
+
+	column sales_channel_ar
+		dataType: string
+		lineageTag: a32fa48c-8c3e-52c2-b352-0f70ff2cac79
+		summarizeBy: none
+		sourceColumn: sales_channel_ar
+
+	column payment_method_en
+		dataType: string
+		lineageTag: aedfbcc5-30e8-5956-97e6-4da58093581d
+		summarizeBy: none
+		sourceColumn: payment_method_en
+
+	column payment_method_ar
+		dataType: string
+		lineageTag: ff761768-9e0a-55d0-b5cc-58550eaab19d
+		summarizeBy: none
+		sourceColumn: payment_method_ar
+
+	column quantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 979a46e5-9ba4-540b-a157-f3e464a0ee94
+		summarizeBy: none
+		sourceColumn: quantity
+
+	column unit_price_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: d7f5d76d-6519-5e50-8b12-c52c0b857a26
+		summarizeBy: none
+		sourceColumn: unit_price_egp
+
+	column discount_pct
+		dataType: double
+		formatString: 0.0%
+		lineageTag: fc307c57-8b51-5c3a-8283-43f0746bfa62
+		summarizeBy: none
+		sourceColumn: discount_pct
+
+	column gross_sales_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 2d9679ca-8c49-56c5-a55e-c1fd91448e36
+		summarizeBy: none
+		sourceColumn: gross_sales_egp
+
+	column discount_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: da6286a8-f7dc-5e04-8951-7da6524b1c8c
+		summarizeBy: none
+		sourceColumn: discount_egp
+
+	column net_sales_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 204f0064-9b64-5274-a1df-fcf5578a9f67
+		summarizeBy: none
+		sourceColumn: net_sales_egp
+
+	column cost_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: b5d68967-d224-5611-a81b-61f4e499e604
+		summarizeBy: none
+		sourceColumn: cost_egp
+
+	column order_status
+		dataType: string
+		lineageTag: becfbfbf-a0a7-5d5a-8794-2a629033de53
+		summarizeBy: none
+		sourceColumn: order_status
+
+	column currency
+		dataType: string
+		lineageTag: f0c1af79-d4d3-51a8-974c-03625fb53330
+		summarizeBy: none
+		sourceColumn: currency
+
+	column OrderID_Valid
+		dataType: boolean
+		lineageTag: e32fa3ad-f55b-50c4-bd7a-f88172353440
+		summarizeBy: none
+		sourceColumn: OrderID_Valid
+
+	column CustomerID_Valid
+		dataType: boolean
+		lineageTag: a9753439-1049-5f3c-ae41-c0e9f2804508
+		summarizeBy: none
+		sourceColumn: CustomerID_Valid
+
+	column ProductID_Valid
+		dataType: boolean
+		lineageTag: 62e5e0c1-59f9-5f3e-a9c8-34098df7d35d
+		summarizeBy: none
+		sourceColumn: ProductID_Valid
+
+	column StoreID_Valid
+		dataType: boolean
+		lineageTag: 68b3695f-d9a2-5793-b5ea-9c6fd35cf1ba
+		summarizeBy: none
+		sourceColumn: StoreID_Valid
+
+	column Quantity_Valid
+		dataType: boolean
+		lineageTag: 2a2f47aa-6fdb-5f43-b5d5-2d6fb47da913
+		summarizeBy: none
+		sourceColumn: Quantity_Valid
+
+	column Price_Valid
+		dataType: boolean
+		lineageTag: cee6f317-bc60-5648-94bf-240d2505e570
+		summarizeBy: none
+		sourceColumn: Price_Valid
+
+	column Date_Valid
+		dataType: boolean
+		lineageTag: 43652cb4-e524-579d-b7de-28a374716cf4
+		summarizeBy: none
+		sourceColumn: Date_Valid
+
+	column Currency_Valid
+		dataType: boolean
+		lineageTag: 550b826b-458d-5b1c-8f48-f8f1964541e2
+		summarizeBy: none
+		sourceColumn: Currency_Valid
+
+	column Status_Valid
+		dataType: boolean
+		lineageTag: 0a3b1976-c49d-5c01-a054-219ed377a7da
+		summarizeBy: none
+		sourceColumn: Status_Valid
+
+	column DataQualityReason
+		dataType: string
+		lineageTag: 3c12451d-c31b-5695-b59b-52007c300a82
+		summarizeBy: none
+		sourceColumn: DataQualityReason
+
+	column DataQualityStatus
+		dataType: string
+		lineageTag: c4edf3c6-905c-530e-b04e-bd6b55167824
+		summarizeBy: none
+		sourceColumn: DataQualityStatus
+
+	column QuarantineTimestamp
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: a1e2a2ad-6293-5d75-9808-c0d9705b6329
+		summarizeBy: none
+		sourceColumn: QuarantineTimestamp
+
+	column SourceSystem
+		dataType: string
+		lineageTag: eca807c3-a714-5df9-b4b5-b4f8beec7e1d
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+	partition rejected_orders = m
+		mode: import
+		source = ```
+			let
+			    Source = vld_orders_prep,
+			    FilteredRejected = Table.SelectRows(Source, each [DataQualityStatus] = "Rejected"),
+			    AddTimestamp = Table.AddColumn(FilteredRejected, "QuarantineTimestamp", each DateTime.LocalNow(), type datetime),
+			    AddSourceTag = Table.AddColumn(AddTimestamp, "SourceSystem", each "orders.csv", type text)
+			in
+			    AddSourceTag
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,96 @@
+table dim_store
+	lineageTag: 08301a3a-f94d-5fbb-9bfe-4c6d363494f9
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: dfeb7eae-c979-5158-bd25-a45ad74abb13
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+	column GeographyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39bc5a70-5eab-581c-a704-3977b8eaab09
+		summarizeBy: none
+		sourceColumn: GeographyKey
+
+	column store_id
+		dataType: string
+		lineageTag: 3a46228a-a822-58f8-8353-6460a7366fee
+		summarizeBy: none
+		sourceColumn: store_id
+
+	column 'Store Name EN'
+		dataType: string
+		lineageTag: 5bd3053b-e0f5-51ce-9272-a4ea20353abf
+		summarizeBy: none
+		sourceColumn: 'Store Name EN'
+
+	column 'Store Name AR'
+		dataType: string
+		lineageTag: da7ccf46-a2a2-5289-acff-5e1e9dcacb87
+		summarizeBy: none
+		sourceColumn: 'Store Name AR'
+
+	column 'Local Area / Neighborhood'
+		dataType: string
+		lineageTag: 90136ecf-bf1d-50b4-a086-abbb60456e52
+		summarizeBy: none
+		sourceColumn: 'Local Area / Neighborhood'
+
+	column 'Store Format'
+		dataType: string
+		lineageTag: 632181f5-25f4-5e29-915c-41923f727ae0
+		summarizeBy: none
+		sourceColumn: 'Store Format'
+
+	column 'Store Footprint Class'
+		dataType: string
+		lineageTag: f960ffbe-c015-516b-9acf-3eac2dbd2b08
+		summarizeBy: none
+		sourceColumn: 'Store Footprint Class'
+
+	partition dim_store = m
+		mode: import
+		source = ```
+			let
+			    Source = cln_stores,
+			    Deduplicated = Table.Distinct(Source, {"store_id"}),
+			    Sorted = Table.Sort(Deduplicated, {{"store_id", Order.Ascending}}),
+			    AddKey = Table.AddIndexColumn(Sorted, "StoreKey", 1, 1, Int64.Type),
+
+			    MergeGeo = Table.NestedJoin(AddKey, {"governorate"}, dim_geography, {"Governorate EN"}, "GeoDim", JoinKind.LeftOuter),
+			    ExpandGeo = Table.ExpandTableColumn(MergeGeo, "GeoDim", {"GeographyKey"}, {"GeographyKey"}),
+			    DefaultGeo = Table.ReplaceValue(ExpandGeo, null, 1, Replacer.ReplaceValue, {"GeographyKey"}),
+
+			    Add_Footprint = Table.AddColumn(DefaultGeo, "Store Footprint Class", each 
+			        let t = [store_type] in
+			        if t = "Flagship" then "Tier 1 Prime Mall Boutique"
+			        else if t = "Retail Store" then "High-Street Urban Store"
+			        else if t = "Kiosk" then "Commercial Center Kiosk"
+			        else if t = "Online Hub" then "E-Commerce Fulfillment Center"
+			        else "Regional Outlet",
+			        type text
+			    ),
+
+			    Renamed = Table.RenameColumns(Add_Footprint, {
+			        {"store_name_en", "Store Name EN"},
+			        {"store_name_ar", "Store Name AR"},
+			        {"area", "Local Area / Neighborhood"},
+			        {"store_type", "Store Format"}
+			    }),
+			    Projected = Table.SelectColumns(Renamed, {
+			        "StoreKey", "GeographyKey", "store_id", 
+			        "Store Name EN", "Store Name AR", "Local Area / Neighborhood", 
+			        "Store Format", "Store Footprint Class"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

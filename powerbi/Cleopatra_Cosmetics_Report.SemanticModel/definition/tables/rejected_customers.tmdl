@@ -1,0 +1,115 @@
+table rejected_customers
+	lineageTag: 69410023-99f9-5218-8feb-ecfe09416445
+
+	column customer_id
+		dataType: string
+		lineageTag: bdda5ebb-67e0-5578-9e66-d20da0c1ff02
+		summarizeBy: none
+		sourceColumn: customer_id
+
+	column customer_name_ar
+		dataType: string
+		lineageTag: ecce5fc4-4a50-5160-aebc-b0479a32f0f2
+		summarizeBy: none
+		sourceColumn: customer_name_ar
+
+	column customer_name_en
+		dataType: string
+		lineageTag: e6aa50ad-1c8e-5691-80a2-d999a8a6e647
+		summarizeBy: none
+		sourceColumn: customer_name_en
+
+	column gender
+		dataType: string
+		lineageTag: b5705c8d-8bce-5832-b136-f3dc4c040b6c
+		summarizeBy: none
+		sourceColumn: gender
+
+	column birth_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b8ab2f5-4112-5e0f-a9d5-e2e8004578dd
+		summarizeBy: none
+		sourceColumn: birth_year
+
+	column governorate
+		dataType: string
+		lineageTag: bf2c786e-9058-5c3f-bfb5-423f4fa31a7e
+		summarizeBy: none
+		sourceColumn: governorate
+
+	column area
+		dataType: string
+		lineageTag: 4a74c5a8-87fd-5515-91df-eb52390028df
+		summarizeBy: none
+		sourceColumn: area
+
+	column phone
+		dataType: string
+		lineageTag: 1dd10603-70a9-588d-9c42-cba61b592001
+		summarizeBy: none
+		sourceColumn: phone
+
+	column email
+		dataType: string
+		lineageTag: 7f5bb7b1-1c77-5b7f-8866-4316e05bfffa
+		summarizeBy: none
+		sourceColumn: email
+
+	column signup_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 3b7cc78b-3d4b-5aca-a7a1-144226877903
+		summarizeBy: none
+		sourceColumn: signup_date
+
+	column customer_segment
+		dataType: string
+		lineageTag: f665d62d-ff3a-5c89-8e61-6fedf572560e
+		summarizeBy: none
+		sourceColumn: customer_segment
+
+	column CustomerID_Valid
+		dataType: boolean
+		lineageTag: 36d97eb1-d0eb-5a55-87b0-a075454d8749
+		summarizeBy: none
+		sourceColumn: CustomerID_Valid
+
+	column Contact_Valid
+		dataType: boolean
+		lineageTag: 4b1b5355-2cfa-5b00-af2d-6a887126a755
+		summarizeBy: none
+		sourceColumn: Contact_Valid
+
+	column DataQualityReason
+		dataType: string
+		lineageTag: 105ed56e-ea23-58fd-befc-ee71387daef8
+		summarizeBy: none
+		sourceColumn: DataQualityReason
+
+	column DataQualityStatus
+		dataType: string
+		lineageTag: ea173f52-0600-5f32-b85f-ecf5a029367b
+		summarizeBy: none
+		sourceColumn: DataQualityStatus
+
+	column SourceSystem
+		dataType: string
+		lineageTag: 404ed131-7977-54bf-a08c-6a687f1f8f46
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+	partition rejected_customers = m
+		mode: import
+		source = ```
+			let
+			    Source = vld_customers_prep,
+			    FilteredRejected = Table.SelectRows(Source, each [DataQualityStatus] = "Rejected"),
+			    AddSourceTag = Table.AddColumn(FilteredRejected, "SourceSystem", each "customers.csv", type text)
+			in
+			    AddSourceTag
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,56 @@
+table dim_channel
+	lineageTag: 282aeeac-5858-5167-a1ec-eb9c099bf2b5
+
+	column ChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a5a57614-7c68-5ed8-9dc4-47e5da0fdea4
+		summarizeBy: none
+		sourceColumn: ChannelKey
+
+	column RawChannel
+		dataType: string
+		isHidden
+		lineageTag: 90ecdde3-fdb0-5e82-951b-2deda511558b
+		summarizeBy: none
+		sourceColumn: RawChannel
+
+	column 'Channel Name EN'
+		dataType: string
+		lineageTag: c2156355-ea52-5e7e-8f51-e9b03f33c859
+		summarizeBy: none
+		sourceColumn: 'Channel Name EN'
+
+	column 'Channel Name AR'
+		dataType: string
+		lineageTag: 943cb5e3-48ef-55e6-9b39-531f063fc2b9
+		summarizeBy: none
+		sourceColumn: 'Channel Name AR'
+
+	column 'Channel Group'
+		dataType: string
+		lineageTag: 2878b6c1-f621-5214-8b13-01b7eae9b33b
+		summarizeBy: none
+		sourceColumn: 'Channel Group'
+
+	partition dim_channel = m
+		mode: import
+		source = ```
+			let
+			    Source = ref_channel_mapping,
+			    Deduplicated = Table.Distinct(Source, {"NormalizedChannel"}),
+			    AddKey = Table.AddIndexColumn(Deduplicated, "ChannelKey", 1, 1, Int64.Type),
+			    Renamed = Table.RenameColumns(AddKey, {
+			        {"NormalizedChannel", "Channel Name EN"},
+			        {"Channel_AR", "Channel Name AR"},
+			        {"ChannelGroup", "Channel Group"}
+			    }),
+			    Projected = Table.SelectColumns(Renamed, {"ChannelKey", "RawChannel", "Channel Name EN", "Channel Name AR", "Channel Group"})
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

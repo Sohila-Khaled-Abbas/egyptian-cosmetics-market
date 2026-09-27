@@ -1,0 +1,197 @@
+table fact_sales
+	lineageTag: d3356655-fa16-51c1-ae3e-03387e2d03bd
+
+	column order_id
+		dataType: string
+		lineageTag: a2d754be-27c8-5738-aeac-37d196048655
+		summarizeBy: none
+		sourceColumn: order_id
+
+	column order_datetime
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 9ca361a0-e724-54c8-b284-7c61d92bdb75
+		summarizeBy: none
+		sourceColumn: order_datetime
+
+	column OrderDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1a04a040-eb03-5be0-adcd-bd5287c8ba70
+		summarizeBy: none
+		sourceColumn: OrderDateKey
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 751a35e2-9add-5966-beee-cc70189dd975
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 83b0d3cb-de29-51ef-801d-0d3d8b680941
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39f8e323-4698-54b6-9e4c-b71a85e9fef9
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+	column CampaignKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 48e00705-efc5-51fa-9cee-e649abc9d5a2
+		summarizeBy: none
+		sourceColumn: CampaignKey
+
+	column ChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 24e10fc6-e762-594e-bb84-5aea3067764e
+		summarizeBy: none
+		sourceColumn: ChannelKey
+
+	column PaymentMethodKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 443b00ff-cbb8-50f5-b38d-8cbd235be954
+		summarizeBy: none
+		sourceColumn: PaymentMethodKey
+
+	column OrderStatusKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f8031c60-51b8-5cbc-ae20-dd542af31b22
+		summarizeBy: none
+		sourceColumn: OrderStatusKey
+
+	column order_status
+		dataType: string
+		lineageTag: 3696bd60-b458-5c7c-8201-f144766f2497
+		summarizeBy: none
+		sourceColumn: order_status
+
+	column quantity
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 780fcbcc-ab42-5f95-9347-46d3b4dec8f2
+		summarizeBy: none
+		sourceColumn: quantity
+
+	column unit_price_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 60ce340b-268b-5411-8ce1-24a9441ad146
+		summarizeBy: none
+		sourceColumn: unit_price_egp
+
+	column discount_pct
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 3ea29055-11f4-5396-9a1b-a7dbecc9fb03
+		summarizeBy: none
+		sourceColumn: discount_pct
+
+	column gross_sales_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 4cdc48b7-a41c-52e8-9653-a9a418c3a2ec
+		summarizeBy: none
+		sourceColumn: gross_sales_egp
+
+	column discount_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 9c722120-bb93-511d-8f88-81b054726c23
+		summarizeBy: none
+		sourceColumn: discount_egp
+
+	column net_sales_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: efd16d67-aced-5518-ada4-27144af67f69
+		summarizeBy: none
+		sourceColumn: net_sales_egp
+
+	column cost_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f9185ea9-db9d-533e-9b0a-59db4d06fd3c
+		summarizeBy: none
+		sourceColumn: cost_egp
+
+	column gross_profit_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 4e27a1c6-4d93-5d5c-a0a8-0c503d6d91c5
+		summarizeBy: none
+		sourceColumn: gross_profit_egp
+
+	partition fact_sales = m
+		mode: import
+		source = ```
+			let
+			    Source = trf_sales,
+
+			    MergeCust = Table.NestedJoin(Source, {"customer_id"}, dim_customer, {"customer_id"}, "CustDim", JoinKind.LeftOuter),
+			    ExpandCust = Table.ExpandTableColumn(MergeCust, "CustDim", {"CustomerKey"}, {"CustomerKey"}),
+
+			    MergeProd = Table.NestedJoin(ExpandCust, {"product_id"}, dim_product, {"product_id"}, "ProdDim", JoinKind.LeftOuter),
+			    ExpandProd = Table.ExpandTableColumn(MergeProd, "ProdDim", {"ProductKey"}, {"ProductKey"}),
+
+			    MergeStore = Table.NestedJoin(ExpandProd, {"store_id"}, dim_store, {"store_id"}, "StoreDim", JoinKind.LeftOuter),
+			    ExpandStore = Table.ExpandTableColumn(MergeStore, "StoreDim", {"StoreKey"}, {"StoreKey"}),
+
+			    MergeCamp = Table.NestedJoin(ExpandStore, {"campaign_id"}, dim_campaign, {"campaign_id"}, "CampDim", JoinKind.LeftOuter),
+			    ExpandCamp = Table.ExpandTableColumn(MergeCamp, "CampDim", {"CampaignKey"}, {"CampaignKey"}),
+
+			    MergeChan = Table.NestedJoin(ExpandCamp, {"sales_channel_en"}, dim_channel, {"RawChannel"}, "ChanDim", JoinKind.LeftOuter),
+			    ExpandChan = Table.ExpandTableColumn(MergeChan, "ChanDim", {"ChannelKey"}, {"ChannelKey"}),
+
+			    MergePay = Table.NestedJoin(ExpandChan, {"payment_method_en"}, dim_payment_method, {"RawPayment"}, "PayDim", JoinKind.LeftOuter),
+			    ExpandPay = Table.ExpandTableColumn(MergePay, "PayDim", {"PaymentMethodKey"}, {"PaymentMethodKey"}),
+
+			    MergeStatus = Table.NestedJoin(ExpandPay, {"order_status"}, dim_order_status, {"Order Status EN"}, "StatusDim", JoinKind.LeftOuter),
+			    ExpandStatus = Table.ExpandTableColumn(MergeStatus, "StatusDim", {"OrderStatusKey"}, {"OrderStatusKey"}),
+
+			    Projected = Table.SelectColumns(ExpandStatus, {
+			        "order_id",
+			        "order_datetime",
+			        "OrderDateKey",
+			        "CustomerKey",
+			        "ProductKey",
+			        "StoreKey",
+			        "CampaignKey",
+			        "ChannelKey",
+			        "PaymentMethodKey",
+			        "OrderStatusKey",
+			        "order_status",
+			        "quantity",
+			        "unit_price_egp",
+			        "discount_pct",
+			        "gross_sales_egp",
+			        "discount_egp",
+			        "net_sales_egp",
+			        "cost_egp",
+			        "gross_profit_egp"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

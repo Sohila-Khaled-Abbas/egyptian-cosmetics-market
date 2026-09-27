@@ -1,0 +1,158 @@
+table dim_date
+	lineageTag: 8ed864a6-9c86-5e83-bf45-9ce1631cb190
+	dataCategory: Time
+
+	column DateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d50f4092-7cd3-5542-98e1-eb466a6b57af
+		summarizeBy: none
+		sourceColumn: DateKey
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		lineageTag: 2a98a47f-7cc5-5a08-99d7-a50fbf44d294
+		summarizeBy: none
+		sourceColumn: Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: f26e3471-46a5-54a8-97b3-15740a27e34d
+		summarizeBy: none
+		sourceColumn: Year
+
+	column 'Month Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1acdca89-99c9-5a3d-9a2b-6f1fde964c7c
+		summarizeBy: none
+		sourceColumn: 'Month Number'
+
+	column 'Month Name'
+		dataType: string
+		lineageTag: b96e251d-2d77-59ce-938c-fd2623419314
+		summarizeBy: none
+		sourceColumn: 'Month Name'
+
+	column 'Month Short Name'
+		dataType: string
+		lineageTag: 7d6af944-1595-566a-b743-9ed385d6ef20
+		summarizeBy: none
+		sourceColumn: 'Month Short Name'
+
+	column 'Month Name AR'
+		dataType: string
+		lineageTag: 8f775633-3d71-5f11-b2b0-d26c8e36d6a7
+		summarizeBy: none
+		sourceColumn: 'Month Name AR'
+
+	column Quarter
+		dataType: string
+		lineageTag: 58a0753c-dcae-5f00-ac1a-9b541f6f17dd
+		summarizeBy: none
+		sourceColumn: Quarter
+
+	column 'Year Month'
+		dataType: string
+		lineageTag: b8aee4d1-7921-5e1c-9649-8df451c99681
+		summarizeBy: none
+		sourceColumn: 'Year Month'
+
+	column 'Year Month Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: d7f0e539-7627-5780-a205-238305beaa73
+		summarizeBy: none
+		sourceColumn: 'Year Month Number'
+
+	column 'Week Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5a3997c8-5b36-53bb-90ef-0f3253c11db8
+		summarizeBy: none
+		sourceColumn: 'Week Number'
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d721bc2-bd44-5cfd-a784-4f24bc397d78
+		summarizeBy: none
+		sourceColumn: Day
+
+	column 'Day Name'
+		dataType: string
+		lineageTag: 615d645d-1ab7-5d85-87b1-0c71a206f660
+		summarizeBy: none
+		sourceColumn: 'Day Name'
+
+	column 'Day Name AR'
+		dataType: string
+		lineageTag: 141dc137-07f5-5c1f-8fb6-7d1c6a87276c
+		summarizeBy: none
+		sourceColumn: 'Day Name AR'
+
+	column 'Is Weekend'
+		dataType: boolean
+		lineageTag: 657ff95d-060a-55d6-b3c6-2f5731063c74
+		summarizeBy: none
+		sourceColumn: 'Is Weekend'
+
+	column 'Fiscal Half'
+		dataType: string
+		lineageTag: e01853af-372f-5b0c-941c-28d8a6a446d4
+		summarizeBy: none
+		sourceColumn: 'Fiscal Half'
+
+	partition dim_date = m
+		mode: import
+		source = ```
+			let
+			    StartDate = pStartDate,
+			    EndDate = pEndDate,
+			    DayCount = Duration.Days(EndDate - StartDate) + 1,
+
+			    DateList = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
+			    TableFromList = Table.FromList(DateList, Splitter.SplitByNothing(), {"Date"}, null, ExtraValues.Error),
+			    ChangedType = Table.TransformColumnTypes(TableFromList, {{"Date", type date}}),
+
+			    Add_DateKey = Table.AddColumn(ChangedType, "DateKey", each 
+			        Date.Year([Date]) * 10000 + Date.Month([Date]) * 100 + Date.Day([Date]), 
+			        Int64.Type
+			    ),
+			    Add_Year = Table.AddColumn(Add_DateKey, "Year", each Date.Year([Date]), Int64.Type),
+			    Add_MonthNum = Table.AddColumn(Add_Year, "Month Number", each Date.Month([Date]), Int64.Type),
+			    Add_MonthName = Table.AddColumn(Add_MonthNum, "Month Name", each Date.MonthName([Date], "en-US"), type text),
+			    Add_MonthShort = Table.AddColumn(Add_MonthName, "Month Short Name", each Text.Start([Month Name], 3), type text),
+			    Add_MonthAR = Table.AddColumn(Add_MonthShort, "Month Name AR", each Date.MonthName([Date], "ar-EG"), type text),
+			    Add_Quarter = Table.AddColumn(Add_MonthAR, "Quarter", each "Q" & Text.From(Date.QuarterOfYear([Date])), type text),
+			    Add_YearMonth = Table.AddColumn(Add_Quarter, "Year Month", each 
+			        Text.From([Year]) & "-" & Text.PadStart(Text.From([Month Number]), 2, "0"), 
+			        type text
+			    ),
+			    Add_YearMonthNum = Table.AddColumn(Add_YearMonth, "Year Month Number", each 
+			        [Year] * 100 + [Month Number], 
+			        Int64.Type
+			    ),
+			    Add_WeekNum = Table.AddColumn(Add_YearMonthNum, "Week Number", each Date.WeekOfYear([Date]), Int64.Type),
+			    Add_Day = Table.AddColumn(Add_WeekNum, "Day", each Date.Day([Date]), Int64.Type),
+			    Add_DayName = Table.AddColumn(Add_Day, "Day Name", each Date.DayOfWeekName([Date], "en-US"), type text),
+			    Add_DayNameAR = Table.AddColumn(Add_DayName, "Day Name AR", each Date.DayOfWeekName([Date], "ar-EG"), type text),
+			    Add_IsWeekend = Table.AddColumn(Add_DayNameAR, "Is Weekend", each 
+			        if Date.DayOfWeek([Date], Day.Friday) <= 1 then true else false, 
+			        type logical
+			    ), // Weekend in Egypt: Friday (0) and Saturday (1)
+			    Add_FiscalHalf = Table.AddColumn(Add_IsWeekend, "Fiscal Half", each 
+			        if [Month Number] <= 6 then "H1" else "H2", 
+			        type text
+			    )
+			in
+			    Add_FiscalHalf
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

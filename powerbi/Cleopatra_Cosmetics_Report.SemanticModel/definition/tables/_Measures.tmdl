@@ -1,0 +1,489 @@
+table _Measures
+	lineageTag: ee350797-313e-5eae-ab82-2cef1ed07658
+
+	measure 'Gross Sales' = SUM(fact_sales[gross_sales_egp])
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: c3d497ad-08f6-5723-8d45-80ac2987e7cf
+
+	measure Discount = SUM(fact_sales[discount_egp])
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: 280e60b1-0a6e-5335-b729-409e0b06bd32
+
+	measure 'Net Sales' = ```
+			CALCULATE(
+			    SUM(fact_sales[net_sales_egp]),
+			    fact_sales[order_status] = "Completed"
+			)
+		```
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: 62d78218-cb0c-5acb-bf64-4a763335dc16
+
+	measure Cost = ```
+			CALCULATE(
+			    SUM(fact_sales[cost_egp]),
+			    fact_sales[order_status] = "Completed"
+			)
+		```
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: 161a9050-7163-5c21-ac96-7c0a52bc462e
+
+	measure 'Gross Profit' = [Net Sales] - [Cost]
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: bac0ea7d-5259-5f51-a3e4-ff340aede488
+
+	measure 'Gross Margin %' = DIVIDE([Gross Profit], [Net Sales], 0)
+		formatString: 0.0%
+		displayFolder: 01 Financial KPIs
+		lineageTag: 4f2d7581-5a1f-5208-9e93-be95ecdda1b8
+
+	measure 'Discount %' = DIVIDE([Discount], [Gross Sales], 0)
+		formatString: 0.0%
+		displayFolder: 01 Financial KPIs
+		lineageTag: ef6bdf89-a86e-581a-94fe-fa716061a807
+
+	measure 'Average Selling Price' = DIVIDE([Net Sales], [Units Sold], 0)
+		formatString: #,##0.00 "EGP"
+		displayFolder: 01 Financial KPIs
+		lineageTag: 14c8a303-8e7a-5cfd-80ab-717fb56b3b09
+
+	measure Orders = DISTINCTCOUNT(fact_sales[order_id])
+		formatString: #,##0
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 2d15751f-3649-5bd6-9f7a-10120e08940c
+
+	measure 'Completed Orders' = CALCULATE(
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 331dc5a8-64a0-5fca-be7f-9f0a8acbbd76
+
+	measure 'Units Sold' = ```
+			CALCULATE(
+			    SUM(fact_sales[quantity]),
+			    fact_sales[order_status] = "Completed"
+			)
+		```
+		formatString: #,##0
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: e143f3c9-998a-510d-b30e-5a20354b6fad
+
+	measure 'Average Order Value' = DIVIDE([Net Sales], [Completed Orders], 0)
+		formatString: #,##0.00 "EGP"
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 868f5402-7b7e-5c9c-9d99-42c00158365a
+
+	measure 'Cancelled Orders' = CALCULATE([Orders], fact_sales[order_status] = "Cancelled")
+		formatString: #,##0
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 23917ca6-2ed1-5871-801c-225e1940c29b
+
+	measure 'Returned Orders' = CALCULATE([Orders], fact_sales[order_status] = "Returned")
+		formatString: #,##0
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 1f47e23a-1b71-5ddc-a3f6-9f87b824ad3f
+
+	measure 'Return Rate %' = DIVIDE([Returned Orders], [Orders], 0)
+		formatString: 0.0%
+		displayFolder: 02 Order & Volume KPIs
+		lineageTag: 564a8e3f-ace2-5c6f-bd46-7bd639c1aaa3
+
+	measure Customers = DISTINCTCOUNT(fact_sales[CustomerKey])
+		formatString: #,##0
+		displayFolder: 03 Customer & AOV
+		lineageTag: 114f09bd-30e5-5d23-86be-9c4e96190d83
+
+	measure 'Customer Revenue' = DIVIDE([Net Sales], [Customers], 0)
+		formatString: #,##0.00 "EGP"
+		displayFolder: 03 Customer & AOV
+		lineageTag: 92d499fd-3d7a-587b-be68-023971be1068
+
+	measure 'New Customers' = ```
+			VAR MinDates = 
+			    ADDCOLUMNS(
+			        VALUES(dim_customer[CustomerKey]),
+			        "@FirstPurchase", CALCULATE(MIN(fact_sales[order_datetime]), ALL(dim_date))
+			    )
+			VAR CurrentPeriodStart = MIN(dim_date[Date])
+			VAR CurrentPeriodEnd = MAX(dim_date[Date])
+			RETURN
+			    COUNTROWS(
+			        FILTER(
+			            MinDates,
+			            VAR FP = [@FirstPurchase]
+			            RETURN FP >= CurrentPeriodStart && FP <= CurrentPeriodEnd
+			        )
+			    ) + 0
+		```
+		formatString: #,##0
+		displayFolder: 03 Customer & AOV
+		lineageTag: 68d97b0e-ee07-50a7-945e-3b839ce7fce6
+
+	measure 'Returning Customers' = [Customers] - [New Customers]
+		formatString: #,##0
+		displayFolder: 03 Customer & AOV
+		lineageTag: d07819ef-9a5d-5258-bc32-852b94dd9c3f
+
+	measure 'Customer Last Order Date' = ```
+			CALCULATE(
+			    MAX(fact_sales[order_datetime]),
+			    fact_sales[order_status] = "Completed"
+			)
+		```
+		displayFolder: 03 Customer & AOV
+		lineageTag: 032932cf-2dc8-5daf-a183-7018e06e1655
+
+	measure 'Customer Recency Days' = ```
+			VAR LastOrder = [Customer Last Order Date]
+			VAR AsOfDate = MAX(dim_date[Date])
+			RETURN
+			    IF(
+			        NOT ISBLANK(LastOrder),
+			        DATEDIFF(LastOrder, AsOfDate, DAY),
+			        BLANK()
+			    )
+		```
+		displayFolder: 03 Customer & AOV
+		lineageTag: 7a7cb1c7-5c7b-57be-a651-84bdc303081b
+
+	measure 'Customer Frequency' = CALCULATE(
+		displayFolder: 03 Customer & AOV
+		lineageTag: 4f078e0e-610a-5f60-a0ac-f1f25282047b
+
+	measure 'Customer Monetary' = CALCULATE(
+		displayFolder: 03 Customer & AOV
+		lineageTag: 7b2775ce-d1c8-58db-8d2d-043ecf6a6f28
+
+	measure 'Customer RFM Segment' = ```
+			VAR R_Days = [Customer Recency Days]
+			VAR F_Count = [Customer Frequency]
+			VAR M_Spend = [Customer Monetary]
+
+			VAR R_Score = 
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK(R_Days), BLANK(),
+			        R_Days <= 45, 5,
+			        R_Days <= 90, 4,
+			        R_Days <= 150, 3,
+			        R_Days <= 240, 2,
+			        1
+			    )
+
+			VAR F_Score = 
+			    SWITCH(
+			        TRUE(),
+			        F_Count >= 28, 5,
+			        F_Count >= 20, 4,
+			        F_Count >= 14, 3,
+			        F_Count >= 8, 2,
+			        1
+			    )
+
+			VAR M_Score = 
+			    SWITCH(
+			        TRUE(),
+			        M_Spend >= 24000, 5,
+			        M_Spend >= 17000, 4,
+			        M_Spend >= 11500, 3,
+			        M_Spend >= 6000, 2,
+			        1
+			    )
+
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK(R_Score), "No Orders",
+			        R_Score >= 4 && F_Score >= 4 && M_Score >= 4, "Champions",
+			        R_Score >= 3 && F_Score >= 3 && M_Score >= 3, "Loyal Customers",
+			        R_Score >= 4 && F_Score <= 2, "Potential Loyalists",
+			        R_Score <= 3 && F_Score >= 3 && M_Score >= 3, "At Risk",
+			        R_Score == 1 && F_Score <= 2, "Lost Customers",
+			        "Hibernating"
+			    )
+		```
+		displayFolder: 03 Customer & AOV
+		lineageTag: b9028c37-cf03-5258-8329-1bb0f50f1485
+
+	measure 'RFM Customer Count' = ```
+			COUNTROWS(
+			    FILTER(
+			        VALUES(dim_customer[CustomerKey]),
+			        NOT ISBLANK([Customer RFM Segment])
+			    )
+			)
+		```
+		formatString: #,##0
+		displayFolder: 03 Customer & AOV
+		lineageTag: fd3839eb-934f-5bf2-a6e2-3ca93aa8a8c3
+
+	measure 'Sales Target' = SUM(fact_targets[sales_target_egp])
+		formatString: #,##0.00 "EGP"
+		displayFolder: 04 Commercial Targets
+		lineageTag: f1168d80-15b3-50be-88b3-989700f53838
+
+	measure 'Order Target' = SUM(fact_targets[order_target])
+		formatString: #,##0
+		displayFolder: 04 Commercial Targets
+		lineageTag: 777634a4-ae7f-53fa-bbab-d3b254ffc42b
+
+	measure 'Target Variance' = ```
+			VAR Actuals = [Actual Sales]
+			VAR Target = [Sales Target]
+			RETURN
+			    IF(
+			        NOT ISBLANK(Actuals) || NOT ISBLANK(Target),
+			        Actuals - Target,
+			        BLANK()
+			    )
+		```
+		formatString: +#,##0.00 "EGP";-#,##0.00 "EGP";0.00 "EGP"
+		displayFolder: 04 Commercial Targets
+		lineageTag: 68d35f09-c91e-5e88-afae-e9053188f051
+
+	measure 'Target Variance %' = ```
+			VAR Actuals = [Actual Sales]
+			VAR Target = [Sales Target]
+			RETURN
+			    IF(
+			        NOT ISBLANK(Target) && Target > 0,
+			        DIVIDE(Actuals - Target, Target, 0),
+			        BLANK()
+			    )
+		```
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 04 Commercial Targets
+		lineageTag: 54da2f77-9eb4-5959-a9c6-dca2afdf23f6
+
+	measure 'Target Achievement %' = DIVIDE([Actual Sales], [Sales Target], 0)
+		formatString: 0.0%
+		displayFolder: 04 Commercial Targets
+		lineageTag: 6b593da6-0277-52a6-bb0b-f24c24cec8f4
+
+	measure 'Sales YTD' = TOTALYTD(
+		displayFolder: 05 Time Intelligence
+		lineageTag: 157b79ed-1705-5c47-a22a-2b88ee92da44
+
+	measure 'Sales QTD' = TOTALQTD(
+		displayFolder: 05 Time Intelligence
+		lineageTag: 432e6479-26d3-50e9-9d8a-f059d42fca82
+
+	measure 'Sales MTD' = TOTALMTD(
+		displayFolder: 05 Time Intelligence
+		lineageTag: cf2296cf-4aaa-5a7a-8bea-0dab92a7d9b8
+
+	measure 'Sales PY' = CALCULATE(
+		displayFolder: 05 Time Intelligence
+		lineageTag: e718f944-061f-5ccf-948f-15aa104d59bd
+
+	measure 'YoY Sales Growth %' = ```
+			VAR CurrentSales = [Net Sales]
+			VAR PriorYearSales = [Sales PY]
+			RETURN
+			    IF(
+			        NOT ISBLANK(CurrentSales) && NOT ISBLANK(PriorYearSales),
+			        DIVIDE(CurrentSales - PriorYearSales, PriorYearSales, 0),
+			        BLANK()
+			    )
+		```
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Time Intelligence
+		lineageTag: 37fee1ef-70a3-5ae3-a476-a1b21f738bec
+
+	measure 'Sales PM' = CALCULATE(
+		displayFolder: 05 Time Intelligence
+		lineageTag: 477dadcd-1a6b-53e6-84ae-dc4d8ee63cba
+
+	measure 'MoM Sales Growth %' = ```
+			VAR CurrentSales = [Net Sales]
+			VAR PriorMonthSales = [Sales PM]
+			RETURN
+			    IF(
+			        NOT ISBLANK(CurrentSales) && NOT ISBLANK(PriorMonthSales),
+			        DIVIDE(CurrentSales - PriorMonthSales, PriorMonthSales, 0),
+			        BLANK()
+			    )
+		```
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Time Intelligence
+		lineageTag: 1ea52b61-1751-518b-aac9-da11759b8e16
+
+	measure 'Opening Stock' = SUM(fact_inventory[opening_stock])
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: ab437d21-cd50-5a5d-b379-3c62e6c9dcda
+
+	measure 'Received Qty' = SUM(fact_inventory[received_qty])
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 25e2edb9-fb59-53d7-b527-00acd439e1ff
+
+	measure 'Inventory Sold Qty' = SUM(fact_inventory[sold_qty])
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 5bdac76c-8338-5638-a828-2d9101071fd9
+
+	measure 'Damaged Qty' = SUM(fact_inventory[damaged_qty])
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 4c4d2a63-eadf-508f-9b82-67f100bf7482
+
+	measure 'Closing Stock' = SUM(fact_inventory[closing_stock])
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 43c77430-5816-5cf3-a0c5-29053146b937
+
+	measure 'Closing Stock Value EGP' = ```
+			SUMX(
+			    fact_inventory,
+			    fact_inventory[closing_stock] * RELATED(dim_product[Standard Cost EGP])
+			)
+		```
+		formatString: #,##0.00 "EGP"
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 316c4e88-a173-58e2-8f5c-7b7e49deebac
+
+	measure 'Damaged Stock Loss EGP' = ```
+			SUMX(
+			    fact_inventory,
+			    fact_inventory[damaged_qty] * RELATED(dim_product[Standard Cost EGP])
+			)
+		```
+		formatString: #,##0.00 "EGP"
+		displayFolder: 06 Inventory & Stock
+		lineageTag: c670c136-6100-5090-a975-5a36f053dced
+
+	measure 'Stockout Risk' = ```
+			CALCULATE(
+			    COUNTROWS(fact_inventory),
+			    fact_inventory[is_stockout] = 1
+			) + 0
+		```
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 2ae70406-889c-58ca-bd79-d72a7c282179
+
+	measure 'Low Stock Count' = ```
+			CALCULATE(
+			    COUNTROWS(fact_inventory),
+			    fact_inventory[is_low_stock] = 1
+			) + 0
+		```
+		formatString: #,##0
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 0ee8e1a0-a719-5fad-9da1-7b6271fc5b30
+
+	measure 'Sell-Through Rate %' = ```
+			VAR TotalAvailable = [Opening Stock] + [Received Qty]
+			RETURN
+			    DIVIDE([Inventory Sold Qty], TotalAvailable, 0)
+		```
+		formatString: 0.0%
+		displayFolder: 06 Inventory & Stock
+		lineageTag: c7f63c0d-2aab-5335-8f48-04337cdabdbe
+
+	measure 'Damage Loss Ratio %' = DIVIDE([Damaged Qty], [Opening Stock] + [Received Qty], 0)
+		formatString: 0.00%
+		displayFolder: 06 Inventory & Stock
+		lineageTag: 9d72e536-5ffc-5893-a85b-82f99b802190
+
+	measure 'Total Raw Orders Ingested' = [Valid Orders] + [Quarantined Orders]
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 18a483e8-044a-5c4d-804b-30b7be4daf67
+
+	measure 'Valid Orders' = COUNTROWS(fact_sales)
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 70fcabe3-e04f-561f-b8ed-7813d552589e
+
+	measure 'Quarantined Orders' = COUNTROWS(rejected_orders)
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 4744e71e-f47e-53b5-9d4d-105a0731167c
+
+	measure 'Data Quality Score %' = DIVIDE([Valid Orders], [Total Raw Orders Ingested], 0)
+		formatString: 0.00%
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 1ccef3b2-4e6a-54bb-b1e1-720521aa5eb7
+
+	measure 'DQ Rejection Rate %' = DIVIDE([Quarantined Orders], [Total Raw Orders Ingested], 0)
+		formatString: 0.00%
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 71576af0-6012-5a14-a5fd-6c8827bd3080
+
+	measure 'Reconciliation Variance Orders' = ```
+			VAR TotalSource = [Valid Orders] + [Quarantined Orders]
+			VAR ExpectedRaw = 502000
+			RETURN
+			    TotalSource - ExpectedRaw
+		```
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 837b00d4-e779-5503-8d5e-86f1bff2158c
+
+	measure 'Assertion 01 - Negative Sales Breach' = ```
+			CALCULATE(
+			    COUNTROWS(fact_sales),
+			    fact_sales[net_sales_egp] < 0
+			) + 0
+		```
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 7c2ec5eb-f213-5aa1-b307-ed4ff30043df
+
+	measure 'Assertion 02 - Orphan Customer Keys' = ```
+			CALCULATE(
+			    COUNTROWS(fact_sales),
+			    ISBLANK(RELATED(dim_customer[customer_id]))
+			) + 0
+		```
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: cec7a7fd-e3fb-58e1-b949-853d8f0404da
+
+	measure 'Assertion 03 - Date Dimension Gaps' = ```
+			VAR MinDate = MIN(dim_date[Date])
+			VAR MaxDate = MAX(dim_date[Date])
+			VAR ExpectedDays = DATEDIFF(MinDate, MaxDate, DAY) + 1
+			VAR ActualDays = COUNTROWS(dim_date)
+			RETURN
+			    ExpectedDays - ActualDays
+		```
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: 75e92b15-a753-5165-9be4-159f9d324244
+
+	measure 'Assertion 04 - Negative Damaged Stock' = ```
+			CALCULATE(
+			    COUNTROWS(fact_inventory),
+			    fact_inventory[damaged_qty] < 0
+			) + 0
+		```
+		formatString: #,##0
+		displayFolder: 07 Data Quality & Pipeline Audit
+		lineageTag: b5053284-190d-52b8-9cac-3352c617d1c5
+
+	column __Placeholder
+		dataType: int64
+		isHidden
+		lineageTag: 538ccd00-4218-5209-8447-6b5e6bc063f3
+		summarizeBy: none
+		sourceColumn: __Placeholder
+
+	partition _Measures = m
+		mode: import
+		source = ```
+			let
+			    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Column1" = _t]),
+			    #"Renamed Columns" = Table.RenameColumns(Source,{{"Column1", "__Placeholder"}}),
+			    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"__Placeholder", Int64.Type}})
+			in
+			    #"Changed Type"
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

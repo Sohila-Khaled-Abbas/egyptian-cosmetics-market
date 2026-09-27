@@ -1,0 +1,101 @@
+table rejected_inventory
+	lineageTag: 31c7741c-dc47-5bc7-ac02-6c95c75dfdb5
+
+	column month
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 90e2d651-7cfc-5735-baa0-9efc765cf4cc
+		summarizeBy: none
+		sourceColumn: month
+
+	column store_id
+		dataType: string
+		lineageTag: f12b8872-acac-59d3-8d23-5936618efbdd
+		summarizeBy: none
+		sourceColumn: store_id
+
+	column product_id
+		dataType: string
+		lineageTag: 7a3f1741-7ee6-5875-b3b0-59d66f9e8262
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column opening_stock
+		dataType: int64
+		formatString: 0
+		lineageTag: ef794ba9-5d14-55b7-b11d-337e4cd871e5
+		summarizeBy: none
+		sourceColumn: opening_stock
+
+	column received_qty
+		dataType: int64
+		formatString: 0
+		lineageTag: 449dc10a-c736-5983-87a6-77ef93f828e9
+		summarizeBy: none
+		sourceColumn: received_qty
+
+	column sold_qty
+		dataType: int64
+		formatString: 0
+		lineageTag: c2038aef-3cc4-5705-b7c7-59027e550692
+		summarizeBy: none
+		sourceColumn: sold_qty
+
+	column damaged_qty
+		dataType: int64
+		formatString: 0
+		lineageTag: ec828c4f-c557-5ea6-a7e0-d6a4dcb192d3
+		summarizeBy: none
+		sourceColumn: damaged_qty
+
+	column closing_stock
+		dataType: int64
+		formatString: 0
+		lineageTag: bc7bcff5-be73-5550-ac3c-0cd9abf7baac
+		summarizeBy: none
+		sourceColumn: closing_stock
+
+	column ClosingStock_Valid
+		dataType: boolean
+		lineageTag: 4b5ff0e5-64ed-5e33-ab03-81748b97d12b
+		summarizeBy: none
+		sourceColumn: ClosingStock_Valid
+
+	column DamagedQty_Valid
+		dataType: boolean
+		lineageTag: 90b41005-713a-5a6e-af79-0e43508da9ec
+		summarizeBy: none
+		sourceColumn: DamagedQty_Valid
+
+	column DataQualityReason
+		dataType: string
+		lineageTag: ef08b7d0-cf35-50b1-97c2-2f1b7211e20d
+		summarizeBy: none
+		sourceColumn: DataQualityReason
+
+	column DataQualityStatus
+		dataType: string
+		lineageTag: 76f9b00f-eec0-5ef2-a6b2-a1aa236d9748
+		summarizeBy: none
+		sourceColumn: DataQualityStatus
+
+	column SourceSystem
+		dataType: string
+		lineageTag: 21d223ba-45e5-5a2e-8c79-d033ecf3c214
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+	partition rejected_inventory = m
+		mode: import
+		source = ```
+			let
+			    Source = vld_inventory_prep,
+			    FilteredRejected = Table.SelectRows(Source, each [DataQualityStatus] = "Rejected"),
+			    AddSourceTag = Table.AddColumn(FilteredRejected, "SourceSystem", each "inventory_monthly.csv", type text)
+			in
+			    AddSourceTag
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

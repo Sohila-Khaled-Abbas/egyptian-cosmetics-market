@@ -1,0 +1,54 @@
+table fact_targets
+	lineageTag: 415332a4-3aef-569c-b814-d71fa0f911f2
+
+	column TargetDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d712ef0e-0da0-535a-9ac3-e9a55b794574
+		summarizeBy: none
+		sourceColumn: TargetDateKey
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e86d49d9-0051-514f-a06c-1b8f99187981
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+	column sales_target_egp
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: 5a477f35-6537-50be-9eca-5c6f869ce212
+		summarizeBy: none
+		sourceColumn: sales_target_egp
+
+	column order_target
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 939b044e-51ca-5122-a356-462253504d96
+		summarizeBy: none
+		sourceColumn: order_target
+
+	partition fact_targets = m
+		mode: import
+		source = ```
+			let
+			    Source = trf_targets,
+			    MergeStore = Table.NestedJoin(Source, {"store_id"}, dim_store, {"store_id"}, "StoreDim", JoinKind.LeftOuter),
+			    ExpandStore = Table.ExpandTableColumn(MergeStore, "StoreDim", {"StoreKey"}, {"StoreKey"}),
+
+			    Projected = Table.SelectColumns(ExpandStore, {
+			        "TargetDateKey",
+			        "StoreKey",
+			        "sales_target_egp",
+			        "order_target"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

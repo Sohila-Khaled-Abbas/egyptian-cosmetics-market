@@ -1,0 +1,61 @@
+table dq_summary
+	lineageTag: 9de0f390-1245-5868-b93e-77e1b44bc3f7
+
+	column 'Source Entity'
+		dataType: string
+		lineageTag: 53861a2c-84e4-501d-89cb-9f5e7872b0fc
+		summarizeBy: none
+		sourceColumn: 'Source Entity'
+
+	column 'Raw Rows Ingested'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 949b52ab-e931-53f1-bae5-aea6f4194d1a
+		summarizeBy: none
+		sourceColumn: 'Raw Rows Ingested'
+
+	column 'Valid Production Rows'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: ba2559d3-32e3-557c-9b19-ac1c1d89b93c
+		summarizeBy: none
+		sourceColumn: 'Valid Production Rows'
+
+	column 'Quarantined Rows'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: de4535fe-fbca-5a44-91fe-e872d45c4dda
+		summarizeBy: none
+		sourceColumn: 'Quarantined Rows'
+
+	column 'Quality Score %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 6c70c0f3-9df0-54f2-96bc-69933245d547
+		summarizeBy: none
+		sourceColumn: 'Quality Score %'
+
+	partition dq_summary = m
+		mode: import
+		source = ```
+			let
+			    Source = Table.FromRows({
+			        {"Orders", 502000, 499903, 2097, 0.9958},
+			        {"Customers", 25200, 25000, 200, 0.9921},
+			        {"Inventory", 8400, 8300, 100, 0.9881},
+			        {"Targets", 417, 415, 2, 0.9952}
+			    }, {"Source Entity", "Raw Rows Ingested", "Valid Production Rows", "Quarantined Rows", "Quality Score %"}),
+			    Typed = Table.TransformColumnTypes(Source, {
+			        {"Source Entity", type text},
+			        {"Raw Rows Ingested", Int64.Type},
+			        {"Valid Production Rows", Int64.Type},
+			        {"Quarantined Rows", Int64.Type},
+			        {"Quality Score %", Percentage.Type}
+			    })
+			in
+			    Typed
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

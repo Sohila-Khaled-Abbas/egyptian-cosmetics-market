@@ -1,0 +1,68 @@
+relationship 039150a1-167a-5ade-adf4-5cf1f62f2490
+	fromColumn: fact_sales.OrderDateKey
+	toColumn: dim_date.DateKey
+
+relationship 9f488846-9fd2-5634-bcf0-74ff8c476cef
+	fromColumn: fact_sales.CustomerKey
+	toColumn: dim_customer.CustomerKey
+
+relationship 5d3e8549-b2c6-59d1-a19a-c4a86bc745cb
+	fromColumn: fact_sales.ProductKey
+	toColumn: dim_product.ProductKey
+
+relationship d402720a-a24b-58a6-9fa1-c8f016117c28
+	fromColumn: fact_sales.StoreKey
+	toColumn: dim_store.StoreKey
+
+relationship 801109b1-80a9-53d1-a4a6-9781e5d7a2f3
+	fromColumn: fact_sales.CampaignKey
+	toColumn: dim_campaign.CampaignKey
+
+relationship cf2d4c3e-a3a7-5f9e-a743-25df3108ec0b
+	fromColumn: fact_sales.ChannelKey
+	toColumn: dim_channel.ChannelKey
+
+relationship 6c69cec3-c71f-57ae-9a36-93cd43123f5b
+	fromColumn: fact_sales.PaymentMethodKey
+	toColumn: dim_payment_method.PaymentMethodKey
+
+relationship cf33abc2-d993-5e90-b42f-cc346f19b524
+	fromColumn: fact_sales.OrderStatusKey
+	toColumn: dim_order_status.OrderStatusKey
+
+relationship 33dcdb48-227d-592c-b144-4e62d63dccc5
+	fromColumn: fact_inventory.MonthDateKey
+	toColumn: dim_date.DateKey
+
+relationship c3abb3bb-7c3d-5fef-8983-9e154a21041d
+	fromColumn: fact_inventory.StoreKey
+	toColumn: dim_store.StoreKey
+
+relationship 45c85841-4bea-509e-9929-dd906c4cbb11
+	fromColumn: fact_inventory.ProductKey
+	toColumn: dim_product.ProductKey
+
+relationship e2d02106-550c-5f37-8112-14264cc8ae9a
+	fromColumn: fact_targets.TargetDateKey
+	toColumn: dim_date.DateKey
+
+relationship c3414ea9-d9d6-5761-8337-d6200492df13
+	fromColumn: fact_targets.StoreKey
+	toColumn: dim_store.StoreKey
+
+relationship dd663974-1f13-56be-b64d-2968478ef23e
+	fromColumn: dim_store.GeographyKey
+	toColumn: dim_geography.GeographyKey
+
+relationship 90e37d83-6b9b-5af9-be0f-1ec2c9865e2a
+	isActive: false
+	fromColumn: dim_customer.GeographyKey
+	toColumn: dim_geography.GeographyKey
+
+relationship 78d3b32b-f244-5835-bc47-34c7f0fae655
+	fromColumn: dim_subcategory.CategoryKey
+	toColumn: dim_category.CategoryKey
+
+relationship b17e2c34-53ae-5dcc-9883-08c1cbd14a37
+	fromColumn: dim_product.SubcategoryKey
+	toColumn: dim_subcategory.SubcategoryKey

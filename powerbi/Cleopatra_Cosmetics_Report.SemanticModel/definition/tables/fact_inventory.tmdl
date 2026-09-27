@@ -1,0 +1,113 @@
+table fact_inventory
+	lineageTag: b13297dd-960e-5621-9024-a6f74997964f
+
+	column MonthDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0437cbc3-84e1-50e3-85e0-f7d7ec67b44d
+		summarizeBy: none
+		sourceColumn: MonthDateKey
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ccf2673b-f906-5e26-836a-ac3ab9d8eb17
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d8acced2-548c-5bc2-8674-cd7263bc2e79
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column opening_stock
+		dataType: int64
+		formatString: #,##0
+		lineageTag: a58ddf22-2a86-500d-9c89-345868ab59bc
+		summarizeBy: none
+		sourceColumn: opening_stock
+
+	column received_qty
+		dataType: int64
+		formatString: #,##0
+		lineageTag: f0903a95-b51e-5416-a64e-c10e45228e2c
+		summarizeBy: none
+		sourceColumn: received_qty
+
+	column sold_qty
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 5f23fb0f-7843-59da-9d35-ba8c6a290925
+		summarizeBy: none
+		sourceColumn: sold_qty
+
+	column damaged_qty
+		dataType: int64
+		formatString: #,##0
+		lineageTag: bba1715a-f2e1-526a-8a5e-2e060e823f02
+		summarizeBy: none
+		sourceColumn: damaged_qty
+
+	column closing_stock
+		dataType: int64
+		formatString: #,##0
+		lineageTag: e62a192a-f6b1-53d3-a375-b12777b3cd91
+		summarizeBy: none
+		sourceColumn: closing_stock
+
+	column net_stock_flow
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 1cc95b64-6519-5eee-aaea-1c78b8df6475
+		summarizeBy: none
+		sourceColumn: net_stock_flow
+
+	column is_low_stock
+		dataType: int64
+		formatString: 0
+		lineageTag: 9d76e0ff-b85b-5bc8-9d49-603eae4b62e9
+		summarizeBy: none
+		sourceColumn: is_low_stock
+
+	column is_stockout
+		dataType: int64
+		formatString: 0
+		lineageTag: c88a2d2f-4b6c-51fc-908c-f0d3e9b6d1ca
+		summarizeBy: none
+		sourceColumn: is_stockout
+
+	partition fact_inventory = m
+		mode: import
+		source = ```
+			let
+			    Source = trf_inventory,
+			    MergeStore = Table.NestedJoin(Source, {"store_id"}, dim_store, {"store_id"}, "StoreDim", JoinKind.LeftOuter),
+			    ExpandStore = Table.ExpandTableColumn(MergeStore, "StoreDim", {"StoreKey"}, {"StoreKey"}),
+			    MergeProd = Table.NestedJoin(ExpandStore, {"product_id"}, dim_product, {"product_id"}, "ProdDim", JoinKind.LeftOuter),
+			    ExpandProd = Table.ExpandTableColumn(MergeProd, "ProdDim", {"ProductKey"}, {"ProductKey"}),
+
+			    Projected = Table.SelectColumns(ExpandProd, {
+			        "MonthDateKey",
+			        "StoreKey",
+			        "ProductKey",
+			        "opening_stock",
+			        "received_qty",
+			        "sold_qty",
+			        "damaged_qty",
+			        "closing_stock",
+			        "net_stock_flow",
+			        "is_low_stock",
+			        "is_stockout"
+			    })
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

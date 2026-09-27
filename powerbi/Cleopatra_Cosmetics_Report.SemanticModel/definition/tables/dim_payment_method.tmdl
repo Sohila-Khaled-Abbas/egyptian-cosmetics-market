@@ -1,0 +1,63 @@
+table dim_payment_method
+	lineageTag: bb768dfb-bff5-542b-b672-6c2a9848c013
+
+	column PaymentMethodKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c533071c-0316-5494-a955-f1c141333648
+		summarizeBy: none
+		sourceColumn: PaymentMethodKey
+
+	column RawPayment
+		dataType: string
+		isHidden
+		lineageTag: 4d887130-a5c7-51bc-9f67-d12050d0fc71
+		summarizeBy: none
+		sourceColumn: RawPayment
+
+	column 'Payment Method EN'
+		dataType: string
+		lineageTag: fd3811c4-9783-5ab2-98b5-46f8cf94fdcb
+		summarizeBy: none
+		sourceColumn: 'Payment Method EN'
+
+	column 'Payment Method AR'
+		dataType: string
+		lineageTag: 2a2ee323-35a5-5580-a038-135edfa500d7
+		summarizeBy: none
+		sourceColumn: 'Payment Method AR'
+
+	column 'Payment Category'
+		dataType: string
+		lineageTag: 19d024a9-9a1b-5f1d-b441-9770de687941
+		summarizeBy: none
+		sourceColumn: 'Payment Category'
+
+	column 'Is Digital Payment'
+		dataType: boolean
+		lineageTag: 06ced013-12e4-588a-83f8-dc7bd69c0b2d
+		summarizeBy: none
+		sourceColumn: 'Is Digital Payment'
+
+	partition dim_payment_method = m
+		mode: import
+		source = ```
+			let
+			    Source = ref_payment_mapping,
+			    Deduplicated = Table.Distinct(Source, {"NormalizedPayment"}),
+			    AddKey = Table.AddIndexColumn(Deduplicated, "PaymentMethodKey", 1, 1, Int64.Type),
+			    Renamed = Table.RenameColumns(AddKey, {
+			        {"NormalizedPayment", "Payment Method EN"},
+			        {"Payment_AR", "Payment Method AR"},
+			        {"PaymentCategory", "Payment Category"},
+			        {"IsDigitalPayment", "Is Digital Payment"}
+			    }),
+			    Projected = Table.SelectColumns(Renamed, {"PaymentMethodKey", "RawPayment", "Payment Method EN", "Payment Method AR", "Payment Category", "Is Digital Payment"})
+			in
+			    Projected
+		```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

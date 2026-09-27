@@ -1,24 +1,21 @@
-/// Absolute root directory of data
 expression pRawDataPath = "D:\courses\Data Science\Data Engineering\Projects\egyptian_cosmetics_market\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 1bf8c6ba-83a0-4687-9e52-bfe2d4a53924
+	lineageTag: 0026eaf8-9116-5646-af2e-d48b576f4343
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Text
 
-/// Global calendar start boundary
 expression pStartDate = #date(2024, 1, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
-	lineageTag: 20e80de7-d60e-4435-8bdf-9777e74615ed
+	lineageTag: 7cb28a32-0e50-50ba-bc6e-3afec6dd459a
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Date
 
-/// Global calendar end boundary
 expression pEndDate = #date(2026, 12, 31) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
-	lineageTag: 1061eb28-caa7-4e55-b384-8bdc1cbe357b
+	lineageTag: 1f579e14-cab8-5d42-8636-243d67cea2ad
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
@@ -26,8 +23,7 @@ expression pEndDate = #date(2026, 12, 31) meta [IsParameterQuery=true, Type="Dat
 	annotation PBI_ResultType = Date
 
 expression fnCleanText = ```
-		let
-		    Source = (inputVal as any) as nullable text =>
+		(inputVal as any) as nullable text =>
 		let
 		    RawText = if inputVal = null then null else Text.From(inputVal),
 		    Cleaned = if RawText = null then null else
@@ -45,10 +41,8 @@ expression fnCleanText = ```
 		            FinalResult
 		in
 		    Cleaned
-		in
-		    Source
 		```
-	lineageTag: f84ccea0-befd-46c8-ba92-4a5b3451b67f
+	lineageTag: d487777f-8e7b-5729-89d2-6c9dcb5ffe7d
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
@@ -56,22 +50,19 @@ expression fnCleanText = ```
 	annotation PBI_ResultType = Function
 
 expression fnNormalizeCurrency = ```
-		let
-		    Source = (currVal as any) as text =>
+		(currVal as any) as text =>
 		let
 		    RawText = if currVal = null then "" else Text.Trim(Text.From(currVal)),
 		    Normalized = 
-		        if RawText = "EGP" or RawText = "EGP " or RawText = "جنيه" or RawText = "جنيه مصري" then "EGP"
+		        if RawText = "EGP" or RawText = "EGP " or RawText = "جنيه" or RawText = "جنيه مصري" or RawText = "LE" or RawText = "L.E." or RawText = "ج.م" then "EGP"
 		        else if RawText = "USD" or RawText = "دولار" then "USD"
 		        else if RawText = "EUR" or RawText = "يورو" then "EUR"
 		        else if RawText = "" then "EGP"
 		        else RawText
 		in
 		    Normalized
-		in
-		    Source
 		```
-	lineageTag: 884b16f2-1a3a-4ab3-a170-a79ae4f4e6f6
+	lineageTag: e806f649-5777-5367-bdd3-aeb9baf57f9b
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
@@ -79,8 +70,7 @@ expression fnNormalizeCurrency = ```
 	annotation PBI_ResultType = Function
 
 expression fnNormalizeStatus = ```
-		let
-		    Source = (statusVal as any) as text =>
+		(statusVal as any) as text =>
 		let
 		    RawText = if statusVal = null then "Unknown" else Text.Trim(Text.From(statusVal)),
 		    LowerText = Text.Lower(RawText),
@@ -92,10 +82,8 @@ expression fnNormalizeStatus = ```
 		        else RawText
 		in
 		    Normalized
-		in
-		    Source
 		```
-	lineageTag: 3f8a4120-7cd5-4e78-bc88-9bb3298a01f1
+	lineageTag: 562b1e49-8c91-5da8-9a64-10c1e543c6df
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
@@ -103,47 +91,92 @@ expression fnNormalizeStatus = ```
 	annotation PBI_ResultType = Function
 
 expression fnStandardizeGovernorate = ```
-		let
-		    Source = (govVal as any) as text =>
+		(govVal as any) as text =>
 		let
 		    Raw = if govVal = null then "Unknown" else Text.Trim(Text.From(govVal)),
 		    Proper = Text.Proper(Raw),
 		    Standardized = 
-		        if Proper = "Red Sea" or Proper = "Redsea" then "Red Sea"
-		        else if Proper = "North Sinai" or Proper = "Northsinai" then "North Sinai"
-		        else if Proper = "South Sinai" or Proper = "Southsinai" then "South Sinai"
-		        else if Proper = "Port Said" or Proper = "Portsaid" then "Port Said"
-		        else if Proper = "Kafr El Sheikh" or Proper = "Kafrelsheikh" then "Kafr El Sheikh"
+		        if Proper = "Red Sea" or Proper = "Redsea" or Proper = "البحر الأحمر" then "Red Sea"
+		        else if Proper = "North Sinai" or Proper = "Northsinai" or Proper = "شمال سيناء" then "North Sinai"
+		        else if Proper = "South Sinai" or Proper = "Southsinai" or Proper = "جنوب سيناء" then "South Sinai"
+		        else if Proper = "Port Said" or Proper = "Portsaid" or Proper = "بورسعيد" then "Port Said"
+		        else if Proper = "Kafr El Sheikh" or Proper = "Kafrelsheikh" or Proper = "كفر الشيخ" then "Kafr El Sheikh"
+		        else if Proper = "Beni Suef" or Proper = "Benisuef" or Proper = "بني سويف" then "Beni Suef"
+		        else if Proper = "Cairo" or Proper = "القاهرة" then "Cairo"
+		        else if Proper = "Giza" or Proper = "الجيزة" then "Giza"
+		        else if Proper = "Alexandria" or Proper = "الإسكندرية" then "Alexandria"
+		        else if Proper = "Dakahlia" or Proper = "الدقهلية" then "Dakahlia"
+		        else if Proper = "Sharqia" or Proper = "الشرقية" then "Sharqia"
+		        else if Proper = "Gharbia" or Proper = "الغربية" then "Gharbia"
+		        else if Proper = "Monufia" or Proper = "المنوفية" then "Monufia"
+		        else if Proper = "Qalyubia" or Proper = "القليوبية" then "Qalyubia"
+		        else if Proper = "Beheira" or Proper = "البحيرة" then "Beheira"
+		        else if Proper = "Damietta" or Proper = "دمياط" then "Damietta"
+		        else if Proper = "Ismailia" or Proper = "الإسماعيلية" then "Ismailia"
+		        else if Proper = "Suez" or Proper = "السويس" then "Suez"
+		        else if Proper = "Faiyum" or Proper = "الفيوم" then "Faiyum"
+		        else if Proper = "Minya" or Proper = "المنيا" then "Minya"
+		        else if Proper = "Asyut" or Proper = "أسيوط" then "Asyut"
+		        else if Proper = "Sohag" or Proper = "سوهاج" then "Sohag"
+		        else if Proper = "Qena" or Proper = "قنا" then "Qena"
+		        else if Proper = "Luxor" or Proper = "الأقصر" then "Luxor"
+		        else if Proper = "Aswan" or Proper = "أسوان" then "Aswan"
+		        else if Proper = "Matrouh" or Proper = "مطروح" then "Matrouh"
+		        else if Proper = "New Valley" or Proper = "الوادي الجديد" then "New Valley"
 		        else Proper
 		in
 		    Standardized
-		in
-		    Source
 		```
-	lineageTag: 4b9c5231-8de6-4f89-cd99-0cc4309b12e2
+	lineageTag: 0c010363-c33c-541e-b4fe-5f21fa3cf78e
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Function
 
-expression fnValidatePositiveNumber =
-		let
-		    Source = (val as any, minVal as number) as logical =>
+expression fnValidatePositiveNumber = ```
+		(val as any, minVal as number) as logical =>
 		let
 		    IsNumeric = try (val <> null and Number.From(val) >= minVal) otherwise false
 		in
 		    IsNumeric
-		in
-		    Source
-	lineageTag: 5c0d6342-9ef7-5a90-de00-1dd5410c23f3
+		```
+	lineageTag: 7c214130-26f7-57b9-900c-73394f720a91
 	queryGroup: '00_Parameters & Functions'
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Function
 
-expression src_customers =
+expression fnAddDataQualityFlags = ```
+		let
+		    Source = (targetTable as table, idCol as text, qtyCol as text, priceCol as text) as table =>
+		let
+		    AddQtyCheck = Table.AddColumn(targetTable, "DQ_ValidQty", each 
+		        Record.Field(_, qtyCol) <> null and Record.Field(_, qtyCol) > 0, 
+		        type logical
+		    ),
+		    AddPriceCheck = Table.AddColumn(AddQtyCheck, "DQ_ValidPrice", each 
+		        Record.Field(_, priceCol) <> null and Record.Field(_, priceCol) > 0, 
+		        type logical
+		    ),
+		    AddStatus = Table.AddColumn(AddPriceCheck, "DQ_Status", each 
+		        if [DQ_ValidQty] and [DQ_ValidPrice] then "Valid" else "Rejected", 
+		        type text
+		    )
+		in
+		    AddStatus
+		in
+		    Source
+		```
+	lineageTag: c62504d8-02b3-5222-8051-f17131378676
+	queryGroup: '00_Parameters & Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression src_customers = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -160,14 +193,15 @@ expression src_customers =
 		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: c2508279-1d99-4bb6-815e-a1e6ac7bb160
+		```
+	lineageTag: 13463d2e-22bb-581c-96ad-0ed214c11d74
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_products =
+expression src_products = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -184,14 +218,15 @@ expression src_products =
 		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: 69fbefe1-15cb-42ee-8cb2-10f709c42ad5
+		```
+	lineageTag: bf35f1fa-2e3c-5b26-9414-f54c9babbc2b
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_stores =
+expression src_stores = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -208,14 +243,15 @@ expression src_stores =
 		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: ea673537-a641-48f0-84d0-86f14ce61b21
+		```
+	lineageTag: 1ce8c37e-925d-56cf-9be3-3f61355802ab
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_orders =
+expression src_orders = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -232,14 +268,40 @@ expression src_orders =
 		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: f2d359d0-c217-449b-995e-4d796eb5c54d
+		```
+	lineageTag: c2b85282-7183-5564-8b45-447f9e29dd09
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_inventory =
+expression src_orders_historical = ```
+		let
+		    RawBase = Text.From(pRawDataPath),
+		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
+		    WithoutQuotes = Text.Trim(Text.Replace(Text.Replace(Text.Trim(WithoutMeta), """", ""), "'", "")),
+		    CleanBasePath = if Text.EndsWith(WithoutQuotes, "\") or Text.EndsWith(WithoutQuotes, "/")
+		                    then Text.Start(WithoutQuotes, Text.Length(WithoutQuotes) - 1)
+		                    else WithoutQuotes,
+		    BasePath = if Text.EndsWith(Text.Lower(CleanBasePath), "\raw") or Text.EndsWith(Text.Lower(CleanBasePath), "/raw")
+		               then CleanBasePath
+		               else CleanBasePath & "\raw",
+		    SourcePath = BasePath & "\postgres_like\orders_historical.csv",
+		    SourceBytes = File.Contents(SourcePath),
+		    RawCsv = Csv.Document(SourceBytes, [Delimiter=",", Columns=19, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
+		in
+		    PromotedHeaders
+		```
+	lineageTag: 0a4289d2-b6f1-5fa5-80e3-7c8bf9b62f51
+	queryGroup: 01_Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression src_inventory = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -256,14 +318,15 @@ expression src_inventory =
 		    PromotedHeaders = Table.PromoteHeaders(RawCsv, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: 0579f466-ba46-490c-9b46-8bfd9c11e3aa
+		```
+	lineageTag: 8586a659-57e3-5328-a0db-28b500a57b2a
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_excel_workbook =
+expression src_excel_workbook = ```
 		let
 		    RawBase = Text.From(pRawDataPath),
 		    WithoutMeta = if Text.Contains(RawBase, " meta") then Text.Trim(Text.BeforeDelimiter(RawBase, " meta")) else RawBase,
@@ -279,35 +342,38 @@ expression src_excel_workbook =
 		    WorkbookData = Excel.Workbook(SourceBytes, false, true)
 		in
 		    WorkbookData
-	lineageTag: 381b6317-7d4a-4efd-a565-33df2ee33130
+		```
+	lineageTag: 430e36f4-9034-51b7-a3d3-325c2e9a23de
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_targets =
+expression src_targets = ```
 		let
 		    Source = src_excel_workbook,
 		    TargetRow = Source{[Item="Targets", Kind="Sheet"]}[Data],
 		    PromotedHeaders = Table.PromoteHeaders(TargetRow, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: 997ee4b4-22d6-4e5c-b023-134d92fbab00
+		```
+	lineageTag: bb4e252c-e5b2-5593-a0c2-07ac1dc53b46
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression src_campaigns =
+expression src_campaigns = ```
 		let
 		    Source = src_excel_workbook,
 		    CampaignRow = Source{[Item="Campaigns", Kind="Sheet"]}[Data],
 		    PromotedHeaders = Table.PromoteHeaders(CampaignRow, [PromoteAllScalars=true])
 		in
 		    PromotedHeaders
-	lineageTag: 28480520-f07a-4674-b215-690377f14a11
+		```
+	lineageTag: 16ea97c2-7e5e-59b3-b3a0-c7e5b692a659
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
@@ -338,10 +404,949 @@ expression src_exchange_rates = ```
 		in
 		    ExpandedRecord
 		```
-	lineageTag: 63e4163c-1e17-4588-9961-bbd042ae2229
+	lineageTag: bbb36799-b28a-54e6-bf9a-51afeefa210d
 	queryGroup: 01_Source
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
+expression stg_customers = ```
+		let
+		    Source = src_customers,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"customer_id", type text},
+		        {"customer_name_ar", type text},
+		        {"customer_name_en", type text},
+		        {"gender", type text},
+		        {"birth_year", Int64.Type},
+		        {"governorate", type text},
+		        {"area", type text},
+		        {"phone", type text},
+		        {"email", type text},
+		        {"signup_date", type date},
+		        {"customer_segment", type text}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: 70f78786-289a-5b54-9944-1a8fdc8b13c9
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_products = ```
+		let
+		    Source = src_products,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"product_id", type text},
+		        {"product_name_en", type text},
+		        {"product_name_ar", type text},
+		        {"brand_en", type text},
+		        {"brand_ar", type text},
+		        {"category", type text},
+		        {"subcategory", type text},
+		        {"list_price_egp", type number},
+		        {"standard_cost_egp", type number},
+		        {"currency", type text},
+		        {"origin", type text}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: e14b15c8-a3a4-5f21-8069-d0222f5eb97b
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_stores = ```
+		let
+		    Source = src_stores,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"store_id", type text},
+		        {"store_name_en", type text},
+		        {"store_name_ar", type text},
+		        {"governorate", type text},
+		        {"area", type text},
+		        {"store_type", type text},
+		        {"distribution_region", type text}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: d04f1dcb-1c3b-5f77-b65c-adbb00c5e919
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_orders = ```
+		let
+		    Source = src_orders,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"order_id", type text},
+		        {"order_datetime", type datetime},
+		        {"customer_id", type text},
+		        {"product_id", type text},
+		        {"store_id", type text},
+		        {"campaign_id", type text},
+		        {"sales_channel_en", type text},
+		        {"sales_channel_ar", type text},
+		        {"payment_method_en", type text},
+		        {"payment_method_ar", type text},
+		        {"quantity", Int64.Type},
+		        {"unit_price_egp", type number},
+		        {"discount_pct", type number},
+		        {"gross_sales_egp", type number},
+		        {"discount_egp", type number},
+		        {"net_sales_egp", type number},
+		        {"cost_egp", type number},
+		        {"order_status", type text},
+		        {"currency", type text}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: 243d74e1-393d-5444-90a7-509f29d711dc
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_orders_historical = ```
+		let
+		    Source = src_orders_historical,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"order_id", type text},
+		        {"order_datetime", type datetime},
+		        {"customer_id", type text},
+		        {"product_id", type text},
+		        {"store_id", type text},
+		        {"campaign_id", type text},
+		        {"sales_channel_en", type text},
+		        {"sales_channel_ar", type text},
+		        {"payment_method_en", type text},
+		        {"payment_method_ar", type text},
+		        {"quantity", Int64.Type},
+		        {"unit_price_egp", type number},
+		        {"discount_pct", type number},
+		        {"gross_sales_egp", type number},
+		        {"discount_egp", type number},
+		        {"net_sales_egp", type number},
+		        {"cost_egp", type number},
+		        {"order_status", type text},
+		        {"currency", type text}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: e4b057e0-ee35-5e1e-846e-7ec23452f36e
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_orders_combined = ```
+		let
+		    Source = Table.Combine({stg_orders_historical, stg_orders})
+		in
+		    Source
+		```
+	lineageTag: a3e3a6b0-ab77-5993-ad8e-20252b5a8189
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_inventory = ```
+		let
+		    Source = src_inventory,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"month", type date},
+		        {"store_id", type text},
+		        {"product_id", type text},
+		        {"opening_stock", Int64.Type},
+		        {"received_qty", Int64.Type},
+		        {"sold_qty", Int64.Type},
+		        {"damaged_qty", Int64.Type},
+		        {"closing_stock", Int64.Type}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: 163db0ce-13bd-5d65-96b7-4893b022491c
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_targets = ```
+		let
+		    Source = src_targets,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"target_month", type date},
+		        {"store_id", type text},
+		        {"sales_target_egp", type number},
+		        {"order_target", Int64.Type}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: 833a13ee-245b-5661-90bd-849e78699f09
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_campaigns = ```
+		let
+		    Source = src_campaigns,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"campaign_id", type text},
+		        {"campaign_name_en", type text},
+		        {"campaign_name_ar", type text},
+		        {"platform", type text},
+		        {"budget_egp", type number},
+		        {"expected_conversion_rate", type number}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: 22f26b97-3343-5e03-8d04-dd27f804e549
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression stg_fx_rates = ```
+		let
+		    Source = src_exchange_rates,
+		    TrimmedHeaders = Table.TransformColumnNames(Source, Text.Trim),
+		    TypedColumns = Table.TransformColumnTypes(TrimmedHeaders, {
+		        {"base_currency", type text},
+		        {"quote_currency", type text},
+		        {"exchange_rate", type number},
+		        {"rate_date_raw", Int64.Type},
+		        {"api_timestamp", type datetimezone}
+		    }, "en-US")
+		in
+		    TypedColumns
+		```
+	lineageTag: f5272bbd-851a-54e1-9432-f37ff2b8739f
+	queryGroup: 02_Staging
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ref_currency_mapping = ```
+		let
+		    ApiUrl = "https://open.er-api.com",
+		    ApiPath = "v6/latest/USD",
+		    ApiResponse = try Json.Document(
+		        Web.Contents(
+		            ApiUrl, 
+		            [
+		                RelativePath = ApiPath,
+		                Headers = [#"Accept" = "application/json", #"User-Agent" = "PowerQuery-CleopatraBI"]
+		            ]
+		        )
+		    ) otherwise null,
+
+		    IsSuccess = ApiResponse <> null and (try ApiResponse[result] = "success" otherwise false),
+		    RatesRecord = if IsSuccess then ApiResponse[rates] else null,
+
+		    LiveRateUSD = if IsSuccess and Record.HasFields(RatesRecord, "EGP") 
+		                  then Number.Round(Record.Field(RatesRecord, "EGP"), 4) 
+		                  else 50.00,
+
+		    LiveRateEUR = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "EUR") 
+		                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "EUR"), 4) 
+		                  else 55.00,
+
+		    LiveRateGBP = if IsSuccess and Record.HasFields(RatesRecord, "EGP") and Record.HasFields(RatesRecord, "GBP") 
+		                  then Number.Round(Record.Field(RatesRecord, "EGP") / Record.Field(RatesRecord, "GBP"), 4) 
+		                  else 65.00,
+
+		    RateTimestamp = if IsSuccess and Record.HasFields(ApiResponse, "time_last_update_utc") 
+		                    then Text.From(ApiResponse[time_last_update_utc]) 
+		                    else DateTimeZone.ToText(DateTimeZone.UtcNow()),
+
+		    DataSourceTag = if IsSuccess then "Live Web API (open.er-api.com)" else "Defensive Fallback Anchor",
+
+		    CurrencyRows = {
+		        {"EGP", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+		        {"EGP ", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+		        {"جنيه", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+		        {"جنيه مصري", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+		        {"ج.م", "EGP", "Egyptian Pound", "جنيه مصري", 1.0, "Domestic Base", RateTimestamp},
+		        {"USD", "USD", "US Dollar", "دولار أمريكي", LiveRateUSD, DataSourceTag, RateTimestamp},
+		        {"EUR", "EUR", "Euro", "يورو", LiveRateEUR, DataSourceTag, RateTimestamp},
+		        {"GBP", "GBP", "British Pound", "جنيه إسترليني", LiveRateGBP, DataSourceTag, RateTimestamp}
+		    },
+
+		    Source = Table.FromRows(
+		        CurrencyRows, 
+		        {"RawCurrency", "NormalizedCurrency", "CurrencyName_EN", "CurrencyName_AR", "BaseExchangeRateToEGP", "RateSource", "LastUpdatedUtc"}
+		    ),
+
+		    Typed = Table.TransformColumnTypes(Source, {
+		        {"RawCurrency", type text},
+		        {"NormalizedCurrency", type text},
+		        {"CurrencyName_EN", type text},
+		        {"CurrencyName_AR", type text},
+		        {"BaseExchangeRateToEGP", type number},
+		        {"RateSource", type text},
+		        {"LastUpdatedUtc", type text}
+		    })
+		in
+		    Typed
+		```
+	lineageTag: 088dbd7c-b28f-5072-8ee5-65c67cc0047f
+	queryGroup: 03_Reference
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ref_status_mapping = ```
+		let
+		    Source = Table.FromRows({
+		        {"Completed", "Completed", "مكتمل", true},
+		        {"completed", "Completed", "مكتمل", true},
+		        {"Complete",  "Completed", "مكتمل", true},
+		        {"Pending",   "Pending",   "قيد التنفيذ", false},
+		        {"Cancelled", "Cancelled", "ملغي", false},
+		        {"Returned",  "Returned",  "مرتجع", false}
+		    }, {"RawStatus", "NormalizedStatus", "Status_AR", "IsRevenueRecognized"}),
+		    Typed = Table.TransformColumnTypes(Source, {
+		        {"RawStatus", type text},
+		        {"NormalizedStatus", type text},
+		        {"Status_AR", type text},
+		        {"IsRevenueRecognized", type logical}
+		    })
+		in
+		    Typed
+		```
+	lineageTag: 55eb517d-a28b-50b1-bb42-f1f772bb542d
+	queryGroup: 03_Reference
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ref_governorate_mapping = ```
+		let
+		    Source = Table.FromRows({
+		        {"Cairo", "Cairo", "القاهرة", "Cairo Region", "Cairo Hub"},
+		        {"cairo", "Cairo", "القاهرة", "Cairo Region", "Cairo Hub"},
+		        {"Giza", "Giza", "الجيزة", "Cairo Region", "Delta Hub"},
+		        {"giza", "Giza", "الجيزة", "Cairo Region", "Delta Hub"},
+		        {"Alexandria", "Alexandria", "الإسكندرية", "Alexandria Region", "Delta Hub"},
+		        {"Dakahlia", "Dakahlia", "الدقهلية", "Delta Region", "Canal Hub"},
+		        {"Gharbia", "Gharbia", "الغربية", "Delta Region", "Cairo Hub"},
+		        {"Sharqia", "Sharqia", "الشرقية", "Delta Region", "Cairo Hub"},
+		        {"Qalyubia", "Qalyubia", "القليوبية", "Cairo Region", "Upper Egypt Hub"},
+		        {"Damietta", "Damietta", "دمياط", "Delta Region", "Canal Hub"},
+		        {"Beheira", "Beheira", "البحيرة", "Delta Region", "Delta Hub"},
+		        {"Ismailia", "Ismailia", "الإسماعيلية", "Canal Region", "Canal Hub"},
+		        {"Suez", "Suez", "السويس", "Canal Region", "Canal Hub"},
+		        {"Port Said", "Port Said", "بورسعيد", "Canal Region", "Canal Hub"},
+		        {"Fayoum", "Fayoum", "الفيوم", "Northern Upper Egypt", "Upper Egypt Hub"},
+		        {"Minya", "Minya", "المنيا", "Northern Upper Egypt", "Upper Egypt Hub"},
+		        {"Assiut", "Assiut", "أسيوط", "Central Upper Egypt", "Upper Egypt Hub"},
+		        {"Sohag", "Sohag", "سوهاج", "Southern Upper Egypt", "Upper Egypt Hub"},
+		        {"sohag", "Sohag", "سوهاج", "Southern Upper Egypt", "Upper Egypt Hub"},
+		        {"Qena", "Qena", "قنا", "Southern Upper Egypt", "Upper Egypt Hub"},
+		        {"Luxor", "Luxor", "الأقصر", "Southern Upper Egypt", "Upper Egypt Hub"},
+		        {"Aswan", "Aswan", "أسوان", "Southern Upper Egypt", "Upper Egypt Hub"},
+		        {"Red Sea", "Red Sea", "البحر الأحمر", "Frontier Region", "Upper Egypt Hub"},
+		        {"North Sinai", "North Sinai", "شمال سيناء", "Frontier Region", "Canal Hub"},
+		        {"South Sinai", "South Sinai", "جنوب سيناء", "Frontier Region", "Delta Hub"}
+		    }, {"RawGovernorate", "NormalizedGovernorate", "Governorate_AR", "EconomicRegion", "DefaultHub"}),
+		    Typed = Table.TransformColumnTypes(Source, {
+		        {"RawGovernorate", type text},
+		        {"NormalizedGovernorate", type text},
+		        {"Governorate_AR", type text},
+		        {"EconomicRegion", type text},
+		        {"DefaultHub", type text}
+		    })
+		in
+		    Typed
+		```
+	lineageTag: 4f0e203e-0f0c-5ecb-90e7-c2a17f476645
+	queryGroup: 03_Reference
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ref_channel_mapping = ```
+		let
+		    Source = Table.FromRows({
+		        {"Website", "Website", "الموقع الإلكتروني", "Digital Direct"},
+		        {"Instagram", "Instagram", "إنستجرام", "Social Commerce"},
+		        {"Facebook", "Facebook", "فيسبوك", "Social Commerce"},
+		        {"TikTok", "TikTok", "تيك توك", "Social Commerce"},
+		        {"Jumia", "Jumia", "جوميا", "Marketplace"},
+		        {"Amazon Egypt", "Amazon Egypt", "أمازون مصر", "Marketplace"},
+		        {"Noon", "Noon", "نون", "Marketplace"},
+		        {"Retail Store", "Retail Store", "فرع", "Physical Retail"},
+		        {"Pharmacy", "Pharmacy", "صيدلية", "Physical Retail"},
+		        {"Marketplace", "Marketplace", "ماركت بليس", "Marketplace"}
+		    }, {"RawChannel", "NormalizedChannel", "Channel_AR", "ChannelGroup"}),
+		    Typed = Table.TransformColumnTypes(Source, {
+		        {"RawChannel", type text},
+		        {"NormalizedChannel", type text},
+		        {"Channel_AR", type text},
+		        {"ChannelGroup", type text}
+		    })
+		in
+		    Typed
+		```
+	lineageTag: f4d5fc22-dbc9-5631-929d-7f0b205ff9d3
+	queryGroup: 03_Reference
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ref_payment_mapping = ```
+		let
+		    Source = Table.FromRows({
+		        {"Cash on Delivery", "Cash on Delivery", "الدفع عند الاستلام", "Cash", false},
+		        {"Vodafone Cash", "Vodafone Cash", "فودافون كاش", "Mobile Wallet", true},
+		        {"InstaPay", "InstaPay", "إنستاباي", "Instant Banking", true},
+		        {"Credit Card", "Credit Card", "بطاقة ائتمان", "Card", true},
+		        {"Debit Card", "Debit Card", "بطاقة خصم", "Card", true},
+		        {"Meeza", "Meeza", "ميزة", "National Card", true}
+		    }, {"RawPayment", "NormalizedPayment", "Payment_AR", "PaymentCategory", "IsDigitalPayment"}),
+		    Typed = Table.TransformColumnTypes(Source, {
+		        {"RawPayment", type text},
+		        {"NormalizedPayment", type text},
+		        {"Payment_AR", type text},
+		        {"PaymentCategory", type text},
+		        {"IsDigitalPayment", type logical}
+		    })
+		in
+		    Typed
+		```
+	lineageTag: fcd32fbf-4050-5963-9fbc-e6939b12396d
+	queryGroup: 03_Reference
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_customers = ```
+		let
+		    Source = stg_customers,
+
+		    TrimmedText = Table.TransformColumns(Source, {
+		        {"customer_name_ar", fnCleanText, type text},
+		        {"customer_name_en", fnCleanText, type text},
+		        {"governorate", fnStandardizeGovernorate, type text},
+		        {"area", fnCleanText, type text},
+		        {"customer_segment", fnCleanText, type text}
+		    }),
+
+		    CleanedEmail = Table.TransformColumns(TrimmedText, {
+		        {"email", each if _ = null or Text.Trim(_) = "" then null else Text.Lower(Text.Trim(_)), type text}
+		    }),
+
+		    CleanedPhone = Table.TransformColumns(CleanedEmail, {
+		        {"phone", each 
+		            if _ = null or Text.Trim(_) = "" then null
+		            else 
+		                let 
+		                    rawDigits = Text.Select(_, {"0".."9"}),
+		                    normalized = if Text.StartsWith(rawDigits, "20") and Text.Length(rawDigits) = 12 
+		                                 then "0" & Text.Range(rawDigits, 2)
+		                                 else rawDigits
+		                in 
+		                    normalized, 
+		            type text}
+		    })
+		in
+		    CleanedPhone
+		```
+	lineageTag: ebbd4389-186a-5451-a1a2-6fb11570ac76
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_products = ```
+		let
+		    Source = stg_products,
+		    NormalizedCurrency = Table.TransformColumns(Source, {
+		        {"currency", fnNormalizeCurrency, type text},
+		        {"product_name_en", fnCleanText, type text},
+		        {"product_name_ar", fnCleanText, type text},
+		        {"brand_en", fnCleanText, type text},
+		        {"brand_ar", fnCleanText, type text},
+		        {"category", fnCleanText, type text},
+		        {"subcategory", fnCleanText, type text},
+		        {"origin", fnCleanText, type text}
+		    })
+		in
+		    NormalizedCurrency
+		```
+	lineageTag: 7495d257-6fd5-5774-a769-f51fd56aa906
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_stores = ```
+		let
+		    Source = stg_stores,
+		    CleanedColumns = Table.TransformColumns(Source, {
+		        {"store_name_en", fnCleanText, type text},
+		        {"store_name_ar", fnCleanText, type text},
+		        {"governorate", fnStandardizeGovernorate, type text},
+		        {"area", fnCleanText, type text},
+		        {"store_type", fnCleanText, type text},
+		        {"distribution_region", fnCleanText, type text}
+		    })
+		in
+		    CleanedColumns
+		```
+	lineageTag: 522b234c-fa0f-5d0f-8be9-05f3204765dc
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_orders = ```
+		let
+		    Source = try stg_orders_combined otherwise stg_orders,
+		    NormalizedColumns = Table.TransformColumns(Source, {
+		        {"order_status", fnNormalizeStatus, type text},
+		        {"currency", fnNormalizeCurrency, type text},
+		        {"sales_channel_en", fnCleanText, type text},
+		        {"sales_channel_ar", fnCleanText, type text},
+		        {"payment_method_en", fnCleanText, type text},
+		        {"payment_method_ar", fnCleanText, type text},
+		        {"campaign_id", each 
+		            let
+		                raw = if _ = null then "" else Text.Trim(Text.From(_)),
+		                mapped = 
+		                    if raw = "" or raw = null then "CMP006"
+		                    else if Text.StartsWith(raw, "CAMP0") then "CMP00" & Text.End(raw, 1)
+		                    else if Text.StartsWith(raw, "CAMP") then Text.Replace(raw, "CAMP", "CMP00")
+		                    else raw
+		            in
+		                mapped, 
+		            type text
+		        }
+		    })
+		in
+		    NormalizedColumns
+		```
+	lineageTag: 80b48d9f-83b6-531b-96b5-461b3c80d213
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_inventory = ```
+		let
+		    Source = stg_inventory,
+		    TrimmedKeys = Table.TransformColumns(Source, {
+		        {"store_id", Text.Trim, type text},
+		        {"product_id", Text.Trim, type text}
+		    })
+		in
+		    TrimmedKeys
+		```
+	lineageTag: e0db9a26-1a0c-5f4c-b267-fc5a1a071d7e
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_targets = ```
+		let
+		    Source = stg_targets,
+		    TrimmedKeys = Table.TransformColumns(Source, {
+		        {"store_id", Text.Trim, type text}
+		    })
+		in
+		    TrimmedKeys
+		```
+	lineageTag: 897a0c55-e2f0-55e8-bda4-c6948aa3a5bc
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_campaigns = ```
+		let
+		    Source = stg_campaigns,
+		    CleanedColumns = Table.TransformColumns(Source, {
+		        {"campaign_id", Text.Trim, type text},
+		        {"campaign_name_en", fnCleanText, type text},
+		        {"campaign_name_ar", fnCleanText, type text},
+		        {"platform", fnCleanText, type text}
+		    })
+		in
+		    CleanedColumns
+		```
+	lineageTag: d68c5479-0930-56fc-8254-184dcd6bb176
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression cln_fx_rates = ```
+		let
+		    Source = stg_fx_rates,
+		    CleanedCurrencies = Table.TransformColumns(Source, {
+		        {"base_currency", each Text.Upper(Text.Trim(_)), type text},
+		        {"quote_currency", each Text.Upper(Text.Trim(_)), type text}
+		    })
+		in
+		    CleanedCurrencies
+		```
+	lineageTag: e87cb33d-d49c-54b6-a35c-dacab9b6818e
+	queryGroup: 04_Cleansed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_orders_prep = ```
+		let
+		    Source = cln_orders,
+
+		    ValidCustomerKeys = List.Buffer(cln_customers[customer_id]),
+		    ValidProductKeys  = List.Buffer(cln_products[product_id]),
+		    ValidStoreKeys    = List.Buffer(cln_stores[store_id]),
+
+		    OrderCounts = Table.Group(Source, {"order_id"}, {{"Count", Table.RowCount, Int64.Type}}),
+		    DupOrderKeys = List.Buffer(Table.SelectRows(OrderCounts, each [Count] > 1)[order_id]),
+
+		    Add_PK_Valid = Table.AddColumn(Source, "OrderID_Valid", each not List.Contains(DupOrderKeys, [order_id]), type logical),
+		    Add_Cust_Valid = Table.AddColumn(Add_PK_Valid, "CustomerID_Valid", each List.Contains(ValidCustomerKeys, [customer_id]), type logical),
+		    Add_Prod_Valid = Table.AddColumn(Add_Cust_Valid, "ProductID_Valid", each List.Contains(ValidProductKeys, [product_id]), type logical),
+		    Add_Store_Valid = Table.AddColumn(Add_Prod_Valid, "StoreID_Valid", each List.Contains(ValidStoreKeys, [store_id]), type logical),
+		    Add_Qty_Valid = Table.AddColumn(Add_Store_Valid, "Quantity_Valid", each [quantity] <> null and [quantity] > 0, type logical),
+		    Add_Price_Valid = Table.AddColumn(Add_Qty_Valid, "Price_Valid", each [unit_price_egp] <> null and [unit_price_egp] > 0, type logical),
+		    Add_Date_Valid = Table.AddColumn(Add_Price_Valid, "Date_Valid", each 
+		        [order_datetime] <> null 
+		        and [order_datetime] >= #datetime(2023, 1, 1, 0, 0, 0) 
+		        and [order_datetime] <= #datetime(2025, 12, 31, 23, 59, 59), 
+		        type logical
+		    ),
+		    Add_Curr_Valid = Table.AddColumn(Add_Date_Valid, "Currency_Valid", each [currency] = "EGP", type logical),
+		    Add_Status_Valid = Table.AddColumn(Add_Curr_Valid, "Status_Valid", each List.Contains({"Completed", "Cancelled", "Returned", "Pending"}, [order_status]), type logical),
+
+		    Add_Reasons = Table.AddColumn(Add_Status_Valid, "DataQualityReason", each 
+		        let
+		            reasons = {}
+		                & (if not [OrderID_Valid] then {"Duplicate Order ID"} else {})
+		                & (if not [CustomerID_Valid] then {"Invalid Customer FK"} else {})
+		                & (if not [ProductID_Valid] then {"Invalid Product FK"} else {})
+		                & (if not [StoreID_Valid] then {"Invalid Store FK"} else {})
+		                & (if not [Quantity_Valid] then {"Invalid Quantity (<= 0)"} else {})
+		                & (if not [Price_Valid] then {"Invalid Unit Price (<= 0)"} else {})
+		                & (if not [Date_Valid] then {"Date Out of Range (1900 or Future)"} else {})
+		                & (if not [Currency_Valid] then {"Non-Standard Currency"} else {})
+		                & (if not [Status_Valid] then {"Unknown Order Status"} else {})
+		        in
+		            if List.IsEmpty(reasons) then "None" else Text.Combine(reasons, "; "), 
+		        type text
+		    ),
+
+		    Add_Status = Table.AddColumn(Add_Reasons, "DataQualityStatus", each 
+		        if not [OrderID_Valid] or not [CustomerID_Valid] or not [ProductID_Valid] or not [StoreID_Valid] 
+		           or not [Quantity_Valid] or not [Price_Valid] or not [Date_Valid] then "Rejected"
+		        else if not [Currency_Valid] or not [Status_Valid] then "Warning"
+		        else "Valid",
+		        type text
+		    )
+		in
+		    Add_Status
+		```
+	lineageTag: 3b0bbe47-7e58-5774-a2ba-5f5c4ef3701d
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_orders = ```
+		let
+		    Source = vld_orders_prep,
+		    FilteredValid = Table.SelectRows(Source, each [DataQualityStatus] = "Valid")
+		in
+		    FilteredValid
+		```
+	lineageTag: e4cc1b7c-63a6-58e5-acaf-f505500429ba
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_customers_prep = ```
+		let
+		    Source = cln_customers,
+		    Grouped = Table.Group(Source, {"customer_id"}, {{"Count", Table.RowCount, Int64.Type}}),
+		    DupKeys = List.Buffer(Table.SelectRows(Grouped, each [Count] > 1)[customer_id]),
+
+		    Add_PK = Table.AddColumn(Source, "CustomerID_Valid", each not List.Contains(DupKeys, [customer_id]), type logical),
+		    Add_Contact = Table.AddColumn(Add_PK, "Contact_Valid", each [phone] <> null and [email] <> null, type logical),
+
+		    Add_Reason = Table.AddColumn(Add_Contact, "DataQualityReason", each 
+		        if not [CustomerID_Valid] then "Duplicate Customer ID"
+		        else if not [Contact_Valid] then "Missing Contact Info (Phone or Email)"
+		        else "None", type text
+		    ),
+
+		    Add_Status = Table.AddColumn(Add_Reason, "DataQualityStatus", each 
+		        if not [CustomerID_Valid] then "Rejected"
+		        else if not [Contact_Valid] then "Warning"
+		        else "Valid", type text
+		    )
+		in
+		    Add_Status
+		```
+	lineageTag: 91f40e7f-736b-5ed3-ac8f-6d539303f3b0
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_customers = ```
+		let
+		    Source = vld_customers_prep,
+		    Filtered = Table.Distinct(Source, {"customer_id"})
+		in
+		    Filtered
+		```
+	lineageTag: 5b735b88-6b33-5a9c-a73a-3c4b9adad370
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_inventory_prep = ```
+		let
+		    Source = cln_inventory,
+		    Add_StockValid = Table.AddColumn(Source, "ClosingStock_Valid", each [closing_stock] >= 0, type logical),
+		    Add_DamagedValid = Table.AddColumn(Add_StockValid, "DamagedQty_Valid", each [damaged_qty] >= 0, type logical),
+
+		    Add_Reason = Table.AddColumn(Add_DamagedValid, "DataQualityReason", each 
+		        if not [ClosingStock_Valid] and not [DamagedQty_Valid] then "Negative Stock & Negative Damaged"
+		        else if not [ClosingStock_Valid] then "Negative Closing Stock"
+		        else if not [DamagedQty_Valid] then "Negative Damaged Qty"
+		        else "None", type text
+		    ),
+
+		    Add_Status = Table.AddColumn(Add_Reason, "DataQualityStatus", each 
+		        if not [ClosingStock_Valid] or not [DamagedQty_Valid] then "Rejected" else "Valid", type text
+		    )
+		in
+		    Add_Status
+		```
+	lineageTag: d440e813-9054-5e4d-93ac-f0835bd84adc
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_inventory = ```
+		let
+		    Source = vld_inventory_prep,
+		    FilteredValid = Table.SelectRows(Source, each [DataQualityStatus] = "Valid")
+		in
+		    FilteredValid
+		```
+	lineageTag: 87f1e22b-134f-57e7-88f3-9e640d0f5eee
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression vld_targets = ```
+		let
+		    Source = cln_targets,
+		    Sorted = Table.Sort(Source, {{"target_month", Order.Ascending}, {"store_id", Order.Ascending}, {"sales_target_egp", Order.Descending}}),
+		    Deduplicated = Table.Distinct(Sorted, {"store_id", "target_month"})
+		in
+		    Deduplicated
+		```
+	lineageTag: 741c7ff5-5039-54a4-87fd-a4cad2292a3b
+	queryGroup: 05_Validated
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression trf_sales = ```
+		let
+		    Source = vld_orders,
+
+		    MergedProduct = Table.NestedJoin(
+		        Source, {"product_id"}, 
+		        cln_products, {"product_id"}, 
+		        "ProductRef", 
+		        JoinKind.LeftOuter
+		    ),
+		    ExpandedProduct = Table.ExpandTableColumn(
+		        MergedProduct, 
+		        "ProductRef", 
+		        {"standard_cost_egp"}, 
+		        {"product_standard_cost_egp"}
+		    ),
+
+		    Add_Gross = Table.AddColumn(ExpandedProduct, "calc_gross_sales_egp", each 
+		        Number.Round([quantity] * [unit_price_egp], 2), 
+		        Currency.Type
+		    ),
+		    Add_Discount = Table.AddColumn(Add_Gross, "calc_discount_egp", each 
+		        Number.Round([calc_gross_sales_egp] * [discount_pct], 2), 
+		        Currency.Type
+		    ),
+		    Add_Net = Table.AddColumn(Add_Discount, "calc_net_sales_egp", each 
+		        Number.Round([calc_gross_sales_egp] - [calc_discount_egp], 2), 
+		        Currency.Type
+		    ),
+		    Add_Cost = Table.AddColumn(Add_Net, "calc_cost_egp", each 
+		        Number.Round([quantity] * [product_standard_cost_egp], 2), 
+		        Currency.Type
+		    ),
+		    Add_Profit = Table.AddColumn(Add_Cost, "calc_gross_profit_egp", each 
+		        Number.Round([calc_net_sales_egp] - [calc_cost_egp], 2), 
+		        Currency.Type
+		    ),
+
+		    Add_DateKey = Table.AddColumn(Add_Profit, "OrderDateKey", each 
+		        Date.Year(DateTime.Date([order_datetime])) * 10000 + 
+		        Date.Month(DateTime.Date([order_datetime])) * 100 + 
+		        Date.Day(DateTime.Date([order_datetime])), 
+		        Int64.Type
+		    ),
+
+		    ProjectedColumns = Table.SelectColumns(Add_DateKey, {
+		        "order_id",
+		        "order_datetime",
+		        "OrderDateKey",
+		        "customer_id",
+		        "product_id",
+		        "store_id",
+		        "campaign_id",
+		        "sales_channel_en",
+		        "sales_channel_ar",
+		        "payment_method_en",
+		        "payment_method_ar",
+		        "order_status",
+		        "quantity",
+		        "unit_price_egp",
+		        "discount_pct",
+		        "calc_gross_sales_egp",
+		        "calc_discount_egp",
+		        "calc_net_sales_egp",
+		        "calc_cost_egp",
+		        "calc_gross_profit_egp"
+		    }),
+
+		    RenamedColumns = Table.RenameColumns(ProjectedColumns, {
+		        {"calc_gross_sales_egp", "gross_sales_egp"},
+		        {"calc_discount_egp", "discount_egp"},
+		        {"calc_net_sales_egp", "net_sales_egp"},
+		        {"calc_cost_egp", "cost_egp"},
+		        {"calc_gross_profit_egp", "gross_profit_egp"}
+		    })
+		in
+		    RenamedColumns
+		```
+	lineageTag: e7b7a891-2f66-570c-8477-5c38175c3dda
+	queryGroup: 06_Transformations
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression trf_inventory = ```
+		let
+		    Source = vld_inventory,
+
+		    Add_MonthKey = Table.AddColumn(Source, "MonthDateKey", each 
+		        Date.Year([month]) * 10000 + Date.Month([month]) * 100 + 1, 
+		        Int64.Type
+		    ),
+
+		    Add_NetChange = Table.AddColumn(Add_MonthKey, "net_stock_flow", each 
+		        [received_qty] - [sold_qty] - [damaged_qty], 
+		        Int64.Type
+		    ),
+
+		    Add_LowStockFlag = Table.AddColumn(Add_NetChange, "is_low_stock", each 
+		        if [closing_stock] <= 15 then 1 else 0, 
+		        Int64.Type
+		    ),
+
+		    Add_StockoutFlag = Table.AddColumn(Add_LowStockFlag, "is_stockout", each 
+		        if [closing_stock] = 0 then 1 else 0, 
+		        Int64.Type
+		    )
+		in
+		    Add_StockoutFlag
+		```
+	lineageTag: 4b8ab368-9e70-5ac1-8a15-c94f84cc9003
+	queryGroup: 06_Transformations
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression trf_targets = ```
+		let
+		    Source = vld_targets,
+
+		    Add_TargetKey = Table.AddColumn(Source, "TargetDateKey", each 
+		        Date.Year([target_month]) * 10000 + Date.Month([target_month]) * 100 + 1, 
+		        Int64.Type
+		    )
+		in
+		    Add_TargetKey
+		```
+	lineageTag: 3287835b-a58a-502a-b819-d67a3e0ac138
+	queryGroup: 06_Transformations
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
