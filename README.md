@@ -10,7 +10,7 @@
 [![Power Query M](https://img.shields.io/badge/Power_Query_M-ETL_Engine-23714A?style=for-the-badge&logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/powerquery-m/)
 [![DAX Semantic Layer](https://img.shields.io/badge/DAX-55%2B_Measures-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://learn.microsoft.com/en-us/dax/)
 [![Data Quality Score](https://img.shields.io/badge/DQ_Health_Index-99.14%25-success?style=for-the-badge&logo=shield&logoColor=white)](#-data-quality-framework--quarantine-ledger)
-[![CI Tests Passing](https://img.shields.io/badge/CI_Tests-40_Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-automated-testing--ci)
+[![CI Data & Code Validation](https://github.com/Sohila-Khaled-Abbas/egyptian-cosmetics-market/actions/workflows/ci_data_validation.yml/badge.svg?branch=master)](https://github.com/Sohila-Khaled-Abbas/egyptian-cosmetics-market/actions/workflows/ci_data_validation.yml)
 [![Star Schema](https://img.shields.io/badge/Architecture-Kimball_Star_Schema-blueviolet?style=for-the-badge)](#-kimball-star-schema-data-warehouse)
 [![Market](https://img.shields.io/badge/Market-Egypt_%F0%9F%87%AA%F0%9F%87%AC-red?style=for-the-badge)](#-business-scenario)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
